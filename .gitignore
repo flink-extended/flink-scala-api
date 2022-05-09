@@ -1,0 +1,8 @@
+.idea
+project/project
+project/target
+target
+.DS_STORE
+.git
+.bsp
+.run
