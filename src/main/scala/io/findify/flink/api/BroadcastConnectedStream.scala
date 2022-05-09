@@ -1,11 +1,11 @@
 package io.findify.flink.api
 
+import org.apache.flink.annotation.PublicEvolving
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.streaming.api.datastream.{BroadcastConnectedStream, DataStream}
+import org.apache.flink.streaming.api.datastream.{BroadcastConnectedStream => JavaBCStream}
 import org.apache.flink.streaming.api.functions.co.{BroadcastProcessFunction, KeyedBroadcastProcessFunction}
 
-trait BroadcastConnectedStreamOps[IN1, IN2] {
-  def stream: BroadcastConnectedStream[IN1, IN2]
+class BroadcastConnectedStream[IN1, IN2](javaStream: JavaBCStream[IN1, IN2]) {
 
   /** Assumes as inputs a [[org.apache.flink.streaming.api.datastream.BroadcastStream]] and a [[KeyedStream]] and
     * applies the given [[KeyedBroadcastProcessFunction]] on them, thereby creating a transformed output stream.
@@ -19,9 +19,15 @@ trait BroadcastConnectedStreamOps[IN1, IN2] {
     * @return
     *   The transformed [[DataStream]].
     */
+  @PublicEvolving
   def process[KS, OUT: TypeInformation](function: KeyedBroadcastProcessFunction[KS, IN1, IN2, OUT]): DataStream[OUT] = {
+
+    if (function == null) {
+      throw new NullPointerException("KeyedBroadcastProcessFunction function must not be null.")
+    }
+
     val outputTypeInfo: TypeInformation[OUT] = implicitly[TypeInformation[OUT]]
-    stream.process(function, outputTypeInfo)
+    asScalaStream(javaStream.process(function, outputTypeInfo))
   }
 
   /** Assumes as inputs a [[org.apache.flink.streaming.api.datastream.BroadcastStream]] and a non-keyed [[DataStream]]
@@ -35,8 +41,21 @@ trait BroadcastConnectedStreamOps[IN1, IN2] {
     * @return
     *   The transformed { @link DataStream}.
     */
+  @PublicEvolving
   def process[OUT: TypeInformation](function: BroadcastProcessFunction[IN1, IN2, OUT]): DataStream[OUT] = {
+
+    if (function == null) {
+      throw new NullPointerException("BroadcastProcessFunction function must not be null.")
+    }
+
     val outputTypeInfo: TypeInformation[OUT] = implicitly[TypeInformation[OUT]]
-    stream.process(function, outputTypeInfo)
+    asScalaStream(javaStream.process(function, outputTypeInfo))
+  }
+
+  /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
+    * [[org.apache.flink.api.common.ExecutionConfig]]
+    */
+  private[flink] def clean[F <: AnyRef](f: F) = {
+    new StreamExecutionEnvironment(javaStream.getExecutionEnvironment).scalaClean(f)
   }
 }

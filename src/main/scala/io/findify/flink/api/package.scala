@@ -1,32 +1,58 @@
 package io.findify.flink
 
-import org.apache.flink.streaming.api.datastream.{
-  BroadcastConnectedStream,
-  ConnectedStreams,
-  DataStream,
-  DataStreamSource,
-  JoinedStreams,
-  KeyedStream,
-  WindowedStream
-}
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
-import org.apache.flink.streaming.api.windowing.windows.Window
+import io.findify.flinkadt.api.typeinfo.CaseClassTypeInfo
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.streaming.api.datastream.{DataStream => JavaStream}
+import org.apache.flink.streaming.api.datastream.{ConnectedStreams => ConnectedJavaStreams}
+import org.apache.flink.streaming.api.datastream.{BroadcastConnectedStream => BroadcastConnectedJavaStreams}
+import org.apache.flink.streaming.api.datastream.{KeyedStream => KeyedJavaStream}
+
+import language.implicitConversions
+import language.experimental.macros
 
 package object api {
-  implicit class ScalaDataStream[T](val stream: DataStream[T])             extends DataStreamOps[T]
-  implicit class ScalaKeyedDataStream[T, K](val stream: KeyedStream[T, K]) extends KeyedStreamOps[T, K]
-  implicit class ScalaDataStreamSource[T](val stream: DataStreamSource[T]) extends DataStreamOps[T]
-  implicit class ScalaConnectedStream[IN1, IN2](val stream: ConnectedStreams[IN1, IN2])
-      extends ConnectedStreamsOps[IN1, IN2]
 
-  implicit class ScalaStreamExecutionEnvironment(val env: StreamExecutionEnvironment)
-      extends StreamExecutionEnvironmentOps
+  /** Converts an [[org.apache.flink.streaming.api.datastream.DataStream]] to a
+    * [[org.apache.flink.streaming.api.scala.DataStream]].
+    */
+  def asScalaStream[R](stream: JavaStream[R]) = new DataStream[R](stream)
 
-  implicit class ScalaBroadcastConnectedStream[IN1, IN2](val stream: BroadcastConnectedStream[IN1, IN2])
-      extends BroadcastConnectedStreamOps[IN1, IN2]
+  /** Converts an [[org.apache.flink.streaming.api.datastream.KeyedStream]] to a
+    * [[org.apache.flink.streaming.api.scala.KeyedStream]].
+    */
+  def asScalaStream[R, K](stream: KeyedJavaStream[R, K]) = new KeyedStream[R, K](stream)
 
-  implicit class ScalaJoinedStream[IN1, IN2](val stream: JoinedStreams[IN1, IN2]) extends JoinedStreamsOps[IN1, IN2]
+  /** Converts an [[org.apache.flink.streaming.api.datastream.ConnectedStreams]] to a
+    * [[org.apache.flink.streaming.api.scala.ConnectedStreams]].
+    */
+  def asScalaStream[IN1, IN2](stream: ConnectedJavaStreams[IN1, IN2]) = new ConnectedStreams[IN1, IN2](stream)
 
-  implicit class ScalaWindowedStream[T, K, W <: Window](val stream: WindowedStream[T, K, W])
-      extends WindowedStreamOps[T, K, W]
+  /** Converts an [[org.apache.flink.streaming.api.datastream.BroadcastConnectedStream]] to a
+    * [[org.apache.flink.streaming.api.scala.BroadcastConnectedStream]].
+    */
+  def asScalaStream[IN1, IN2](stream: BroadcastConnectedJavaStreams[IN1, IN2]) =
+    new BroadcastConnectedStream[IN1, IN2](stream)
+
+  private[flink] def fieldNames2Indices(typeInfo: TypeInformation[_], fields: Array[String]): Array[Int] = {
+    typeInfo match {
+      case ti: CaseClassTypeInfo[_] =>
+        val result = ti.getFieldIndices(fields)
+
+        if (result.contains(-1)) {
+          throw new IllegalArgumentException(
+            "Fields '" + fields.mkString(", ") +
+              "' are not valid for '" + ti.toString + "'."
+          )
+        }
+
+        result
+
+      case _ =>
+        throw new UnsupportedOperationException(
+          "Specifying fields by name is only" +
+            "supported on Case Classes (for now)."
+        )
+    }
+  }
+
 }

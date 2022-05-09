@@ -1,11 +1,14 @@
 package io.findify.flink.api
 
-import io.findify.flink.ClosureCleaner
+import org.apache.flink.annotation.{PublicEvolving, Public}
 import org.apache.flink.api.common.functions.{FlatJoinFunction, JoinFunction}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
-import org.apache.flink.streaming.api.datastream.{CoGroupedStreams, DataStream, JoinedStreams}
+import org.apache.flink.streaming.api.datastream.{
+  JoinedStreams => JavaJoinedStreams,
+  CoGroupedStreams => JavaCoGroupedStreams
+}
 import org.apache.flink.streaming.api.windowing.assigners.WindowAssigner
 import org.apache.flink.streaming.api.windowing.evictors.Evictor
 import org.apache.flink.streaming.api.windowing.time.Time
@@ -13,27 +16,36 @@ import org.apache.flink.streaming.api.windowing.triggers.Trigger
 import org.apache.flink.streaming.api.windowing.windows.Window
 import org.apache.flink.util.Collector
 
-trait JoinedStreamsOps[T1, T2] {
-  def stream: JoinedStreams[T1, T2]
-  lazy val input1: DataStream[T1] = getUnderlyingStreamUnsafe("input1")
-  lazy val input2: DataStream[T2] = getUnderlyingStreamUnsafe("input2")
-
-  /** Pulls the underlying substreams via reflection. A terrible hack, but flink's JoinedStreams marks these fields
-    * private
-    * @param name
-    * @tparam T
-    * @return
-    */
-  private def getUnderlyingStreamUnsafe[T](name: String) = {
-    val field = stream.getClass.getDeclaredField(name)
-    field.setAccessible(true)
-    field.get(stream).asInstanceOf[DataStream[T]]
-  }
+/** `JoinedStreams` represents two [[DataStream]]s that have been joined. A streaming join operation is evaluated over
+  * elements in a window.
+  *
+  * To finalize the join operation you also need to specify a [[KeySelector]] for both the first and second input and a
+  * [[WindowAssigner]]
+  *
+  * Note: Right now, the groups are being built in memory so you need to ensure that they don't get too big. Otherwise
+  * the JVM might crash.
+  *
+  * Example:
+  *
+  * {{{
+  * val one: DataStream[(String, Int)]  = ...
+  * val two: DataStream[(String, Int)] = ...
+  *
+  * val result = one.join(two)
+  *     .where {t => ... }
+  *     .equal {t => ... }
+  *     .window(TumblingEventTimeWindows.of(Time.of(5, TimeUnit.SECONDS)))
+  *     .apply(new MyJoinFunction())
+  * }
+  * }}}
+  */
+@Public
+class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
 
   /** Specifies a [[KeySelector]] for elements from the first input.
     */
   def where[KEY: TypeInformation](keySelector: T1 => KEY): Where[KEY] = {
-    val cleanFun = ClosureCleaner.clean(keySelector)
+    val cleanFun = clean(keySelector)
     val keyType  = implicitly[TypeInformation[KEY]]
     val javaSelector = new KeySelector[T1, KEY] with ResultTypeQueryable[KEY] {
       def getKey(in: T1)                                 = cleanFun(in)
@@ -55,7 +67,7 @@ trait JoinedStreamsOps[T1, T2] {
     /** Specifies a [[KeySelector]] for elements from the second input.
       */
     def equalTo(keySelector: T2 => KEY): EqualTo = {
-      val cleanFun     = ClosureCleaner.clean(keySelector)
+      val cleanFun     = clean(keySelector)
       val localKeyType = keyType
       val javaSelector = new KeySelector[T2, KEY] with ResultTypeQueryable[KEY] {
         def getKey(in: T2)                                 = cleanFun(in)
@@ -72,8 +84,9 @@ trait JoinedStreamsOps[T1, T2] {
 
       /** Specifies the window on which the join operation works.
         */
+      @PublicEvolving
       def window[W <: Window](
-          assigner: WindowAssigner[_ >: CoGroupedStreams.TaggedUnion[T1, T2], W]
+          assigner: WindowAssigner[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], W]
       ): WithWindow[W] = {
         if (keySelector1 == null || keySelector2 == null) {
           throw new UnsupportedOperationException(
@@ -81,7 +94,7 @@ trait JoinedStreamsOps[T1, T2] {
           )
         }
 
-        new WithWindow[W](ClosureCleaner.clean(assigner), null, null, null)
+        new WithWindow[W](clean(assigner), null, null, null)
       }
 
       /** A join operation that has [[KeySelector]]s defined for both inputs as well as a [[WindowAssigner]].
@@ -90,15 +103,16 @@ trait JoinedStreamsOps[T1, T2] {
         *   Type of { @link Window} on which the join operation works.
         */
       class WithWindow[W <: Window](
-          windowAssigner: WindowAssigner[_ >: CoGroupedStreams.TaggedUnion[T1, T2], W],
-          trigger: Trigger[_ >: CoGroupedStreams.TaggedUnion[T1, T2], _ >: W],
-          evictor: Evictor[_ >: CoGroupedStreams.TaggedUnion[T1, T2], _ >: W],
+          windowAssigner: WindowAssigner[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], W],
+          trigger: Trigger[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W],
+          evictor: Evictor[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W],
           val allowedLateness: Time
       ) {
 
         /** Sets the [[Trigger]] that should be used to trigger window emission.
           */
-        def trigger(newTrigger: Trigger[_ >: CoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
+        @PublicEvolving
+        def trigger(newTrigger: Trigger[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
           new WithWindow[W](windowAssigner, newTrigger, evictor, allowedLateness)
         }
 
@@ -107,13 +121,15 @@ trait JoinedStreamsOps[T1, T2] {
           * Note: When using an evictor window performance will degrade significantly, since pre-aggregation of window
           * results cannot be used.
           */
-        def evictor(newEvictor: Evictor[_ >: CoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
+        @PublicEvolving
+        def evictor(newEvictor: Evictor[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
           new WithWindow[W](windowAssigner, trigger, newEvictor, allowedLateness)
         }
 
         /** Sets the time by which elements are allowed to be late. Delegates to
           * [[WindowedStream#allowedLateness(Time)]]
           */
+        @PublicEvolving
         def allowedLateness(newLateness: Time): WithWindow[W] = {
           new WithWindow[W](windowAssigner, trigger, evictor, newLateness)
         }
@@ -124,7 +140,7 @@ trait JoinedStreamsOps[T1, T2] {
           require(fun != null, "Join function must not be null.")
 
           val joiner = new FlatJoinFunction[T1, T2, O] {
-            val cleanFun = ClosureCleaner.clean(fun)
+            val cleanFun = clean(fun)
             def join(left: T1, right: T2, out: Collector[O]) = {
               out.collect(cleanFun(left, right))
             }
@@ -138,7 +154,7 @@ trait JoinedStreamsOps[T1, T2] {
           require(fun != null, "Join function must not be null.")
 
           val joiner = new FlatJoinFunction[T1, T2, O] {
-            val cleanFun = ClosureCleaner.clean(fun)
+            val cleanFun = clean(fun)
             def join(left: T1, right: T2, out: Collector[O]) = {
               cleanFun(left, right, out)
             }
@@ -150,36 +166,45 @@ trait JoinedStreamsOps[T1, T2] {
           */
         def apply[T: TypeInformation](function: JoinFunction[T1, T2, T]): DataStream[T] = {
 
-          val join = new JoinedStreams[T1, T2](input1, input2)
+          val join = new JavaJoinedStreams[T1, T2](input1.javaStream, input2.javaStream)
 
-          join
-            .where(keySelector1)
-            .equalTo(keySelector2)
-            .window(windowAssigner)
-            .trigger(trigger)
-            .evictor(evictor)
-            .allowedLateness(allowedLateness)
-            .apply(ClosureCleaner.clean(function), implicitly[TypeInformation[T]])
+          asScalaStream(
+            join
+              .where(keySelector1)
+              .equalTo(keySelector2)
+              .window(windowAssigner)
+              .trigger(trigger)
+              .evictor(evictor)
+              .allowedLateness(allowedLateness)
+              .apply(clean(function), implicitly[TypeInformation[T]])
+          )
         }
 
         /** Completes the join operation with the user function that is executed for windowed groups.
           */
         def apply[T: TypeInformation](function: FlatJoinFunction[T1, T2, T]): DataStream[T] = {
 
-          val join = new JoinedStreams[T1, T2](input1, input2)
+          val join = new JavaJoinedStreams[T1, T2](input1.javaStream, input2.javaStream)
 
-          join
-            .where(keySelector1)
-            .equalTo(keySelector2)
-            .window(windowAssigner)
-            .trigger(trigger)
-            .evictor(evictor)
-            .allowedLateness(allowedLateness)
-            .apply(ClosureCleaner.clean(function), implicitly[TypeInformation[T]])
-
+          asScalaStream(
+            join
+              .where(keySelector1)
+              .equalTo(keySelector2)
+              .window(windowAssigner)
+              .trigger(trigger)
+              .evictor(evictor)
+              .allowedLateness(allowedLateness)
+              .apply(clean(function), implicitly[TypeInformation[T]])
+          )
         }
       }
     }
   }
 
+  /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
+    * [[org.apache.flink.api.common.ExecutionConfig]].
+    */
+  private[flink] def clean[F <: AnyRef](f: F): F = {
+    new StreamExecutionEnvironment(input1.javaStream.getExecutionEnvironment).scalaClean(f)
+  }
 }

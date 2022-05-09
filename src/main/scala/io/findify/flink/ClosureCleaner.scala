@@ -162,8 +162,8 @@ object ClosureCleaner {
     clean(closure, checkSerializable, cleanTransitively, Map.empty)
   }
 
-  def clean[T <: AnyRef](fun: T): T = {
-    ClosureCleaner.clean(fun, true, true)
+  def scalaClean[T <: AnyRef](fun: T, checkSerializable: Boolean = true, cleanTransitively: Boolean = true): T = {
+    clean(fun, checkSerializable, cleanTransitively)
     fun
   }
 
@@ -436,7 +436,7 @@ object ClosureCleaner {
     } else None
   }
 
-  private def ensureSerializable(func: AnyRef): Unit = {
+  def ensureSerializable(func: AnyRef): Unit = {
     try {
       val stream = new ObjectOutputStream(new ByteArrayOutputStream())
       stream.writeObject(func)

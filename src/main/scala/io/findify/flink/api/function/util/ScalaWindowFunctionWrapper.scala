@@ -18,6 +18,7 @@
 
 package io.findify.flink.api.function.util
 
+import io.findify.flink.api.function.WindowFunction
 import org.apache.flink.api.common.functions.{IterationRuntimeContext, RichFunction, RuntimeContext}
 import org.apache.flink.api.java.operators.translation.WrappingFunction
 import org.apache.flink.streaming.api.functions.windowing.{WindowFunction => JWindowFunction}
@@ -32,14 +33,14 @@ import scala.jdk.CollectionConverters._
   *   - Scala WindowFunction: scala.Iterable
   *   - Java WindowFunction: java.lang.Iterable
   */
-final class ScalaWindowFunctionWrapper[IN, OUT, KEY, W <: Window](func: JWindowFunction[IN, OUT, KEY, W])
-    extends WrappingFunction[JWindowFunction[IN, OUT, KEY, W]](func)
+final class ScalaWindowFunctionWrapper[IN, OUT, KEY, W <: Window](func: WindowFunction[IN, OUT, KEY, W])
+    extends WrappingFunction[WindowFunction[IN, OUT, KEY, W]](func)
     with JWindowFunction[IN, OUT, KEY, W]
     with RichFunction {
 
   @throws(classOf[Exception])
   override def apply(key: KEY, window: W, input: java.lang.Iterable[IN], out: Collector[OUT]) {
-    wrappedFunction.apply(key, window, input, out)
+    wrappedFunction.apply(key, window, input.asScala, out)
   }
 
   override def getRuntimeContext: RuntimeContext = {
