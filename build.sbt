@@ -1,7 +1,4 @@
-ThisBuild / version := "0.1.0-SNAPSHOT"
-
-ThisBuild / scalaVersion       := "3.1.2"
-ThisBuild / crossScalaVersions := Seq("2.13.8", "3.1.2")
+ThisBuild / version := "0.0.1-SNAPSHOT"
 
 lazy val root = (project in file("."))
   .settings(
@@ -9,7 +6,8 @@ lazy val root = (project in file("."))
     resolvers ++= Seq(
       ("maven snapshots" at "https://oss.sonatype.org/content/repositories/snapshots/")
     ),
-    scalaVersion := "3.1.2",
+    scalaVersion       := "3.1.2",
+    crossScalaVersions := Seq("2.12.15", "2.13.8", "3.1.2"),
     libraryDependencies ++= Seq(
       "org.apache.flink"        % "flink-streaming-java"    % "1.15.0",
       "org.apache.flink"        % "flink-java"              % "1.15.0",
@@ -19,5 +17,29 @@ lazy val root = (project in file("."))
       "org.apache.flink"        % "flink-test-utils-junit"  % "1.15.0" % Test,
       "com.github.sbt"          % "junit-interface"         % "0.13.2" % Test,
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.7.0"
+    ),
+    organization      := "io.findify",
+    licenses          := Seq("MIT" -> url("https://opensource.org/licenses/Apache2.0")),
+    homepage          := Some(url("https://github.com/findify/flink-scala-api")),
+    publishMavenStyle := true,
+    publishTo         := sonatypePublishToBundle.value,
+    scalacOptions ++= Seq(
+      "-deprecation",
+      "-feature",
+      "-language:higherKinds"
+    ),
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/findify/flink-scala-api"),
+        "scm:git@github.com:findify/flink-scala-api.git"
+      )
+    ),
+    developers := List(
+      Developer(
+        id = "romangrebennikov",
+        name = "Roman Grebennikov",
+        email = "grv@dfdx.me",
+        url = url("https://dfdx.me/")
+      )
     )
   )
