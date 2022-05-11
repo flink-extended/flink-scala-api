@@ -10,7 +10,7 @@ This project is a community-maintained fork of official Apache Flink 1.15 scala 
 
 ## Differences
 
-### New magnolia-based serialization framework
+### New [magnolia](https://github.com/softwaremill/magnolia)-based serialization framework
 
 Official Flink's serialization framework has two important drawbacks complicating the upgrade to Scala 2.13+:
 * it used a complicated `TypeInformation` derivation macro, which required a complete rewrite to work on Scala 3.
@@ -35,12 +35,13 @@ See [Flink-ADT](https://github.com/findify/flink-adt) readme for more details.
 ### Using a POJO-only flink serialization framework
 
 If you don't want to use a `Flink-ADT` for serialization for some reasons, you can always fall back to a flink's
-POJO serializer, explicitly calling it:
+[POJO serializer](https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/dev/datastream/fault-tolerance/serialization/types_serialization/#rules-for-pojo-types),
+explicitly calling it:
 ```scala
 val env = StreamingExecutionEnvironment.createLocalEnvironment()
 env
   .fromCollection(1,2,3)
-  .map(x => x + 1)(TypeInformation.of[Int]) // explicit
+  .map(x => x + 1)(TypeInformation.of[Int]) // explicit call
 ```
 
 With this approach:
