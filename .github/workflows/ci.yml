@@ -38,5 +38,5 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Run tests
-        run: sbt "++ ${{ matrix.scala }} test"
+        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} test"
 
