@@ -49,6 +49,12 @@ With this approach:
 * slower serialization type due to frequent Kryo fallback
 * larger savepoint size (again, due to Kryo)
 
+### Closure cleaner from Spark 3.x
+
+Flink historically used quite an old forked version of the ClosureCleaner for scala lambdas, which has some minor
+compatibility issues with Java 17 and Scala 2.13+. This project uses a more recent version, hopefully with less
+compatibility issues.
+
 ### No Legacy DataSet API
 
 Sorry, but it's already deprecated and as a community project we have no resources to support it. If you need it,
