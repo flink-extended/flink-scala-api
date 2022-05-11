@@ -489,7 +489,7 @@ class DataStreamTest extends AbstractTestBase {
     assert(getOperatorForDataStream(flatMapped).isInstanceOf[ProcessOperator[_, _]])
   }
 
-  @Test def operatorTest() = {
+  @Test def operatorTest(): Unit = {
     val env = StreamExecutionEnvironment.getExecutionEnvironment
 
     val src = env.generateSequence(0, 0)
