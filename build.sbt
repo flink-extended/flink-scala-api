@@ -18,8 +18,15 @@ lazy val root = (project in file("."))
       "com.github.sbt"          % "junit-interface"         % "0.13.2" % Test,
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.7.0"
     ),
+    libraryDependencies += {
+      if (scalaBinaryVersion.value.startsWith("2")) {
+        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+      } else {
+        "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
+      }
+    },
     organization      := "io.findify",
-    licenses          := Seq("MIT" -> url("https://opensource.org/licenses/Apache2.0")),
+    licenses          := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
     homepage          := Some(url("https://github.com/findify/flink-scala-api")),
     publishMavenStyle := true,
     publishTo         := sonatypePublishToBundle.value,
