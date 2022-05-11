@@ -1,0 +1,42 @@
+# This workflow will build a Java project with Maven
+# For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
+
+name: CI
+
+on:
+  push:
+    branches: [ master ]
+  pull_request:
+    branches: [ master ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.platform }}
+    strategy:
+      matrix:
+        java: [11, 17]
+        scala: [2.12.15, 2.13.8, 3.1.2]
+        platform: [ubuntu-20.04]
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          lfs: true
+      - name: Set up JDK
+        uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java }}
+
+      - name: Cache maven packages
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-sbt
+        with:
+          path: ~/.m2 ~/.coursier ~/.cache/coursier ~/.ivy2 ~/.sbt
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/pom.xml') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Run tests
+        run: sbt "++ ${{ matrix.scala }} test"
+
