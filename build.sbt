@@ -1,4 +1,4 @@
-ThisBuild / version := "1.15-1"
+ThisBuild / version := "1.15-2"
 
 lazy val root = (project in file("."))
   .settings(
@@ -8,11 +8,11 @@ lazy val root = (project in file("."))
     libraryDependencies ++= Seq(
       "org.apache.flink"        % "flink-streaming-java"    % "1.15.0",
       "org.apache.flink"        % "flink-java"              % "1.15.0",
-      "io.findify"             %% "flink-adt"               % "0.6.0",
+      "io.findify"             %% "flink-adt"               % "0.6.1",
       "org.scalatest"          %% "scalatest"               % "3.2.12" % Test,
       "org.apache.flink"        % "flink-test-utils"        % "1.15.0" % Test,
       "org.apache.flink"        % "flink-test-utils-junit"  % "1.15.0" % Test,
-      "com.github.sbt"          % "junit-interface"         % "0.13.2" % Test,
+      "com.github.sbt"          % "junit-interface"         % "0.13.3" % Test,
       "org.scala-lang.modules" %% "scala-collection-compat" % "2.7.0"
     ),
     libraryDependencies += {
