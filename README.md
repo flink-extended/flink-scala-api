@@ -6,7 +6,7 @@
 ![Last commit](https://img.shields.io/github/last-commit/flink-extended/flink-scala-api)
 ![Last release](https://img.shields.io/github/release/flink-extended/flink-scala-api)
 
-This project is a community-maintained fork of official Apache Flink 1.15 scala API, cross-built for scala 2.12, 2.13 and 3.x.
+This project is a community-maintained fork of official Apache Flink Scala API, cross-built for scala 2.12, 2.13 and 3.x.
 
 ## Differences
 
@@ -32,7 +32,7 @@ classes the compile times are quite high.
 
 See [Flink-ADT](https://github.com/findify/flink-adt) readme for more details.
 
-### Using a POJO-only flink serialization framework
+### Using a POJO-only Flink serialization framework
 
 If you don't want to use a `Flink-ADT` for serialization for some reasons, you can always fall back to a flink's
 [POJO serializer](https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/dev/datastream/fault-tolerance/serialization/types_serialization/#rules-for-pojo-types),

@@ -1,10 +1,13 @@
+Global / onChangedBuildSource := ReloadOnSourceChanges
 ThisBuild / version := "1.16.1-1"
+
+lazy val rootScalaVersion = "3.2.2"
 
 lazy val root = (project in file("."))
   .settings(
     name               := "flink-scala-api",
-    scalaVersion       := "3.2.2",
-    crossScalaVersions := Seq("2.12.15", "2.13.8", "3.1.2"),
+    scalaVersion       := rootScalaVersion,
+    crossScalaVersions := Seq("2.12.15", "2.13.8", rootScalaVersion),
     libraryDependencies ++= Seq(
       "org.apache.flink"        % "flink-streaming-java"    % "1.16.1",
       "org.apache.flink"        % "flink-java"              % "1.16.1",
