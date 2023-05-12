@@ -6,3 +6,7 @@ target
 .git
 .bsp
 .run
+.bloop
+.metals
+.vscode
+metals.sbt

@@ -1,10 +1,10 @@
 # Scala 2.12/2.13/3.x API for Apache Flink
 
-[![CI Status](https://github.com/findify/flink-scala-api/workflows/CI/badge.svg)](https://github.com/findify/flink-scala-api/actions)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.findify/flink-scala-api_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.findify/flink-scala-api_2.12)
+[![CI Status](https://github.com/flink-extended/flink-scala-api/workflows/CI/badge.svg)](https://github.com/flink-extended/flink-scala-api/actions)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/io.github.flink-extended/flink-scala-api_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/io.github.flink-extended/flink-scala-api_2.12)
 [![License: Apache 2](https://img.shields.io/badge/License-Apache2-green.svg)](https://opensource.org/licenses/Apache-2.0)
-![Last commit](https://img.shields.io/github/last-commit/findify/flink-scala-api)
-![Last release](https://img.shields.io/github/release/findify/flink-scala-api)
+![Last commit](https://img.shields.io/github/last-commit/flink-extended/flink-scala-api)
+![Last release](https://img.shields.io/github/release/flink-extended/flink-scala-api)
 
 This project is a community-maintained fork of official Apache Flink 1.15 scala API, cross-built for scala 2.12, 2.13 and 3.x.
 
@@ -71,7 +71,7 @@ The actual migration should be straightforward and simple, replace old import to
 import org.apache.flink.streaming.api.scala._
 
 // flink-scala-api imports
-import io.findify.flink.api._
+import org.apache.flink.api._
 import io.findify.flinkadt.api._
 ```
 
@@ -79,7 +79,7 @@ import io.findify.flinkadt.api._
 
 `flink-scala-api` is released to Maven-central for 2.12, 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
-libraryDependencies += "io.findify" %% "flink-scala-api" % "1.15-1"
+libraryDependencies += "io.github.flink-extended" %% "flink-scala-api" % "1.15-1"
 ```
 
 We suggest to remove `flink-scala` and `flink-streaming-scala` dependencies altogether to simplify the migration and
