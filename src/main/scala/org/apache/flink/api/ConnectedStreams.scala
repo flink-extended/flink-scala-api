@@ -198,8 +198,8 @@ class ConnectedStreams[IN1, IN2](javaStream: JavaCStream[IN1, IN2]) {
     val cleanFun2 = clean(fun2)
 
     val flatMapper = new CoFlatMapFunction[IN1, IN2, R] {
-      def flatMap1(value: IN1, out: Collector[R]) = { cleanFun1(value).iterator.foreach(out.collect) }
-      def flatMap2(value: IN2, out: Collector[R]) = { cleanFun2(value).iterator.foreach(out.collect) }
+      def flatMap1(value: IN1, out: Collector[R]) = { cleanFun1(value).foreach(out.collect _) }
+      def flatMap2(value: IN2, out: Collector[R]) = { cleanFun2(value).foreach(out.collect _) }
     }
 
     flatMap(flatMapper)

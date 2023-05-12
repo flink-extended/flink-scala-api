@@ -195,7 +195,7 @@ class DataStream[T](stream: JavaStream[T]) {
 
   @PublicEvolving
   def getSideOutput[X: TypeInformation](tag: OutputTag[X]): DataStream[X] = javaStream match {
-    case stream: SingleOutputStreamOperator[X] =>
+    case stream: SingleOutputStreamOperator[_] =>
       asScalaStream(stream.getSideOutput(tag: OutputTag[X]))
   }
 
@@ -595,7 +595,7 @@ class DataStream[T](stream: JavaStream[T]) {
     }
     val cleanFun = clean(fun)
     val flatMapper = new FlatMapFunction[T, R] {
-      def flatMap(in: T, out: Collector[R]) = { cleanFun(in).iterator.foreach(out.collect) }
+      def flatMap(in: T, out: Collector[R]) = { cleanFun(in).foreach(out.collect _) }
     }
     flatMap(flatMapper)
   }
