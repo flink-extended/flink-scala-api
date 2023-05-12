@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
-        scala: [2.12.15, 2.13.8, 3.1.2]
+        scala: [2.12.15, 2.13.8, 3.2.2]
         platform: [ubuntu-20.04]
     steps:
       - uses: actions/checkout@v2
