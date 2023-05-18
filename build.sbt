@@ -75,7 +75,7 @@ lazy val root = (project in file("."))
                             setReleaseVersion,
                             commitReleaseVersion,
                             tagRelease,
-                            releaseStepCommandAndRemaining("publishSigned"),
+                            releaseStepCommandAndRemaining("+publishSigned"),
                             releaseStepCommand("sonatypeBundleRelease")
                           )
                         else Seq.empty[ReleaseStep]),
