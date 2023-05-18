@@ -36,11 +36,16 @@ See [Flink-ADT](https://github.com/findify/flink-adt) readme for more details.
 If you don't want to use a `Flink-ADT` for serialization for some reasons, you can always fall back to a flink's
 [POJO serializer](https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/dev/datastream/fault-tolerance/serialization/types_serialization/#rules-for-pojo-types),
 explicitly calling it:
-```scala
-val env = StreamingExecutionEnvironment.createLocalEnvironment()
+```scala mdoc:reset-object
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api._
+
+implicit val intInfo: TypeInformation[Int] = TypeInformation.of(classOf[Int]) // explicit call
+
+val env = StreamExecutionEnvironment.getExecutionEnvironment
 env
-  .fromCollection(1,2,3)
-  .map(x => x + 1)(TypeInformation.of[Int]) // explicit call
+  .fromElements(1, 2, 3)
+  .map(x => x + 1)
 ```
 
 With this approach:
@@ -99,14 +104,17 @@ submit a bug report!
 
 They may be quite bad for rich nested case classes due to compile-time serializer derivation. 
 Derivation happens each time `flink-scala-api` needs an instance of the `TypeInformation[T]` implicit/type class:
-```scala
+```scala mdoc:reset-object
+import org.apache.flink.api._
+import io.findify.flinkadt.api._
+
 case class Foo(x: Int) {
   def inc(a: Int) = copy(x = x + a)
 }
 
-val env = StreamingExecutionEnvironment.createLocalEnvironment()
+val env = StreamExecutionEnvironment.getExecutionEnvironment
 env
-  .fromCollection(List(Foo(1),Foo(2),Foo(3)))
+  .fromElements(Foo(1), Foo(2), Foo(3))
   .map(x => x.inc(1)) // here the TypeInformation[Foo] is generated
   .map(x => x.inc(2)) // generated one more time again
 ```
@@ -114,7 +122,11 @@ env
 If you're using the same instances of data structures in multiple jobs (or in multiple tests), consider caching the
 derived serializer in a separate compile unit and just importing it when needed:
 
-```scala
+```scala mdoc:reset-object
+import org.apache.flink.api._
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import io.findify.flinkadt.api._
+
 // file FooTypeInfo.scala
 object FooTypeInfo {
   lazy val fooTypeInfo: TypeInformation[Foo] = deriveTypeInformation[Foo]
@@ -127,12 +139,11 @@ case class Foo(x: Int) {
 
 import FooTypeInfo._
 
-val env = StreamingExecutionEnvironment.createLocalEnvironment()
+val env = StreamExecutionEnvironment.getExecutionEnvironment
 env
-  .fromCollection(List(Foo(1),Foo(2),Foo(3)))
+  .fromElements(Foo(1),Foo(2),Foo(3))
   .map(x => x.inc(1)) // taken as an implicit
   .map(x => x.inc(2)) // again, no re-derivation
-
 ```
 
 ## Release

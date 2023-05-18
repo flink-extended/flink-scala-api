@@ -11,14 +11,13 @@ lazy val root = (project in file("."))
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq("2.12.15", "2.13.8", rootScalaVersion),
     libraryDependencies ++= Seq(
-      "org.apache.flink"        % "flink-streaming-java"    % "1.16.1",
-      "org.apache.flink"        % "flink-java"              % "1.16.1",
-      "io.findify"             %% "flink-adt"               % "0.6.1",
-      "org.scalatest"          %% "scalatest"               % "3.2.12" % Test,
-      "org.apache.flink"        % "flink-test-utils"        % "1.16.1" % Test,
-      "org.apache.flink"        % "flink-test-utils-junit"  % "1.16.1" % Test,
-      "com.github.sbt"          % "junit-interface"         % "0.13.3" % Test,
-      "org.scala-lang.modules" %% "scala-collection-compat" % "2.7.0"
+      "org.apache.flink" % "flink-streaming-java"   % "1.16.1",
+      "org.apache.flink" % "flink-java"             % "1.16.1",
+      "io.findify"      %% "flink-adt"              % "0.6.1",
+      "org.scalatest"   %% "scalatest"              % "3.2.12" % Test,
+      "org.apache.flink" % "flink-test-utils"       % "1.16.1" % Test,
+      "org.apache.flink" % "flink-test-utils-junit" % "1.16.1" % Test,
+      "com.github.sbt"   % "junit-interface"        % "0.13.3" % Test
     ),
     libraryDependencies += {
       if (scalaBinaryVersion.value.startsWith("2")) {
@@ -82,6 +81,7 @@ lazy val root = (project in file("."))
                         else Seq.empty[ReleaseStep]),
     releaseProcess ++= (if (sys.env.contains("RELEASE_PUBLISH"))
                           Seq[ReleaseStep](inquireVersions, setNextVersion, commitNextVersion, pushChanges)
-                        else Seq.empty[ReleaseStep])
+                        else Seq.empty[ReleaseStep]),
+    mdocIn := new File("README.md")
   )
-  .enablePlugins(GitVersioning)
+  .enablePlugins(GitVersioning, MdocPlugin)
