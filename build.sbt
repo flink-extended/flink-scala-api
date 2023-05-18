@@ -40,6 +40,7 @@ lazy val root = (project in file("."))
     sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
     publishMavenStyle  := true,
     publishTo          := sonatypePublishToBundle.value,
+    pgpPassphrase      := scala.util.Properties.propOrNone("gpg.passphrase").map(_.toCharArray),
     git.useGitDescribe := true,
     scalacOptions ++= Seq(
       "-deprecation",
