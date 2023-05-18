@@ -87,6 +87,14 @@ import io.findify.flinkadt.api._
 libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.1.2"
 ```
 
+For Ammonite:
+
+```scala
+import $ivy.`org.flinkextended::flink-scala-api:1.16.1.2`
+// you might need flink-client too in order to run in the REPL
+import $ivy.`org.apache.flink:flink-clients:1.16.1`
+```
+
 Flink version notes:
 
 - `flink-scala-api` contains Flink version in its onw version to help users to find right version for their Flink based project
