@@ -1,5 +1,7 @@
+import sbtrelease.ReleaseStateTransformations._
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
-ThisBuild / version := "1.16.1-1"
+Global / excludeLintKeys      := Set(git.useGitDescribe)
 
 lazy val rootScalaVersion = "3.2.2"
 
@@ -25,11 +27,20 @@ lazy val root = (project in file("."))
         "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
       }
     },
-    organization      := "io.github.flink-extended",
-    licenses          := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-    homepage          := Some(url("https://github.com/flink-extended/flink-scala-api")),
-    publishMavenStyle := true,
-    publishTo         := sonatypePublishToBundle.value,
+    organization := "org.flinkextended",
+    description  := "Community-maintained fork of official Apache Flink Scala API",
+    licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+    homepage     := Some(url("https://github.com/flink-extended/flink-scala-api")),
+    credentials += Credentials(
+      "Sonatype Nexus Repository Manager",
+      "oss.sonatype.org",
+      "(Sonatype user name)",
+      "(Sonatype password)"
+    ),
+    sonatypeRepository := "https://s01.oss.sonatype.org/service/local",
+    publishMavenStyle  := true,
+    publishTo          := sonatypePublishToBundle.value,
+    git.useGitDescribe := true,
     scalacOptions ++= Seq(
       "-deprecation",
       "-feature",
@@ -55,5 +66,21 @@ lazy val root = (project in file("."))
         email = "novakov.alex@gmail.com",
         url = url("https://novakov-alexey.github.io/")
       )
-    )
+    ),
+    releaseProcess := Seq.empty[ReleaseStep],
+    releaseProcess ++= (if (sys.env.contains("RELEASE_VERSION_BUMP"))
+                          Seq[ReleaseStep](
+                            checkSnapshotDependencies,
+                            inquireVersions,
+                            setReleaseVersion,
+                            commitReleaseVersion,
+                            tagRelease,
+                            releaseStepCommandAndRemaining("publishSigned"),
+                            releaseStepCommand("sonatypeBundleRelease")
+                          )
+                        else Seq.empty[ReleaseStep]),
+    releaseProcess ++= (if (sys.env.contains("RELEASE_PUBLISH"))
+                          Seq[ReleaseStep](inquireVersions, setNextVersion, commitNextVersion, pushChanges)
+                        else Seq.empty[ReleaseStep])
   )
+  .enablePlugins(GitVersioning)
