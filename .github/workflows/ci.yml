@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
-        scala: [2.12.17, 2.13.10, 3.2.2]
+        scala: [2.12.17, 2.13.10, 3.2.2]        
         platform: [ubuntu-20.04]
     steps:
       - uses: actions/checkout@v2
@@ -38,6 +38,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
       - name: Compile Docs
+        if: ${{ matrix.java == '11' }}
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} mdoc"
       - name: Run tests
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} test"

@@ -4,6 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
 
 lazy val rootScalaVersion = "3.2.2"
+lazy val flinkVersion     = "1.16.1"
 
 lazy val root = (project in file("."))
   .settings(
@@ -11,20 +12,32 @@ lazy val root = (project in file("."))
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq("2.12.17", "2.13.10", rootScalaVersion),
     libraryDependencies ++= Seq(
-      "org.apache.flink" % "flink-streaming-java"   % "1.16.1",
-      "org.apache.flink" % "flink-java"             % "1.16.1",
-      "io.findify"      %% "flink-adt"              % "0.6.1",
-      "org.scalatest"   %% "scalatest"              % "3.2.12" % Test,
-      "org.apache.flink" % "flink-test-utils"       % "1.16.1" % Test,
-      "org.apache.flink" % "flink-test-utils-junit" % "1.16.1" % Test,
-      "com.github.sbt"   % "junit-interface"        % "0.13.3" % Test
+      "org.apache.flink" % "flink-streaming-java"   % flinkVersion,
+      "org.apache.flink" % "flink-java"             % flinkVersion,
+      "org.apache.flink" % "flink-test-utils"       % flinkVersion % Test,
+      "org.apache.flink" % "flink-test-utils-junit" % flinkVersion % Test,
+      "org.scalatest"   %% "scalatest"              % "3.2.12"     % Test,
+      "com.github.sbt"   % "junit-interface"        % "0.13.3"     % Test,
+      "org.typelevel"   %% "cats-core"              % "2.7.0"      % Test
     ),
-    libraryDependencies += {
+    libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
-        "org.scala-lang" % "scala-reflect" % scalaVersion.value
+        Seq(
+          "com.softwaremill.magnolia1_2" %% "magnolia"      % "1.1.2",
+          "org.scala-lang"                % "scala-reflect" % scalaVersion.value
+        )
       } else {
-        "org.scala-lang" %% "scala3-compiler" % scalaVersion.value
+        Seq(
+          "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.1.1",
+          "org.scala-lang"               %% "scala3-compiler" % scalaVersion.value
+        )
       }
+    },
+    // Need to isolate macro usage to version-specific folders.
+    Compile / unmanagedSourceDirectories += {
+      val dir              = (Compile / scalaSource).value.getPath
+      val Some((major, _)) = CrossVersion.partialVersion(scalaVersion.value)
+      file(s"$dir-$major")
     },
     organization := "org.flinkextended",
     description  := "Community-maintained fork of official Apache Flink Scala API",
@@ -46,7 +59,14 @@ lazy val root = (project in file("."))
       "-feature",
       "-language:higherKinds",
       "-language:implicitConversions"
-    ),
+    ), // Need extra leniency on how much we can inline during typeinfo derivation.
+    scalacOptions ++= {
+      if (scalaVersion.value.startsWith("3")) {
+        Seq("-Xmax-inlines", "128")
+      } else {
+        Nil
+      }
+    },
     scmInfo := Some(
       ScmInfo(
         url("https://github.com/flink-extended/flink-scala-api"),
