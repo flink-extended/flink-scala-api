@@ -1,6 +1,6 @@
 package org.apache.flink.api
 
-import org.apache.flinkadt.api.implicits._
+import org.apache.flink.api.serializers._
 import org.apache.flink.api.common.functions._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.io.ParallelIteratorInputFormat

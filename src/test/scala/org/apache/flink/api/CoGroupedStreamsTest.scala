@@ -21,7 +21,7 @@ package org.apache.flink.api
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.junit.{Assert, Test}
-import org.apache.flinkadt.api.implicits._
+import org.apache.flink.api.serializers._
 
 /** Unit test for [[org.apache.flink.streaming.api.scala.CoGroupedStreams]]
   */

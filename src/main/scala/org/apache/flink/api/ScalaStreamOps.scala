@@ -1,6 +1,6 @@
 package org.apache.flink.api
 
-import org.apache.flinkadt.api.typeinfo.CaseClassTypeInfo
+import org.apache.flink.api.typeinfo.CaseClassTypeInfo
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.{DataStream => JavaStream}
 import org.apache.flink.streaming.api.datastream.{ConnectedStreams => ConnectedJavaStreams}
