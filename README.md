@@ -1,7 +1,7 @@
 # Scala 2.12/2.13/3.x API for Apache Flink
 
 [![CI Status](https://github.com/flink-extended/flink-scala-api/workflows/CI/badge.svg)](https://github.com/flinkextended/flink-scala-api/actions)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/org.flink-extended/flink-scala-api_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api_2.12)
 [![License: Apache 2](https://img.shields.io/badge/License-Apache2-green.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Last commit](https://img.shields.io/github/last-commit/flink-extended/flink-scala-api)
 ![Last release](https://img.shields.io/github/release/flink-extended/flink-scala-api)
@@ -228,13 +228,13 @@ import org.apache.flink.api.serializers._
 
 `flink-scala-api` is released to Maven-central for 2.12, 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
-libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.1.2"
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.1.3"
 ```
 
 For Ammonite:
 
 ```scala
-import $ivy.`org.flinkextended::flink-scala-api:1.16.1.2`
+import $ivy.`org.flinkextended::flink-scala-api:1.16.1.3`
 // you might need flink-client too in order to run in the REPL
 import $ivy.`org.apache.flink:flink-clients:1.16.1`
 ```
