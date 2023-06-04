@@ -50,7 +50,7 @@ class StreamExecutionEnvironmentTest {
     */
   @Test
   def testFromSequence(): Unit = {
-    import io.findify.flinkadt.api._
+    import org.apache.flink.api.serializers._
     val typeInfo = implicitly[TypeInformation[Long]]
     val env      = StreamExecutionEnvironment.getExecutionEnvironment
 

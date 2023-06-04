@@ -685,7 +685,7 @@ object IndylambdaScalaClosures {
     }
 
     while (!stack.isEmpty) {
-      val currentId = stack.pop
+      val currentId = stack.pop()
       visited += currentId
 
       val currentClass      = currentId.cls

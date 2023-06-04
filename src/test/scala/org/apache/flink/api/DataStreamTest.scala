@@ -1,6 +1,6 @@
 package org.apache.flink.api
 
-import io.findify.flinkadt.api._
+import org.apache.flink.api.serializers._
 import org.apache.flink.api.common.functions._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.io.ParallelIteratorInputFormat
@@ -249,8 +249,8 @@ class DataStreamTest extends AbstractTestBase {
     */
   @Test
   def testParallelism() = {
-    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
-    val parallelism                     = env.getParallelism
+    val env         = StreamExecutionEnvironment.getExecutionEnvironment
+    val parallelism = env.getParallelism
 
     val src = env.fromElements(new Tuple2[Long, Long](0L, 0L))
     val map = src.map(x => (0L, 0L))
@@ -278,8 +278,7 @@ class DataStreamTest extends AbstractTestBase {
       case success: IllegalArgumentException => {}
     }
 
-    val newParallelism = parallelism - 1
-
+    val newParallelism = parallelism + 1
     env.setParallelism(newParallelism)
     // the parallelism does not change since some windowing code takes the parallelism from
     // input operations and that cannot change dynamically
