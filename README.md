@@ -228,22 +228,23 @@ import org.apache.flink.api.serializers._
 
 `flink-scala-api` is released to Maven-central for 2.12, 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
-libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.1.3"
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.2_1.0.0"
 ```
 
 For Ammonite:
 
 ```scala
-import $ivy.`org.flinkextended::flink-scala-api:1.16.1.3`
+import $ivy.`org.flinkextended::flink-scala-api:1.16.2_1.0.0`
 // you might need flink-client too in order to run in the REPL
-import $ivy.`org.apache.flink:flink-clients:1.16.1`
+import $ivy.`org.apache.flink:flink-clients:1.16.2`
 ```
 
 Flink version notes:
 
 - `flink-scala-api` version consists of Flink version plus own build number to help users to find right version for their Flink based project
-- First three numbers correspond to Flink Version, for example 1.16.1 
-- The forth number is an internal project build version. You should just use the latest available build number in your dependency configuration. 
+- First three numbers correspond to Flink Version, for example 1.16.2 
+- Three more numbers is an internal project build version. You should just use the latest available build number in your dependency configuration. 
+- Three major Flink versions are supported. See supported version in the local [release.sh](release.sh) file.
 
 We suggest to remove the official `flink-scala` and `flink-streaming-scala` dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. But it's technically possible and not required.
 
@@ -309,7 +310,7 @@ export SONATYPE_PASSWORD=<your password for Sonatype>
 Release new version:
 
 ```bash
-RELEASE_VERSION_BUMP=true sbt test 'release with-defaults'
+sh release.sh
 ```
 
 Increment to next SNAPSHOT version and push to Git server:
