@@ -1,12 +1,14 @@
 import sbtrelease.ReleaseStateTransformations._
+import ReleaseProcess._
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
 
 lazy val rootScalaVersion = "3.2.2"
-lazy val flinkVersion     = "1.16.1"
+lazy val flinkVersion     = System.getProperty("flinkVersion", "1.16.2")
 
 lazy val root = (project in file("."))
+  .settings(ReleaseProcess.releaseSettings(flinkVersion): _*)
   .settings(
     name               := "flink-scala-api",
     scalaVersion       := rootScalaVersion,
@@ -100,7 +102,12 @@ lazy val root = (project in file("."))
                           )
                         else Seq.empty[ReleaseStep]),
     releaseProcess ++= (if (sys.env.contains("RELEASE_PUBLISH"))
-                          Seq[ReleaseStep](inquireVersions, setNextVersion, commitNextVersion, pushChanges)
+                          Seq[ReleaseStep](
+                            inquireVersions,
+                            setNextVersion,
+                            commitNextVersion,
+                            pushChanges
+                          )
                         else Seq.empty[ReleaseStep]),
     mdocIn := new File("README.md")
   )
