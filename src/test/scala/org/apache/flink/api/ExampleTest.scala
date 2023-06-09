@@ -1,12 +1,12 @@
 package org.apache.flink.api
 
 import org.apache.flink.api.serializers._
+import org.apache.flink.api._
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration
 import org.apache.flink.streaming.api.datastream.DataStreamSource
-import org.apache.flink.streaming.api.environment.StreamExecutionEnvironment
 import org.apache.flink.test.util.MiniClusterWithClientResource
 import org.scalatest.BeforeAndAfterAll
 import org.scalatest.flatspec.AnyFlatSpec
@@ -66,6 +66,6 @@ object ExampleTest {
 
     @nowarn("cat=deprecation")
     def fromScalaCollection[A](data: Seq[A])(implicit typeInformation: TypeInformation[A]): DataStreamSource[A] =
-      env.fromCollection(data.asJava, typeInformation)
+      env.getJavaEnv.fromCollection(data.asJava, typeInformation)
   }
 }
