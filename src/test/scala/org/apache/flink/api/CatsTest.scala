@@ -1,4 +1,4 @@
-package org.apache.flink
+package org.apache.flink.api
 
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec

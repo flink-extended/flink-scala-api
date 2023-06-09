@@ -1,10 +1,10 @@
-package org.apache.flink
+package org.apache.flink.api
 
 import cats.data.NonEmptyList
-import org.apache.flink.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
-import org.apache.flink.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
+import org.apache.flink.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
+import org.apache.flink.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 
-import org.apache.flink.SerializerTest.{
+import org.apache.flink.api.SerializerTest.{
   ADT,
   ADT2,
   Ann,

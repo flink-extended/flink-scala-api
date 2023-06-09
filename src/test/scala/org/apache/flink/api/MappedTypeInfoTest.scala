@@ -1,8 +1,8 @@
-package org.apache.flink
+package org.apache.flink.api
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.MappedTypeInfoTest.WrappedString
+import org.apache.flink.api.MappedTypeInfoTest.WrappedString
 import org.apache.flink.api.serializers._
 import org.apache.flink.api.serializer.MappedSerializer.TypeMapper
 import org.apache.flink.api.common.typeinfo.TypeInformation

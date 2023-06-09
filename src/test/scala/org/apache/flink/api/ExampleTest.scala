@@ -1,4 +1,4 @@
-package org.apache.flink
+package org.apache.flink.api
 
 import org.apache.flink.api.serializers._
 import org.apache.flink.api.common.RuntimeExecutionMode

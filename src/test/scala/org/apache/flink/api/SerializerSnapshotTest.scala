@@ -1,7 +1,7 @@
-package org.apache.flink
+package org.apache.flink.api
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import org.apache.flink.SerializerSnapshotTest.{
+import _root_.java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import org.apache.flink.api.SerializerSnapshotTest.{
   ADT2,
   OuterTrait,
   SimpleClass1,

@@ -1,6 +1,6 @@
-package org.apache.flink
+package org.apache.flink.api
 
-import org.apache.flink.SchemaEvolutionTest.{Click, Event}
+import org.apache.flink.api.SchemaEvolutionTest.{Click, Event}
 import org.apache.flink.core.memory.DataInputViewStreamWrapper
 import org.apache.flink.api.serializers._
 import org.scalatest.flatspec.AnyFlatSpec

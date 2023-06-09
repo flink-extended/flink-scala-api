@@ -8,7 +8,50 @@
 
 This project is a community-maintained fork of official Apache Flink Scala API, cross-built for scala 2.12, 2.13 and 3.x.
 
-## Differences
+## Migration 
+
+`flink-scala-api` uses a different package name for all api-related classes like `DataStream`, so you can do
+gradual migration of a big project and use both upstream and this versions of scala API in the same project. 
+
+The actual migration should be straightforward and simple, replace old import to the new ones:
+```scala
+// original api import
+import org.apache.flink.streaming.api.scala._
+```
+```scala mdoc
+// flink-scala-api imports
+import org.apache.flink.api._
+import org.apache.flink.api.serializers._
+```
+
+## Usage 
+
+`flink-scala-api` is released to Maven-central for 2.12, 2.13 and 3. For SBT, add this snippet to `build.sbt`:
+```scala
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.2_1.0.0"
+```
+
+For Ammonite:
+
+```scala
+import $ivy.`org.flinkextended::flink-scala-api:1.16.2_1.0.0`
+// you might need flink-client too in order to run in the REPL
+import $ivy.`org.apache.flink:flink-clients:1.16.2`
+```
+
+If you want to create new project easily check this __Giter8 template__ out: [novakov-alexey/flink-scala-api.g8](https://github.com/novakov-alexey/flink-scala-api.g8)
+
+## Supported Flink versions
+
+- `flink-scala-api` version consists of Flink version plus Scala API version, for example 1.16.2_1.0.0
+- First three numbers correspond to the Flink Version, for example 1.16.2 
+- Three more numbers is this project version, for example 1.0.0. You should just use the latest available Scala API project version in in your project dependency configuration. 
+- Three major Flink versions are supported. See supported version in the local [release.sh](release.sh) file.
+
+We suggest to remove the official `flink-scala` and `flink-streaming-scala` dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. But it's technically possible and not required.
+
+
+## Differences with the Official Flink Scala API
 
 ### New [magnolia](https://github.com/softwaremill/magnolia)-based serialization framework
 
@@ -206,47 +249,6 @@ For the sealed trait membership itself, this library uses own serialization form
 
 This project uses a separate set of serializers for collections, instead of Flink's own TraversableSerializer. So probably you
 may have issues while migrating state snapshots from TraversableSerializer to this project serializers.
-
-
-## Migration 
-
-`flink-scala-api` uses a different package name for all api-related classes like `DataStream`, so you can do
-gradual migration of a big project and use both upstream and this versions of scala API in the same project. 
-
-The actual migration should be straightforward and simple, replace old import to the new ones:
-```scala
-// original api import
-import org.apache.flink.streaming.api.scala._
-```
-```scala mdoc
-// flink-scala-api imports
-import org.apache.flink.api._
-import org.apache.flink.api.serializers._
-```
-
-## Usage 
-
-`flink-scala-api` is released to Maven-central for 2.12, 2.13 and 3. For SBT, add this snippet to `build.sbt`:
-```scala
-libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.2_1.0.0"
-```
-
-For Ammonite:
-
-```scala
-import $ivy.`org.flinkextended::flink-scala-api:1.16.2_1.0.0`
-// you might need flink-client too in order to run in the REPL
-import $ivy.`org.apache.flink:flink-clients:1.16.2`
-```
-
-Flink version notes:
-
-- `flink-scala-api` version consists of Flink version plus own build number to help users to find right version for their Flink based project
-- First three numbers correspond to Flink Version, for example 1.16.2 
-- Three more numbers is an internal project build version. You should just use the latest available build number in your dependency configuration. 
-- Three major Flink versions are supported. See supported version in the local [release.sh](release.sh) file.
-
-We suggest to remove the official `flink-scala` and `flink-streaming-scala` dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. But it's technically possible and not required.
 
 ## Scala 3
 

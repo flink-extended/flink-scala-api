@@ -1,10 +1,10 @@
-package org.apache.flink
+package org.apache.flink.api
 
 import cats.data.NonEmptyList
 import org.apache.flink.api.serializers._
-import org.apache.flink.AnyTest._
-import org.apache.flink.AnyTest.FAny.FValueAny.FTerm
-import org.apache.flink.AnyTest.FAny.FValueAny.FTerm.StringTerm
+import org.apache.flink.api.AnyTest._
+import org.apache.flink.api.AnyTest.FAny.FValueAny.FTerm
+import org.apache.flink.api.AnyTest.FAny.FValueAny.FTerm.StringTerm
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

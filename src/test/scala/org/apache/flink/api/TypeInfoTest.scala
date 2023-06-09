@@ -1,6 +1,6 @@
-package org.apache.flink
+package org.apache.flink.api
 
-import org.apache.flink.TypeInfoTest.{ADT, ListedArray, ListedList, ListedMap, Parameterized, Simple}
+import org.apache.flink.api.TypeInfoTest.{ADT, ListedArray, ListedList, ListedMap, Parameterized, Simple}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flink.api.serializers._
