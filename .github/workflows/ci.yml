@@ -41,5 +41,9 @@ jobs:
         if: ${{ matrix.java == '11' }}
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} mdoc"
       - name: Run tests
-        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} test"
+        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=1.15.4 "++ ${{ matrix.scala }} test"
+      - name: Run tests
+        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=1.16.2 "++ ${{ matrix.scala }} test"
+      - name: Run tests
+        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=1.17.1 "++ ${{ matrix.scala }} test"
 
