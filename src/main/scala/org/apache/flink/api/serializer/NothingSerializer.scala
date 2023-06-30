@@ -23,9 +23,8 @@ import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.typeutils.{SimpleTypeSerializerSnapshot, TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
-/** Serializer for cases where no serializer is required but the system still expects one. This
-  * happens for OptionTypeInfo when None is used, or for Either when one of the type parameters
-  * is Nothing.
+/** Serializer for cases where no serializer is required but the system still expects one. This happens for
+  * OptionTypeInfo when None is used, or for Either when one of the type parameters is Nothing.
   */
 @Internal
 class NothingSerializer extends TypeSerializer[Any] {

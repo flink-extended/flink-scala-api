@@ -14,7 +14,7 @@ class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers
   override def copy(from: T): T                                          = from
   override def copy(from: T, reuse: T): T                                = from
   override def copy(source: DataInputView, target: DataOutputView): Unit = serialize(deserialize(source), target)
-  override def createInstance(): T                                       =
+  override def createInstance(): T =
     // this one may be used for later reuse, but we never reuse coproducts due to their unclear concrete type
     subtypeSerializers.head.createInstance().asInstanceOf[T]
   override def getLength: Int = -1

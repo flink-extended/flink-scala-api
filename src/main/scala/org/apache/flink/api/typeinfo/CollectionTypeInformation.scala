@@ -7,7 +7,7 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import scala.reflect.{ClassTag, classTag}
 
 case class CollectionTypeInformation[T: ClassTag](serializer: TypeSerializer[T]) extends TypeInformation[T] {
-  val clazz                                                                 = classTag[T].runtimeClass.asInstanceOf[Class[T]]
+  val clazz = classTag[T].runtimeClass.asInstanceOf[Class[T]]
   override def createSerializer(config: ExecutionConfig): TypeSerializer[T] = serializer
   override def isBasicType: Boolean                                         = false
   override def isTupleType: Boolean                                         = false

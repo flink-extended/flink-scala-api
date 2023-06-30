@@ -23,7 +23,7 @@ trait TestUtils extends Matchers with Inspectors {
         ser.getClass.getClassLoader
       )
     val restoredSerializer = restoredSnapshot.restoreSerializer()
-    val copy               = restoredSerializer.deserialize(new DataInputViewStreamWrapper(new ByteArrayInputStream(out.toByteArray)))
+    val copy = restoredSerializer.deserialize(new DataInputViewStreamWrapper(new ByteArrayInputStream(out.toByteArray)))
     in shouldBe copy
   }
 

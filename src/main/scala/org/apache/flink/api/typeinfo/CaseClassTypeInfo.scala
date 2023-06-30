@@ -37,8 +37,8 @@ import scala.annotation.{nowarn, tailrec}
 import scala.collection.JavaConverters._
 import scala.collection.mutable.ArrayBuffer
 
-/** TypeInformation for Case Classes. Creation and access is different from
-  * our Java Tuples so we have to treat them differently.
+/** TypeInformation for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
+  * differently.
   */
 @Public
 abstract class CaseClassTypeInfo[T <: Product](
@@ -279,9 +279,9 @@ abstract class CaseClassTypeInfo[T <: Product](
     obj match {
       case caseClass: CaseClassTypeInfo[_] =>
         caseClass.canEqual(this) &&
-          super.equals(caseClass) &&
-          typeParamTypeInfos.sameElements(caseClass.typeParamTypeInfos) &&
-          fieldNames.equals(caseClass.fieldNames)
+        super.equals(caseClass) &&
+        typeParamTypeInfos.sameElements(caseClass.typeParamTypeInfos) &&
+        fieldNames.equals(caseClass.fieldNames)
       case _ => false
     }
   }
