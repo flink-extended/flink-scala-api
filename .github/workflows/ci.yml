@@ -20,7 +20,7 @@ jobs:
         include:
           - scala: 3.2.2
             java: 11
-            flink: 1.16.2
+            flink: 1.17.1
           - scala: 3.2.2
             java: 11
             flink: 1.17.1
