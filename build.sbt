@@ -4,7 +4,7 @@ import ReleaseProcess._
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
 
-lazy val rootScalaVersion = "3.2.2"
+lazy val rootScalaVersion = "3.3.0"
 lazy val flinkVersion     = System.getProperty("flinkVersion", "1.16.2")
 
 lazy val root = (project in file("."))
@@ -14,14 +14,14 @@ lazy val root = (project in file("."))
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq("2.12.17", "2.13.10", rootScalaVersion),
     libraryDependencies ++= Seq(
-      "org.apache.flink" % "flink-streaming-java"   % flinkVersion,
-      "org.apache.flink" % "flink-java"             % flinkVersion,
-      "org.apache.flink" % "flink-test-utils"       % flinkVersion % Test,
-      "org.apache.flink" % "flink-test-utils-junit" % flinkVersion % Test,
+      "org.apache.flink"  % "flink-streaming-java"   % flinkVersion,
+      "org.apache.flink"  % "flink-java"             % flinkVersion,
+      "org.apache.flink"  % "flink-test-utils"       % flinkVersion % Test,
+      "org.apache.flink"  % "flink-test-utils-junit" % flinkVersion % Test,
       ("org.apache.flink" % "flink-streaming-java"   % flinkVersion % Test).classifier("tests"),
-      "org.scalatest"   %% "scalatest"              % "3.2.12"     % Test,
-      "com.github.sbt"   % "junit-interface"        % "0.13.3"     % Test,
-      "org.typelevel"   %% "cats-core"              % "2.7.0"      % Test
+      "org.scalatest"    %% "scalatest"              % "3.2.12"     % Test,
+      "com.github.sbt"    % "junit-interface"        % "0.13.3"     % Test,
+      "org.typelevel"    %% "cats-core"              % "2.7.0"      % Test
     ),
     libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
