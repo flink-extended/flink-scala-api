@@ -99,7 +99,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 
   it should "derive recursively" in {
     // recursive is broken
-    // val ti = implicitly[TypeInformation[Node]]
+    //val ti = implicitly[TypeInformation[Node]]
   }
 
   it should "derive list" in {

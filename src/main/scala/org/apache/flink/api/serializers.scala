@@ -131,17 +131,17 @@ object serializers extends LowPrioImplicits {
   implicit lazy val shortSerializer: TypeSerializer[Short]     = shortInfo.createSerializer(config)
 
   // java
-  implicit lazy val jIntegerInfo: TypeInformation[JInteger]           = BasicTypeInfo.INT_TYPE_INFO
-  implicit lazy val jLongInfo: TypeInformation[JLong]                 = BasicTypeInfo.LONG_TYPE_INFO
-  implicit lazy val jFloatInfo: TypeInformation[JFloat]               = BasicTypeInfo.FLOAT_TYPE_INFO
-  implicit lazy val jDoubleInfo: TypeInformation[JDouble]             = BasicTypeInfo.DOUBLE_TYPE_INFO
-  implicit lazy val jBooleanInfo: TypeInformation[JBoolean]           = BasicTypeInfo.BOOLEAN_TYPE_INFO
-  implicit lazy val jByteInfo: TypeInformation[JByte]                 = BasicTypeInfo.BYTE_TYPE_INFO
-  implicit lazy val jCharInfo: TypeInformation[JCharacter]            = BasicTypeInfo.CHAR_TYPE_INFO
-  implicit lazy val jShortInfo: TypeInformation[JShort]               = BasicTypeInfo.SHORT_TYPE_INFO
-  implicit lazy val jVoidInfo: TypeInformation[_root_.java.lang.Void] = BasicTypeInfo.VOID_TYPE_INFO
-  implicit lazy val jBigIntInfo: TypeInformation[BigInteger]          = BasicTypeInfo.BIG_INT_TYPE_INFO
-  implicit lazy val jBigDecInfo: TypeInformation[JBigDecimal]         = BasicTypeInfo.BIG_DEC_TYPE_INFO
+  implicit lazy val jIntegerInfo: TypeInformation[JInteger]   = BasicTypeInfo.INT_TYPE_INFO
+  implicit lazy val jLongInfo: TypeInformation[JLong]         = BasicTypeInfo.LONG_TYPE_INFO
+  implicit lazy val jFloatInfo: TypeInformation[JFloat]                = BasicTypeInfo.FLOAT_TYPE_INFO
+  implicit lazy val jDoubleInfo: TypeInformation[JDouble]     = BasicTypeInfo.DOUBLE_TYPE_INFO
+  implicit lazy val jBooleanInfo: TypeInformation[JBoolean]   = BasicTypeInfo.BOOLEAN_TYPE_INFO
+  implicit lazy val jByteInfo: TypeInformation[JByte]         = BasicTypeInfo.BYTE_TYPE_INFO
+  implicit lazy val jCharInfo: TypeInformation[JCharacter]    = BasicTypeInfo.CHAR_TYPE_INFO
+  implicit lazy val jShortInfo: TypeInformation[JShort]       = BasicTypeInfo.SHORT_TYPE_INFO
+  implicit lazy val jVoidInfo: TypeInformation[_root_.java.lang.Void]         = BasicTypeInfo.VOID_TYPE_INFO
+  implicit lazy val jBigIntInfo: TypeInformation[BigInteger]           = BasicTypeInfo.BIG_INT_TYPE_INFO
+  implicit lazy val jBigDecInfo: TypeInformation[JBigDecimal] = BasicTypeInfo.BIG_DEC_TYPE_INFO
 
   implicit def listCCInfo[T](implicit lc: ClassTag[T], ls: TypeSerializer[::[T]]): TypeInformation[::[T]] = {
     drop(lc)

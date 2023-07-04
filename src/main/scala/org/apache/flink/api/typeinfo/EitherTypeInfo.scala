@@ -73,9 +73,9 @@ class EitherTypeInfo[A, B, T <: Either[A, B]](
     obj match {
       case eitherTypeInfo: EitherTypeInfo[_, _, _] =>
         eitherTypeInfo.canEqual(this) &&
-        clazz.equals(eitherTypeInfo.clazz) &&
-        leftTypeInfo.equals(eitherTypeInfo.leftTypeInfo) &&
-        rightTypeInfo.equals(eitherTypeInfo.rightTypeInfo)
+          clazz.equals(eitherTypeInfo.clazz) &&
+          leftTypeInfo.equals(eitherTypeInfo.leftTypeInfo) &&
+          rightTypeInfo.equals(eitherTypeInfo.rightTypeInfo)
       case _ => false
     }
   }

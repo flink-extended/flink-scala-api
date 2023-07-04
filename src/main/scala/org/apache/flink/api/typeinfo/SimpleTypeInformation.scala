@@ -12,6 +12,6 @@ abstract class SimpleTypeInformation[T: ClassTag: TypeSerializer] extends TypeIn
   override def isTupleType: Boolean                                         = false
   override def isKeyType: Boolean                                           = false
   override def getTotalFields: Int                                          = 1
-  override def getTypeClass: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
-  override def getArity: Int          = 1
+  override def getTypeClass: Class[T]                                       = classTag[T].runtimeClass.asInstanceOf[Class[T]]
+  override def getArity: Int                                                = 1
 }

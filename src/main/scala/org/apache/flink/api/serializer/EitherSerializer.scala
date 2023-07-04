@@ -21,7 +21,8 @@ import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
-/** Serializer for [[Either]]. Copied from Flink 1.14.
+/** Serializer for [[Either]].
+  * Copied from Flink 1.14.
   */
 @Internal
 @SerialVersionUID(9219995873023657525L)
@@ -100,7 +101,7 @@ class EitherSerializer[A, B](
     obj match {
       case eitherSerializer: EitherSerializer[_, _] =>
         leftSerializer.equals(eitherSerializer.leftSerializer) &&
-        rightSerializer.equals(eitherSerializer.rightSerializer)
+          rightSerializer.equals(eitherSerializer.rightSerializer)
       case _ => false
     }
   }

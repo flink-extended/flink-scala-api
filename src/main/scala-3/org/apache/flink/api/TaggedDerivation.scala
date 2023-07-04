@@ -13,13 +13,13 @@ trait CommonTaggedDerivation[TypeClass[_]]:
   type Typeclass[T] = TypeClass[T]
 
   def join[T](ctx: CaseClass[Typeclass, T])(using
-      classTag: ClassTag[T],
-      typeTag: TypeTag[T]
+    classTag: ClassTag[T],
+    typeTag: TypeTag[T]
   ): Typeclass[T]
 
-  inline def derivedMirrorProduct[A](product: Mirror.ProductOf[A])(using
-      ClassTag[A],
-      TypeTag[A]
+  inline def derivedMirrorProduct[A](product: Mirror.ProductOf[A])(using 
+    ClassTag[A],
+    TypeTag[A]
   ): Typeclass[A] =
     val parameters = IArray(
       getParams_[A, product.MirroredElemLabels, product.MirroredElemTypes](
@@ -91,7 +91,7 @@ trait CommonTaggedDerivation[TypeClass[_]]:
       case _: (EmptyTuple, EmptyTuple) =>
         Nil
       case _: ((l *: ltail), (p *: ptail)) =>
-        val label     = constValue[l].asInstanceOf[String]
+        val label = constValue[l].asInstanceOf[String]
         val typeclass = CallByNeed(summonInline[Typeclass[p]])
 
         CaseClass.Param[Typeclass, T, p](
@@ -123,8 +123,8 @@ trait CommonTaggedDerivation[TypeClass[_]]:
 
 trait TaggedDerivation[TypeClass[_]] extends CommonTaggedDerivation[TypeClass]:
   def split[T](ctx: SealedTrait[Typeclass, T])(using
-      classTag: ClassTag[T],
-      typeTag: TypeTag[T]
+    classTag: ClassTag[T],
+    typeTag: TypeTag[T]
   ): Typeclass[T]
 
   transparent inline def subtypes[T, SubtypeTuple <: Tuple](

@@ -21,9 +21,10 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnap
 
 import java.io.ObjectInputStream
 
-/** This is a non macro-generated, concrete Scala case class serializer. Copied from Flink 1.14 with two changes:
-  *   1. Does not extend `SelfResolvingTypeSerializer`, since we're breaking compatibility anyway. 2. Move
-  *      `lookupConstructor` to version-specific sources.
+/** This is a non macro-generated, concrete Scala case class serializer.
+  * Copied from Flink 1.14 with two changes:
+  * 1. Does not extend `SelfResolvingTypeSerializer`, since we're breaking compatibility anyway.
+  * 2. Move `lookupConstructor` to version-specific sources.
   */
 @SerialVersionUID(1L)
 class ScalaCaseClassSerializer[T <: Product](
