@@ -727,7 +727,7 @@ class DataStream[T](stream: JavaStream[T]) {
       def extractAscendingTimestamp(element: T): Long = {
         cleanExtractor(element)
       }
-    }    
+    }
     asScalaStream(stream.assignTimestampsAndWatermarks(extractorFunction))
   }
 

@@ -140,7 +140,11 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
 
           val coGrouper = new CoGroupFunction[T1, T2, O] {
             val cleanFun = clean(fun)
-            def coGroup(left: _root_.java.lang.Iterable[T1], right: _root_.java.lang.Iterable[T2], out: Collector[O]) = {
+            def coGroup(
+                left: _root_.java.lang.Iterable[T1],
+                right: _root_.java.lang.Iterable[T2],
+                out: Collector[O]
+            ) = {
               out.collect(cleanFun(left.iterator().asScala, right.iterator().asScala))
             }
           }
@@ -154,7 +158,11 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
 
           val coGrouper = new CoGroupFunction[T1, T2, O] {
             val cleanFun = clean(fun)
-            def coGroup(left: _root_.java.lang.Iterable[T1], right: _root_.java.lang.Iterable[T2], out: Collector[O]) = {
+            def coGroup(
+                left: _root_.java.lang.Iterable[T1],
+                right: _root_.java.lang.Iterable[T2],
+                out: Collector[O]
+            ) = {
               cleanFun(left.iterator.asScala, right.iterator.asScala, out)
             }
           }

@@ -31,7 +31,7 @@ object ScalaStreamOps {
   def asScalaStream[IN1, IN2](stream: BroadcastConnectedJavaStreams[IN1, IN2]) =
     new BroadcastConnectedStream[IN1, IN2](stream)
 
-  private[flink] def fieldNames2Indices(typeInfo: TypeInformation[_], fields: Array[String]): Array[Int] = {    
+  private[flink] def fieldNames2Indices(typeInfo: TypeInformation[_], fields: Array[String]): Array[Int] = {
     typeInfo match {
       case ti: CaseClassTypeInfo[_] =>
         val result = ti.getFieldIndices(fields)
