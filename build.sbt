@@ -14,24 +14,24 @@ lazy val root = (project in file("."))
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq("2.12.17", "2.13.10", rootScalaVersion),
     libraryDependencies ++= Seq(
-      "org.apache.flink" % "flink-streaming-java"   % flinkVersion,
-      "org.apache.flink" % "flink-java"             % flinkVersion,
-      "org.apache.flink" % "flink-test-utils"       % flinkVersion % Test,
-      "org.apache.flink" % "flink-test-utils-junit" % flinkVersion % Test,
+      "org.apache.flink"  % "flink-streaming-java"   % flinkVersion,
+      "org.apache.flink"  % "flink-java"             % flinkVersion,
+      "org.apache.flink"  % "flink-test-utils"       % flinkVersion % Test,
+      "org.apache.flink"  % "flink-test-utils-junit" % flinkVersion % Test,
       ("org.apache.flink" % "flink-streaming-java"   % flinkVersion % Test).classifier("tests"),
-      "org.scalatest"   %% "scalatest"              % "3.2.12"     % Test,
-      "com.github.sbt"   % "junit-interface"        % "0.13.3"     % Test,
-      "org.typelevel"   %% "cats-core"              % "2.7.0"      % Test
+      "com.github.sbt"    % "junit-interface"        % "0.13.3"     % Test,
+      "org.typelevel"    %% "cats-core"              % "2.9.0"      % Test,
+      "org.scalatest"    %% "scalatest"              % "3.2.16"     % Test
     ),
     libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
         Seq(
-          "com.softwaremill.magnolia1_2" %% "magnolia"      % "1.1.2",
+          "com.softwaremill.magnolia1_2" %% "magnolia"      % "1.1.3",
           "org.scala-lang"                % "scala-reflect" % scalaVersion.value
         )
       } else {
         Seq(
-          "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.1.1",
+          "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.1.5",
           "org.scala-lang"               %% "scala3-compiler" % scalaVersion.value
         )
       }
