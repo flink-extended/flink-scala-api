@@ -53,7 +53,7 @@ object MappedSerializer {
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
       val mapperClazz = InstantiationUtil.resolveClassByName[TypeMapper[A, B]](in, userCodeClassLoader)
       mapper = InstantiationUtil.instantiate(mapperClazz)
-      val serClazz = InstantiationUtil.resolveClassByName(in, userCodeClassLoader)
+      val serClazz = InstantiationUtil.resolveClassByName[TypeSerializer[B]](in, userCodeClassLoader)
       ser = InstantiationUtil.instantiate(serClazz)
     }
 
