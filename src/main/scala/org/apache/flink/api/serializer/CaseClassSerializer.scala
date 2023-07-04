@@ -23,9 +23,8 @@ import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
 
-/** Serializer for Case Classes. Creation and access is different from
-  * our Java Tuples so we have to treat them differently.
-  * Copied from Flink 1.14.
+/** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
+  * differently. Copied from Flink 1.14.
   */
 @Internal
 @SerialVersionUID(7341356073446263475L)

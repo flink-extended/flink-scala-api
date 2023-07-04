@@ -7,12 +7,12 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
 
 class ScalaCaseObjectSerializer[T](clazz: Class[T]) extends TypeSerializerSingleton[T] {
-  override def isImmutableType: Boolean   = true
-  override def copy(from: T): T           = from
-  override def copy(from: T, reuse: T): T = from
+  override def isImmutableType: Boolean                                  = true
+  override def copy(from: T): T                                          = from
+  override def copy(from: T, reuse: T): T                                = from
   override def copy(source: DataInputView, target: DataOutputView): Unit = {}
-  override def createInstance(): T = clazz.getField("MODULE$").get(null).asInstanceOf[T]
-  override def getLength: Int      = 0
+  override def createInstance(): T                                = clazz.getField("MODULE$").get(null).asInstanceOf[T]
+  override def getLength: Int                                     = 0
   override def serialize(record: T, target: DataOutputView): Unit = {}
 
   override def deserialize(source: DataInputView): T = {
