@@ -24,8 +24,7 @@ import org.apache.flink.util.Collector
 
 import java.io.Serializable
 
-/** Base interface for functions that are evaluated over non-grouped windows,
-  * i.e., windows over all stream partitions.
+/** Base interface for functions that are evaluated over non-grouped windows, i.e., windows over all stream partitions.
   *
   * @tparam IN
   *   The type of the input value.
