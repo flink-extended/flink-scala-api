@@ -31,7 +31,7 @@ lazy val root = (project in file("."))
         )
       } else {
         Seq(
-          "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.3.2",
+          "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.3.3",
           "org.scala-lang"               %% "scala3-compiler" % scalaVersion.value
         )
       }
