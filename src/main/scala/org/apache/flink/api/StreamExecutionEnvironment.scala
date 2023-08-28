@@ -15,10 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.annotation.{Experimental, Internal, Public, PublicEvolving}
 import org.apache.flink.api.common.{ExecutionConfig, RuntimeExecutionMode}
+import org.apache.flink.api.common.ExecutionConfig.ClosureCleanerLevel
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import org.apache.flink.api.common.io.{FileInputFormat, FilePathFilter, InputFormat}
 import org.apache.flink.api.common.operators.SlotSharingGroup
@@ -43,9 +44,8 @@ import ScalaStreamOps._
 import scala.jdk.CollectionConverters._
 import language.implicitConversions
 import com.esotericsoftware.kryo.Serializer
-import org.apache.flink.api.common.ExecutionConfig.ClosureCleanerLevel
 
-import _root_.java.net.URI
+import java.net.URI
 
 @Public
 class StreamExecutionEnvironment(javaEnv: JavaEnv) {
@@ -472,7 +472,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     */
   @deprecated
   def generateSequence(from: Long, to: Long): DataStream[Long] = {
-    new DataStream[_root_.java.lang.Long](javaEnv.generateSequence(from, to))
+    new DataStream[java.lang.Long](javaEnv.generateSequence(from, to))
       .asInstanceOf[DataStream[Long]]
   }
 
@@ -491,7 +491,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     * control over the created sources. For example, if you want to set a [[WatermarkStrategy]].
     */
   def fromSequence(from: Long, to: Long): DataStream[Long] = {
-    new DataStream[_root_.java.lang.Long](javaEnv.fromSequence(from, to))
+    new DataStream[java.lang.Long](javaEnv.fromSequence(from, to))
       .asInstanceOf[DataStream[Long]]
   }
 
@@ -759,7 +759,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]]
     */
-  private[flink] def scalaClean[F <: AnyRef](f: F): F = {
+  private[flinkx] def scalaClean[F <: AnyRef](f: F): F = {
     if (getConfig.isClosureCleanerEnabled) {
       ClosureCleaner.scalaClean(f, true, getConfig.getClosureCleanerLevel == ClosureCleanerLevel.RECURSIVE)
     } else {

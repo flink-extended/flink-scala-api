@@ -1,4 +1,4 @@
-package org.apache.flink.api.serializer
+package org.apache.flinkx.api.serializer
 
 import java.lang.reflect.Modifier
 

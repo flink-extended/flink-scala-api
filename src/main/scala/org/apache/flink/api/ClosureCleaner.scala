@@ -15,13 +15,13 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.commons.io.IOUtils
 
-import _root_.java.lang.invoke.{MethodHandleInfo, SerializedLambda}
-import _root_.java.lang.reflect.{Field, Modifier}
-import _root_.java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectOutputStream}
+import java.lang.invoke.{MethodHandleInfo, SerializedLambda}
+import java.lang.reflect.{Field, Modifier}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectOutputStream}
 import scala.collection.mutable.{Map, Set, Stack}
 import org.apache.commons.lang3.{ClassUtils, JavaVersion, SystemUtils}
 import org.apache.flink.shaded.asm9.org.objectweb.asm.{ClassReader, ClassVisitor, Handle, MethodVisitor, Type}
@@ -448,7 +448,7 @@ object ClosureCleaner {
   private def instantiateClass(cls: Class[_], enclosingObject: AnyRef): AnyRef = {
     // Use reflection to instantiate object without calling constructor
     val rf         = sun.reflect.ReflectionFactory.getReflectionFactory()
-    val parentCtor = classOf[_root_.java.lang.Object].getDeclaredConstructor()
+    val parentCtor = classOf[Object].getDeclaredConstructor()
     val newCtor    = rf.newConstructorForSerialization(cls, parentCtor)
     val obj        = newCtor.newInstance().asInstanceOf[AnyRef]
     if (enclosingObject != null) {

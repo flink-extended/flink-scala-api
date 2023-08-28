@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.typeinfo
+package org.apache.flinkx.api.typeinfo
 
 import java.util
 import java.util.regex.{Matcher, Pattern}

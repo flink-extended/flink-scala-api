@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -50,7 +50,7 @@ class StreamExecutionEnvironmentTest {
     */
   @Test
   def testFromSequence(): Unit = {
-    import org.apache.flink.api.serializers._
+    import org.apache.flinkx.api.serializers._
     val typeInfo = implicitly[TypeInformation[Long]]
     val env      = StreamExecutionEnvironment.getExecutionEnvironment
 

@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.flink.api.extensions.impl.acceptPartialFunctions
+package org.apache.flinkx.api.extensions.impl.acceptPartialFunctions
 
 import org.apache.flink.annotation.PublicEvolving
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.{DataStream, JoinedStreams}
+import org.apache.flinkx.api.{DataStream, JoinedStreams}
 import org.apache.flink.streaming.api.windowing.windows.Window
 
 /** Wraps a joined data stream, allowing to use anonymous partial functions to perform extraction of items in a tuple,

@@ -1,6 +1,6 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 import org.apache.flink.api.common.functions._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.io.ParallelIteratorInputFormat
@@ -683,11 +683,11 @@ class DataStreamTest extends AbstractTestBase {
     sEnv.getStreamGraph(false)
   }
 
-  private def isPartitioned(edges: _root_.java.util.List[StreamEdge]) = {
+  private def isPartitioned(edges: java.util.List[StreamEdge]) = {
     edges.stream.allMatch(_.getPartitioner.isInstanceOf[KeyGroupStreamPartitioner[_, _]])
   }
 
-  private def isCustomPartitioned(edges: _root_.java.util.List[StreamEdge]): Boolean = {
+  private def isCustomPartitioned(edges: java.util.List[StreamEdge]): Boolean = {
     edges.stream.allMatch(_.getPartitioner.isInstanceOf[CustomPartitionerWrapper[_, _]])
   }
 

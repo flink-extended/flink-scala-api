@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.function.util
+package org.apache.flinkx.api.function.util
 
 import org.apache.flink.api.common.functions.ReduceFunction
 

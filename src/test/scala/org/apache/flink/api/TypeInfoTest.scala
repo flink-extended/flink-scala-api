@@ -1,9 +1,9 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.TypeInfoTest.{ADT, ListedArray, ListedList, ListedMap, Parameterized, Simple}
+import org.apache.flinkx.api.TypeInfoTest.{ADT, ListedArray, ListedList, ListedMap, Parameterized, Simple}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 
 class TypeInfoTest extends AnyFlatSpec with Matchers {
 

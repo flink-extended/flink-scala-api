@@ -1,9 +1,9 @@
-package org.apache.flink.api.serializer
+package org.apache.flinkx.api.serializer
 
 import scala.annotation.nowarn
 import scala.reflect.runtime.universe
 
-import org.apache.flink.api.serializers.drop
+import org.apache.flinkx.api.serializers.drop
 
 private[serializer] trait ConstructorCompat {
   // # fields is required for the Scala 3 implementation, so need to match the method signature here.

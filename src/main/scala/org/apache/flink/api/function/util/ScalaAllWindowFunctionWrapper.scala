@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.function.util
+package org.apache.flinkx.api.function.util
 
 import org.apache.flink.api.common.functions.{IterationRuntimeContext, RichFunction, RuntimeContext}
 import org.apache.flink.api.java.operators.translation.WrappingFunction
 import org.apache.flink.streaming.api.functions.windowing.{AllWindowFunction => JAllWindowFunction}
-import org.apache.flink.api.function.AllWindowFunction
+import org.apache.flinkx.api.function.AllWindowFunction
 import org.apache.flink.streaming.api.windowing.windows.Window
 import org.apache.flink.util.Collector
 

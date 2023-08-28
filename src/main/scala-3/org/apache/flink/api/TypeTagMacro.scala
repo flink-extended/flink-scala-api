@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import scala.quoted.*
 

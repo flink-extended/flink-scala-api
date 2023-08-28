@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import scala.collection.mutable
 import scala.compiletime.summonInline
@@ -10,8 +10,8 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.ExecutionConfig
 
-import org.apache.flink.api.serializer.{CoproductSerializer, ScalaCaseClassSerializer, ScalaCaseObjectSerializer}
-import org.apache.flink.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
+import org.apache.flinkx.api.serializer.{CoproductSerializer, ScalaCaseClassSerializer, ScalaCaseObjectSerializer}
+import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 
 private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
   type Typeclass[T] = TypeInformation[T]

@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.annotation.PublicEvolving
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -56,7 +56,7 @@ class BroadcastConnectedStream[IN1, IN2](javaStream: JavaBCStream[IN1, IN2]) {
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]]
     */
-  private[flink] def clean[F <: AnyRef](f: F) = {
+  private[flinkx] def clean[F <: AnyRef](f: F) = {
     new StreamExecutionEnvironment(javaStream.getExecutionEnvironment).scalaClean(f)
   }
 }

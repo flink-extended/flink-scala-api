@@ -1,7 +1,7 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.serializers._
-import org.apache.flink.api.ProcessFunctionTest._
+import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.ProcessFunctionTest._
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.Types
 import org.apache.flink.api.common.typeutils.TypeSerializer

@@ -1,10 +1,10 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import cats.data.NonEmptyList
-import org.apache.flink.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
-import org.apache.flink.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
+import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
+import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 
-import org.apache.flink.api.SerializerTest.{
+import org.apache.flinkx.api.SerializerTest.{
   ADT,
   ADT2,
   Ann,
@@ -32,7 +32,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.scalatest.Inspectors
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 
 class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with TestUtils {
 

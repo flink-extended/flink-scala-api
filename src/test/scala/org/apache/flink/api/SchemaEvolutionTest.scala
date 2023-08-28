@@ -1,8 +1,8 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.SchemaEvolutionTest.{Click, Event}
+import org.apache.flinkx.api.SchemaEvolutionTest.{Click, Event}
 import org.apache.flink.core.memory.DataInputViewStreamWrapper
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

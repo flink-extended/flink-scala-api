@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.function
+package org.apache.flinkx.api.function
 
 import org.apache.flink.api.common.functions.AbstractRichFunction
 import org.apache.flink.streaming.api.windowing.windows.Window

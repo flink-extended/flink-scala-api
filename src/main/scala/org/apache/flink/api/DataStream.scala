@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.annotation.{Internal, Public, PublicEvolving}
 import org.apache.flink.api.common.ExecutionConfig
@@ -76,7 +76,7 @@ class DataStream[T](stream: JavaStream[T]) {
   /** Returns the ID of the DataStream.
     */
   @Internal
-  private[flink] def getId = stream.getId()
+  private[flinkx] def getId = stream.getId()
 
   // --------------------------------------------------------------------------
   //  Scalaesk accessors
@@ -871,7 +871,7 @@ class DataStream[T](stream: JavaStream[T]) {
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]].
     */
-  private[flink] def clean[F <: AnyRef](f: F): F = {
+  private[flinkx] def clean[F <: AnyRef](f: F): F = {
     new StreamExecutionEnvironment(stream.getExecutionEnvironment).scalaClean(f)
   }
 

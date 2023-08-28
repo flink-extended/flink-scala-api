@@ -1,13 +1,13 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.serializer.ScalaCaseClassSerializer
+import org.apache.flinkx.api.serializer.ScalaCaseClassSerializer
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 import org.scalatest.{Assertion, Inspectors}
 import org.scalatest.matchers.should.Matchers
 
-import _root_.java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectOutputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectOutputStream}
 
 trait TestUtils extends Matchers with Inspectors {
   def roundtrip[T](ser: TypeSerializer[T], in: T): Assertion = {

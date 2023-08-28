@@ -1,6 +1,6 @@
-package org.apache.flink.api.serializer
+package org.apache.flinkx.api.serializer
 
-import org.apache.flink.api.serializer.MappedSerializer.{MappedSerializerSnapshot, TypeMapper}
+import org.apache.flinkx.api.serializer.MappedSerializer.{MappedSerializerSnapshot, TypeMapper}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.{
   CompositeTypeSerializerSnapshot,

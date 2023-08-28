@@ -15,9 +15,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.flink.api.typeinfo
+package org.apache.flinkx.api.typeinfo
 
-import org.apache.flink.api.serializer.{EitherSerializer, NothingSerializer}
+import org.apache.flinkx.api.serializer.{EitherSerializer, NothingSerializer}
 import org.apache.flink.annotation.{Public, PublicEvolving}
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation

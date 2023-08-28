@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.annotation.{Public, PublicEvolving}
 import org.apache.flink.api.common.functions.{AggregateFunction, ReduceFunction}
@@ -6,13 +6,13 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.{AllWindowedStream => JavaAllWStream}
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction.AggregationType
 import org.apache.flink.streaming.api.functions.aggregation.{ComparableAggregator, SumAggregator}
-import org.apache.flink.api.function.util.{
+import org.apache.flinkx.api.function.util.{
   ScalaAllWindowFunction,
   ScalaAllWindowFunctionWrapper,
   ScalaProcessAllWindowFunctionWrapper,
   ScalaReduceFunction
 }
-import org.apache.flink.api.function.{AllWindowFunction, ProcessAllWindowFunction}
+import org.apache.flinkx.api.function.{AllWindowFunction, ProcessAllWindowFunction}
 import org.apache.flink.streaming.api.windowing.evictors.Evictor
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.triggers.Trigger
@@ -516,7 +516,7 @@ class AllWindowedStream[T, W <: Window](javaStream: JavaAllWStream[T, W]) {
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]].
     */
-  private[flink] def clean[F <: AnyRef](f: F): F = {
+  private[flinkx] def clean[F <: AnyRef](f: F): F = {
     new StreamExecutionEnvironment(javaStream.getExecutionEnvironment).scalaClean(f)
   }
 

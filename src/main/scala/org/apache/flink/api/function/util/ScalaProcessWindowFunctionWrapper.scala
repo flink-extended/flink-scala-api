@@ -16,10 +16,10 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.function.util
+package org.apache.flinkx.api.function.util
 
-import org.apache.flink.api.OutputTag
-import org.apache.flink.api.function.{ProcessAllWindowFunction, ProcessWindowFunction}
+import org.apache.flinkx.api.OutputTag
+import org.apache.flinkx.api.function.{ProcessAllWindowFunction, ProcessWindowFunction}
 import org.apache.flink.api.common.functions.RuntimeContext
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.api.functions.windowing.{

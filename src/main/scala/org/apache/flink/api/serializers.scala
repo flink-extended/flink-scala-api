@@ -1,25 +1,25 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.mapper.{BigDecMapper, BigIntMapper}
-import org.apache.flink.api.serializer.MappedSerializer.TypeMapper
-import org.apache.flink.api.serializer._
-import org.apache.flink.api.typeinfo._
+import org.apache.flinkx.api.mapper.{BigDecMapper, BigIntMapper}
+import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
+import org.apache.flinkx.api.serializer._
+import org.apache.flinkx.api.typeinfo._
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, TypeInformation}
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.typeutils.base.array._
 
-import _root_.java.math.BigInteger
-import _root_.java.lang.{Float => JFloat}
-import _root_.java.lang.{Long => JLong}
-import _root_.java.lang.{Double => JDouble}
-import _root_.java.lang.{Short => JShort}
-import _root_.java.lang.{Byte => JByte}
-import _root_.java.lang.{Boolean => JBoolean}
-import _root_.java.lang.{Integer => JInteger}
-import _root_.java.lang.{Character => JCharacter}
-import _root_.java.math.{BigInteger => JBigInteger}
-import _root_.java.math.{BigDecimal => JBigDecimal}
+import java.math.BigInteger
+import java.lang.{Float => JFloat}
+import java.lang.{Long => JLong}
+import java.lang.{Double => JDouble}
+import java.lang.{Short => JShort}
+import java.lang.{Byte => JByte}
+import java.lang.{Boolean => JBoolean}
+import java.lang.{Integer => JInteger}
+import java.lang.{Character => JCharacter}
+import java.math.{BigInteger => JBigInteger}
+import java.math.{BigDecimal => JBigDecimal}
 
 import scala.collection.mutable
 import scala.reflect.{ClassTag, classTag}
@@ -109,7 +109,7 @@ object serializers extends LowPrioImplicits {
 
   implicit lazy val bigDecMapper: TypeMapper[scala.BigDecimal, JBigDecimal] = new BigDecMapper()
   implicit lazy val bigDecInfo: TypeInformation[scala.BigDecimal] = mappedTypeInfo[scala.BigDecimal, JBigDecimal]
-  implicit lazy val bigIntMapper: TypeMapper[scala.BigInt, _root_.java.math.BigInteger] = new BigIntMapper()
+  implicit lazy val bigIntMapper: TypeMapper[scala.BigInt, java.math.BigInteger] = new BigIntMapper()
   implicit lazy val bigIntInfo: TypeInformation[BigInt] = mappedTypeInfo[scala.BigInt, BigInteger]
 
   implicit lazy val unitInfo: TypeInformation[Unit] = new UnitTypeInformation()
@@ -139,7 +139,7 @@ object serializers extends LowPrioImplicits {
   implicit lazy val jByteInfo: TypeInformation[JByte]                 = BasicTypeInfo.BYTE_TYPE_INFO
   implicit lazy val jCharInfo: TypeInformation[JCharacter]            = BasicTypeInfo.CHAR_TYPE_INFO
   implicit lazy val jShortInfo: TypeInformation[JShort]               = BasicTypeInfo.SHORT_TYPE_INFO
-  implicit lazy val jVoidInfo: TypeInformation[_root_.java.lang.Void] = BasicTypeInfo.VOID_TYPE_INFO
+  implicit lazy val jVoidInfo: TypeInformation[java.lang.Void] = BasicTypeInfo.VOID_TYPE_INFO
   implicit lazy val jBigIntInfo: TypeInformation[BigInteger]          = BasicTypeInfo.BIG_INT_TYPE_INFO
   implicit lazy val jBigDecInfo: TypeInformation[JBigDecimal]         = BasicTypeInfo.BIG_DEC_TYPE_INFO
 
@@ -202,7 +202,7 @@ object serializers extends LowPrioImplicits {
   ): TypeInformation[Either[A, B]] =
     new EitherTypeInfo(tag.runtimeClass.asInstanceOf[Class[Either[A, B]]], a, b)
 
-  private[flink] def drop[A](a: => A): Unit = {
+  private[flinkx] def drop[A](a: => A): Unit = {
     val _ = a
     ()
   }

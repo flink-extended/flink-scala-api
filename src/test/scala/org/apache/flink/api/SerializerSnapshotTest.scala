@@ -1,7 +1,7 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import _root_.java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import org.apache.flink.api.SerializerSnapshotTest.{
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
+import org.apache.flinkx.api.SerializerSnapshotTest.{
   ADT2,
   OuterTrait,
   SimpleClass1,
@@ -15,7 +15,7 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.scalatest.Assertion
 
