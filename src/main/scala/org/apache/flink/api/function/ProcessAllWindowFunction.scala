@@ -16,9 +16,9 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.function
+package org.apache.flinkx.api.function
 
-import org.apache.flink.api.OutputTag
+import org.apache.flinkx.api.OutputTag
 import org.apache.flink.annotation.PublicEvolving
 import org.apache.flink.api.common.functions.AbstractRichFunction
 import org.apache.flink.api.common.state.KeyedStateStore

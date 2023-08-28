@@ -1,6 +1,6 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 import org.apache.flink.api._
 import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.api.common.restartstrategy.RestartStrategies

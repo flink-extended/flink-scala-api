@@ -1,10 +1,10 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
-import org.apache.flink.api.serializers.*
+import org.apache.flinkx.api.serializers.*
 
 class Scala3EnumTest extends AnyFlatSpec with Matchers {
   import Scala3EnumTest.Example

@@ -1,6 +1,6 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.typeinfo.CaseClassTypeInfo
+import org.apache.flinkx.api.typeinfo.CaseClassTypeInfo
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.{DataStream => JavaStream}
 import org.apache.flink.streaming.api.datastream.{ConnectedStreams => ConnectedJavaStreams}
@@ -31,7 +31,7 @@ object ScalaStreamOps {
   def asScalaStream[IN1, IN2](stream: BroadcastConnectedJavaStreams[IN1, IN2]) =
     new BroadcastConnectedStream[IN1, IN2](stream)
 
-  private[flink] def fieldNames2Indices(typeInfo: TypeInformation[_], fields: Array[String]): Array[Int] = {
+  private[flinkx] def fieldNames2Indices(typeInfo: TypeInformation[_], fields: Array[String]): Array[Int] = {
     typeInfo match {
       case ti: CaseClassTypeInfo[_] =>
         val result = ti.getFieldIndices(fields)

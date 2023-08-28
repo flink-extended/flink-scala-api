@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.annotation.{PublicEvolving, Public}
 import org.apache.flink.api.common.functions.CoGroupFunction
@@ -141,8 +141,8 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
           val coGrouper = new CoGroupFunction[T1, T2, O] {
             val cleanFun = clean(fun)
             def coGroup(
-                left: _root_.java.lang.Iterable[T1],
-                right: _root_.java.lang.Iterable[T2],
+                left: java.lang.Iterable[T1],
+                right: java.lang.Iterable[T2],
                 out: Collector[O]
             ) = {
               out.collect(cleanFun(left.iterator().asScala, right.iterator().asScala))
@@ -159,8 +159,8 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
           val coGrouper = new CoGroupFunction[T1, T2, O] {
             val cleanFun = clean(fun)
             def coGroup(
-                left: _root_.java.lang.Iterable[T1],
-                right: _root_.java.lang.Iterable[T2],
+                left: java.lang.Iterable[T1],
+                right: java.lang.Iterable[T2],
                 out: Collector[O]
             ) = {
               cleanFun(left.iterator.asScala, right.iterator.asScala, out)
@@ -194,7 +194,7 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]].
     */
-  private[flink] def clean[F <: AnyRef](f: F): F = {
+  private[flinkx] def clean[F <: AnyRef](f: F): F = {
     new StreamExecutionEnvironment(input1.javaStream.getExecutionEnvironment).scalaClean(f)
   }
 }

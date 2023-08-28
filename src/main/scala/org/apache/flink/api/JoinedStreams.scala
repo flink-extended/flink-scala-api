@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.annotation.{PublicEvolving, Public}
 import org.apache.flink.api.common.functions.{FlatJoinFunction, JoinFunction}
@@ -205,7 +205,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]].
     */
-  private[flink] def clean[F <: AnyRef](f: F): F = {
+  private[flinkx] def clean[F <: AnyRef](f: F): F = {
     new StreamExecutionEnvironment(input1.javaStream.getExecutionEnvironment).scalaClean(f)
   }
 }

@@ -1,6 +1,6 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.function.StatefulFunction
+import org.apache.flinkx.api.function.StatefulFunction
 import org.apache.flink.annotation.{Internal, Public, PublicEvolving}
 import org.apache.flink.api.common.functions._
 import org.apache.flink.api.common.state.{ReducingStateDescriptor, ValueStateDescriptor}

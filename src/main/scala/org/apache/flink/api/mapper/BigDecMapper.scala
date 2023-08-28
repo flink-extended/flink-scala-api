@@ -1,6 +1,6 @@
-package org.apache.flink.api.mapper
+package org.apache.flinkx.api.mapper
 
-import org.apache.flink.api.serializer.MappedSerializer.TypeMapper
+import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
 
 class BigDecMapper extends TypeMapper[scala.BigDecimal, java.math.BigDecimal] {
   override def map(a: BigDecimal): java.math.BigDecimal       = a.bigDecimal

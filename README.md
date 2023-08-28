@@ -20,8 +20,8 @@ import org.apache.flink.streaming.api.scala._
 ```
 ```scala mdoc
 // flink-scala-api imports
-import org.apache.flink.api._
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api._
+import org.apache.flinkx.api.serializers._
 ```
 
 ## Usage 
@@ -88,7 +88,7 @@ If you don't want to use built-in Scala serializers for some reasons, you can al
 explicitly calling it:
 ```scala mdoc:reset-object
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api._
+import org.apache.flinkx.api._
 
 implicit val intInfo: TypeInformation[Int] = TypeInformation.of(classOf[Int]) // explicit usage of the POJO serializer
 
@@ -119,7 +119,7 @@ PRs are welcome.
 To derive a TypeInformation for a sealed trait, you can do:
 
 ```scala mdoc:reset-object
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
 sealed trait Event extends Product with Serializable
@@ -171,9 +171,9 @@ and the class itself can be 1-to-1 mapped to a regular `String`. This library ha
 of non-serializable types to existing serializers. For example:
 
 ```scala mdoc
-import org.apache.flink.api.serializer.MappedSerializer.TypeMapper
+import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 
 class WrappedMapper extends TypeMapper[WrappedString, String] {
   override def map(a: WrappedString): String = a.get
@@ -197,7 +197,7 @@ Warning: on Scala 3, the TypeMapper should not be made anonymous. This example w
 Scala 3 are private, and Flink cannot instantiate it on restore without JVM 17 incompatible reflection hacks:
 
 ```scala mdoc:reset-object
-import org.apache.flink.api.serializer.MappedSerializer.TypeMapper
+import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
 
 class WrappedString {
   private var internal: String = ""
@@ -260,8 +260,8 @@ so quite easy to reproduce. If you have issues with this library not deriving `T
 They may be quite bad for rich nested case classes due to compile-time serializer derivation. 
 Derivation happens each time `flink-scala-api` needs an instance of the `TypeInformation[T]` implicit/type class:
 ```scala mdoc:reset-object
-import org.apache.flink.api._
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api._
+import org.apache.flinkx.api.serializers._
 
 case class Foo(x: Int) {
   def inc(a: Int) = copy(x = x + a)
@@ -278,9 +278,9 @@ If you're using the same instances of data structures in multiple jobs (or in mu
 derived serializer in a separate compile unit and just importing it when needed:
 
 ```scala mdoc:reset-object
-import org.apache.flink.api._
+import org.apache.flinkx.api._
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 
 // file FooTypeInfo.scala
 object FooTypeInfo {

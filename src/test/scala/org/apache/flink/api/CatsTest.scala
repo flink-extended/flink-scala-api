@@ -1,10 +1,10 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import cats.data.NonEmptyList
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 
 class CatsTest extends AnyFlatSpec with Matchers with TestUtils {
 

@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.serializer;
+package org.apache.flinkx.api.serializer;
 
 import org.apache.flink.api.common.typeutils.CompositeTypeSerializerSnapshot;
 import org.apache.flink.api.common.typeutils.TypeSerializer;

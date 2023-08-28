@@ -16,12 +16,12 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
 import org.junit.{Assert, Test}
-import org.apache.flink.api.serializers._
+import org.apache.flinkx.api.serializers._
 
 /** Unit test for [[org.apache.flink.streaming.api.scala.CoGroupedStreams]]
   */

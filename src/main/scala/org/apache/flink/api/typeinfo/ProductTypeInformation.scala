@@ -1,4 +1,4 @@
-package org.apache.flink.api.typeinfo
+package org.apache.flinkx.api.typeinfo
 
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation

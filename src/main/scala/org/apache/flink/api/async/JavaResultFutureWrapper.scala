@@ -16,7 +16,7 @@
  * limitations under the License.
  */
 
-package org.apache.flink.api.async
+package org.apache.flinkx.api.async
 
 import org.apache.flink.annotation.Internal
 import org.apache.flink.streaming.api.functions.async

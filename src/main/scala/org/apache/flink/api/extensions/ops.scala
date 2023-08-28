@@ -15,16 +15,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.flink.api.extension
+package org.apache.flinkx.api.extension
 
 import org.apache.flink.annotation.PublicEvolving
-import org.apache.flink.api.extensions.impl.acceptPartialFunctions._
+import org.apache.flinkx.api.extensions.impl.acceptPartialFunctions._
 import org.apache.flink.streaming.api.windowing.windows.Window
-import org.apache.flink.api.DataStream
-import org.apache.flink.api.KeyedStream
-import org.apache.flink.api.JoinedStreams
-import org.apache.flink.api.WindowedStream
-import org.apache.flink.api.ConnectedStreams
+import org.apache.flinkx.api.{DataStream, KeyedStream, JoinedStreams, WindowedStream, ConnectedStreams}
 
 /** acceptPartialFunctions extends the original DataStream with methods with unique names that delegate to core
   * higher-order functions (e.g. `map`) so that we can work around the fact that overloaded methods taking functions as

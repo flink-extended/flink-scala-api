@@ -1,7 +1,7 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
-import org.apache.flink.api.function.{ProcessWindowFunction, WindowFunction}
-import org.apache.flink.api.function.util.{
+import org.apache.flinkx.api.function.{ProcessWindowFunction, WindowFunction}
+import org.apache.flinkx.api.function.util.{
   ScalaProcessWindowFunctionWrapper,
   ScalaReduceFunction,
   ScalaWindowFunction,
@@ -563,7 +563,7 @@ class WindowedStream[T, K, W <: Window](javaStream: JavaWStream[T, K, W]) {
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]].
     */
-  private[flink] def clean[F <: AnyRef](f: F): F = {
+  private[flinkx] def clean[F <: AnyRef](f: F): F = {
     new StreamExecutionEnvironment(javaStream.getExecutionEnvironment).scalaClean(f)
   }
 

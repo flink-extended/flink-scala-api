@@ -1,4 +1,4 @@
-package org.apache.flink.api
+package org.apache.flinkx.api
 
 import org.apache.flink.annotation.Experimental
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -50,7 +50,7 @@ class DataStreamUtils[T: TypeInformation: ClassTag](val self: DataStream[T]) {
     asScalaStream(JavaStreamUtils.reinterpretAsKeyedStream(self.javaStream, javaKeySelector, keyTypeInfo))
   }
 
-  private[flink] def clean[F <: AnyRef](f: F): F = {
+  private[flinkx] def clean[F <: AnyRef](f: F): F = {
     new StreamExecutionEnvironment(self.javaStream.getExecutionEnvironment).scalaClean(f)
   }
 }

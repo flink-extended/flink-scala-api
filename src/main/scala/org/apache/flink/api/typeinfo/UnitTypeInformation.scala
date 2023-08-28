@@ -1,6 +1,6 @@
-package org.apache.flink.api.typeinfo
+package org.apache.flinkx.api.typeinfo
 
-import org.apache.flink.api.serializer.UnitSerializer
+import org.apache.flinkx.api.serializer.UnitSerializer
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer

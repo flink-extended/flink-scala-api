@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.flink.api.typeinfo
+package org.apache.flinkx.api.typeinfo
 
 import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.typeutils.TypeComparator
