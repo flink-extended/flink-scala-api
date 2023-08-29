@@ -28,13 +28,13 @@ import org.apache.flinkx.api.serializers._
 
 `flink-scala-api` is released to Maven-central for 2.12, 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
-libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.2_1.0.0"
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.16.2_1.1.0"
 ```
 
 For Ammonite:
 
 ```scala
-import $ivy.`org.flinkextended::flink-scala-api:1.16.2_1.0.0`
+import $ivy.`org.flinkextended::flink-scala-api:1.16.2_1.1.0`
 // you might need flink-client too in order to run in the REPL
 import $ivy.`org.apache.flink:flink-clients:1.16.2`
 ```
@@ -43,9 +43,9 @@ If you want to create new project easily check this __Giter8 template__ out: [no
 
 ## Supported Flink versions
 
-- `flink-scala-api` version consists of Flink version plus Scala API version, for example 1.16.2_1.0.0
+- `flink-scala-api` version consists of Flink version plus Scala API version, for example 1.16.2_1.1.0
 - First three numbers correspond to the Flink Version, for example 1.16.2 
-- Three more numbers is this project version, for example 1.0.0. You should just use the latest available Scala API project version in in your project dependency configuration. 
+- Three more numbers is this project version, for example 1.1.0. You should just use the latest available Scala API project version in in your project dependency configuration. 
 - Three major Flink versions are supported. See supported version in the local [release.sh](release.sh) file.
 
 We suggest to remove the official `flink-scala` and `flink-streaming-scala` dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. But it's technically possible and not required.
