@@ -112,4 +112,4 @@ lazy val root = (project in file("."))
                         else Seq.empty[ReleaseStep]),
     mdocIn := new File("README.md")
   )
-  .enablePlugins(GitVersioning, MdocPlugin)
+  .enablePlugins(MdocPlugin)
