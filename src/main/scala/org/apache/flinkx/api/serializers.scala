@@ -20,6 +20,7 @@ import java.lang.{Integer => JInteger}
 import java.lang.{Character => JCharacter}
 import java.math.{BigInteger => JBigInteger}
 import java.math.{BigDecimal => JBigDecimal}
+import java.time.Instant
 
 import scala.collection.mutable
 import scala.reflect.{ClassTag, classTag}
@@ -142,6 +143,7 @@ object serializers extends LowPrioImplicits {
   implicit lazy val jVoidInfo: TypeInformation[java.lang.Void] = BasicTypeInfo.VOID_TYPE_INFO
   implicit lazy val jBigIntInfo: TypeInformation[BigInteger]   = BasicTypeInfo.BIG_INT_TYPE_INFO
   implicit lazy val jBigDecInfo: TypeInformation[JBigDecimal]  = BasicTypeInfo.BIG_DEC_TYPE_INFO
+  implicit lazy val jInstantInfo: TypeInformation[Instant]     = BasicTypeInfo.INSTANT_TYPE_INFO
 
   implicit def listCCInfo[T](implicit lc: ClassTag[T], ls: TypeSerializer[::[T]]): TypeInformation[::[T]] = {
     drop(lc)

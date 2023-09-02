@@ -3,7 +3,6 @@ package org.apache.flinkx.api
 import cats.data.NonEmptyList
 import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
-
 import org.apache.flinkx.api.SerializerTest.{
   ADT,
   ADT2,
@@ -34,6 +33,8 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flinkx.api.serializers._
 
+import java.time.Instant
+
 class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with TestUtils {
 
   it should "derive serializer for simple class" in {
@@ -43,7 +44,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 
   it should "derive serializer for java classes" in {
     val ser = implicitly[TypeInformation[SimpleJava]].createSerializer(null)
-    all(ser, SimpleJava(1, "foo"))
+    all(ser, SimpleJava(1, "foo", Instant.now()))
   }
 
   it should "derive nested classes" in {
@@ -201,7 +202,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 object SerializerTest {
   case class Simple(a: Int, b: String)
   case class SimpleList(a: List[Int])
-  case class SimpleJava(a: Integer, b: String)
+  case class SimpleJava(a: Integer, b: String, c: Instant)
   case class Nested(a: Simple)
 
   case class SimpleSeq(a: Seq[Simple])
