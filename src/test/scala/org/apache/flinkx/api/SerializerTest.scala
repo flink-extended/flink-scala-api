@@ -14,6 +14,7 @@ import org.apache.flinkx.api.SerializerTest.{
   Foo,
   Foo2,
   Generic,
+  JavaTime,
   ListADT,
   Nested,
   P2,
@@ -33,7 +34,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flinkx.api.serializers._
 
-import java.time.Instant
+import java.time.{Instant, LocalDate, LocalDateTime}
 
 class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with TestUtils {
 
@@ -44,7 +45,12 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 
   it should "derive serializer for java classes" in {
     val ser = implicitly[TypeInformation[SimpleJava]].createSerializer(null)
-    all(ser, SimpleJava(1, "foo", Instant.now()))
+    all(ser, SimpleJava(1, "foo"))
+  }
+  
+  it should "derive serializer for java.time classes" in {
+    val ser = implicitly[TypeInformation[JavaTime]].createSerializer(null)
+    all(ser, JavaTime(Instant.now(), LocalDate.now(), LocalDateTime.now()))
   }
 
   it should "derive nested classes" in {
@@ -202,7 +208,8 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 object SerializerTest {
   case class Simple(a: Int, b: String)
   case class SimpleList(a: List[Int])
-  case class SimpleJava(a: Integer, b: String, c: Instant)
+  case class SimpleJava(a: Integer, b: String)
+  case class JavaTime(a: Instant, b: LocalDate, c: LocalDateTime)
   case class Nested(a: Simple)
 
   case class SimpleSeq(a: Seq[Simple])

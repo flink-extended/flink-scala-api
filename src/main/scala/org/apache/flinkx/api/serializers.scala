@@ -5,7 +5,7 @@ import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
 import org.apache.flinkx.api.serializer._
 import org.apache.flinkx.api.typeinfo._
 import org.apache.flink.api.common.ExecutionConfig
-import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, TypeInformation}
+import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, LocalTimeTypeInfo, TypeInformation}
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.typeutils.base.array._
 
@@ -20,8 +20,7 @@ import java.lang.{Integer => JInteger}
 import java.lang.{Character => JCharacter}
 import java.math.{BigInteger => JBigInteger}
 import java.math.{BigDecimal => JBigDecimal}
-import java.time.Instant
-
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
 import scala.collection.mutable
 import scala.reflect.{ClassTag, classTag}
 
@@ -132,18 +131,21 @@ object serializers extends LowPrioImplicits {
   implicit lazy val shortSerializer: TypeSerializer[Short]     = shortInfo.createSerializer(config)
 
   // java
-  implicit lazy val jIntegerInfo: TypeInformation[JInteger]    = BasicTypeInfo.INT_TYPE_INFO
-  implicit lazy val jLongInfo: TypeInformation[JLong]          = BasicTypeInfo.LONG_TYPE_INFO
-  implicit lazy val jFloatInfo: TypeInformation[JFloat]        = BasicTypeInfo.FLOAT_TYPE_INFO
-  implicit lazy val jDoubleInfo: TypeInformation[JDouble]      = BasicTypeInfo.DOUBLE_TYPE_INFO
-  implicit lazy val jBooleanInfo: TypeInformation[JBoolean]    = BasicTypeInfo.BOOLEAN_TYPE_INFO
-  implicit lazy val jByteInfo: TypeInformation[JByte]          = BasicTypeInfo.BYTE_TYPE_INFO
-  implicit lazy val jCharInfo: TypeInformation[JCharacter]     = BasicTypeInfo.CHAR_TYPE_INFO
-  implicit lazy val jShortInfo: TypeInformation[JShort]        = BasicTypeInfo.SHORT_TYPE_INFO
-  implicit lazy val jVoidInfo: TypeInformation[java.lang.Void] = BasicTypeInfo.VOID_TYPE_INFO
-  implicit lazy val jBigIntInfo: TypeInformation[BigInteger]   = BasicTypeInfo.BIG_INT_TYPE_INFO
-  implicit lazy val jBigDecInfo: TypeInformation[JBigDecimal]  = BasicTypeInfo.BIG_DEC_TYPE_INFO
-  implicit lazy val jInstantInfo: TypeInformation[Instant]     = BasicTypeInfo.INSTANT_TYPE_INFO
+  implicit lazy val jIntegerInfo: TypeInformation[JInteger]                = BasicTypeInfo.INT_TYPE_INFO
+  implicit lazy val jLongInfo: TypeInformation[JLong]                      = BasicTypeInfo.LONG_TYPE_INFO
+  implicit lazy val jFloatInfo: TypeInformation[JFloat]                    = BasicTypeInfo.FLOAT_TYPE_INFO
+  implicit lazy val jDoubleInfo: TypeInformation[JDouble]                  = BasicTypeInfo.DOUBLE_TYPE_INFO
+  implicit lazy val jBooleanInfo: TypeInformation[JBoolean]                = BasicTypeInfo.BOOLEAN_TYPE_INFO
+  implicit lazy val jByteInfo: TypeInformation[JByte]                      = BasicTypeInfo.BYTE_TYPE_INFO
+  implicit lazy val jCharInfo: TypeInformation[JCharacter]                 = BasicTypeInfo.CHAR_TYPE_INFO
+  implicit lazy val jShortInfo: TypeInformation[JShort]                    = BasicTypeInfo.SHORT_TYPE_INFO
+  implicit lazy val jVoidInfo: TypeInformation[java.lang.Void]             = BasicTypeInfo.VOID_TYPE_INFO
+  implicit lazy val jBigIntInfo: TypeInformation[BigInteger]               = BasicTypeInfo.BIG_INT_TYPE_INFO
+  implicit lazy val jBigDecInfo: TypeInformation[JBigDecimal]              = BasicTypeInfo.BIG_DEC_TYPE_INFO
+  implicit lazy val jInstantInfo: TypeInformation[Instant]                 = BasicTypeInfo.INSTANT_TYPE_INFO
+  implicit lazy val jLocalDateTypeInfo: TypeInformation[LocalDate]         = LocalTimeTypeInfo.LOCAL_DATE
+  implicit lazy val jLocalDateTimeTypeInfo: TypeInformation[LocalDateTime] = LocalTimeTypeInfo.LOCAL_DATE_TIME
+  implicit lazy val jLocalTimeTypeInfo: TypeInformation[LocalTime]         = LocalTimeTypeInfo.LOCAL_TIME
 
   implicit def listCCInfo[T](implicit lc: ClassTag[T], ls: TypeSerializer[::[T]]): TypeInformation[::[T]] = {
     drop(lc)
