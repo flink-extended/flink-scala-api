@@ -101,7 +101,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
       /** A join operation that has [[KeySelector]]s defined for both inputs as well as a [[WindowAssigner]].
         *
         * @tparam W
-        *   Type of { @link Window} on which the join operation works.
+        *   Type of {@@linkWindow} on which the join operation works.
         */
       class WithWindow[W <: Window](
           windowAssigner: WindowAssigner[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], W],

@@ -40,7 +40,7 @@ class BroadcastConnectedStream[IN1, IN2](javaStream: JavaBCStream[IN1, IN2]) {
     * @tparam OUT
     *   The type of the output elements.
     * @return
-    *   The transformed { @link DataStream}.
+    *   The transformed {@@linkDataStream} .
     */
   @PublicEvolving
   def process[OUT: TypeInformation](function: BroadcastProcessFunction[IN1, IN2, OUT]): DataStream[OUT] = {

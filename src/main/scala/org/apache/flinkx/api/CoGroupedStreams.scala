@@ -98,7 +98,7 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
       /** A co-group operation that has [[KeySelector]]s defined for both inputs as well as a [[WindowAssigner]].
         *
         * @tparam W
-        *   Type of { @link Window} on which the co-group operation works.
+        *   Type of {@@linkWindow} on which the co-group operation works.
         */
       @PublicEvolving
       class WithWindow[W <: Window](
