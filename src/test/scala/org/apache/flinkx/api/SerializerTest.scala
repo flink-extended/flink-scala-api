@@ -47,7 +47,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     val ser = implicitly[TypeInformation[SimpleJava]].createSerializer(null)
     all(ser, SimpleJava(1, "foo"))
   }
-  
+
   it should "derive serializer for java.time classes" in {
     val ser = implicitly[TypeInformation[JavaTime]].createSerializer(null)
     all(ser, JavaTime(Instant.now(), LocalDate.now(), LocalDateTime.now()))
