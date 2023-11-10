@@ -36,6 +36,8 @@ lazy val root = (project in file("."))
         )
       }
     },
+    // some IT tests won't work without running in forked JVM
+    Test / fork := true,
     // Need to isolate macro usage to version-specific folders.
     Compile / unmanagedSourceDirectories += {
       val dir              = (Compile / scalaSource).value.getPath
