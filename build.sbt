@@ -5,7 +5,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
 
 lazy val rootScalaVersion = "3.3.1"
-lazy val flinkVersion     = System.getProperty("flinkVersion", "1.16.2")
+lazy val flinkVersion     = System.getProperty("flinkVersion", "1.16.3")
 
 lazy val root = (project in file("."))
   .settings(ReleaseProcess.releaseSettings(flinkVersion): _*)
