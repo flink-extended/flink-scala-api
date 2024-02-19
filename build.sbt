@@ -21,7 +21,7 @@ lazy val root = (project in file("."))
       ("org.apache.flink" % "flink-streaming-java"   % flinkVersion % Test).classifier("tests"),
       "com.github.sbt"    % "junit-interface"        % "0.13.3"     % Test,
       "org.typelevel"    %% "cats-core"              % "2.10.0"     % Test,
-      "org.scalatest"    %% "scalatest"              % "3.2.17"     % Test
+      "org.scalatest"    %% "scalatest"              % "3.2.18"     % Test
     ),
     libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
