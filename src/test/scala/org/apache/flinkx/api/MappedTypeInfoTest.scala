@@ -11,7 +11,7 @@ import scala.reflect.ClassTag
 
 class MappedTypeInfoTest extends AnyFlatSpec with Matchers with TestUtils {
   import MappedTypeInfoTest._
-  it should "derive TI for non-serializeable classes" in {
+  it should "derive TI for non-serializable classes" in {
     drop(implicitly[TypeInformation[WrappedString]])
   }
 }
