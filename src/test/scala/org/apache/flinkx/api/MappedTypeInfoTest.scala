@@ -11,8 +11,16 @@ import scala.reflect.ClassTag
 
 class MappedTypeInfoTest extends AnyFlatSpec with Matchers with TestUtils {
   import MappedTypeInfoTest._
-  it should "derive TI for non-serializeable classes" in {
+  it should "derive TI for non-serializable classes" in {
     drop(implicitly[TypeInformation[WrappedString]])
+  }
+
+  it should "serialize type mappers across tasks" in {
+    val env         = StreamExecutionEnvironment.getExecutionEnvironment
+    val dataStream  = env.fromElements(Purchase(1, 1.0))
+    val purchase    = dataStream.keyBy(_.id).map(_.copy(price = 5.1)).executeAndCollect(1)
+
+    purchase.last should be (Purchase(1, 5.1))
   }
 }
 
@@ -39,5 +47,11 @@ object MappedTypeInfoTest {
     def put(value: String) = {
       internal = value
     }
+  }
+
+  case class Purchase(id: Int, price: BigDecimal)
+
+  object Purchase {
+    implicit val typeInfo: TypeInformation[Purchase] = deriveTypeInformation
   }
 }

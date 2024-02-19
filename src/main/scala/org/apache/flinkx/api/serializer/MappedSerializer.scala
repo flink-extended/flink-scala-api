@@ -37,7 +37,7 @@ case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[
 }
 
 object MappedSerializer {
-  trait TypeMapper[A, B] {
+  trait TypeMapper[A, B] extends Serializable {
     def map(a: A): B
     def contramap(b: B): A
   }
