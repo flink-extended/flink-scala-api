@@ -9,7 +9,6 @@ import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, LocalTimeTypeInfo, T
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.typeutils.base.array._
 
-import java.math.BigInteger
 import java.lang.{Float => JFloat}
 import java.lang.{Long => JLong}
 import java.lang.{Double => JDouble}
@@ -109,8 +108,8 @@ object serializers extends LowPrioImplicits {
 
   implicit lazy val bigDecMapper: TypeMapper[scala.BigDecimal, JBigDecimal] = new BigDecMapper()
   implicit lazy val bigDecInfo: TypeInformation[scala.BigDecimal] = mappedTypeInfo[scala.BigDecimal, JBigDecimal]
-  implicit lazy val bigIntMapper: TypeMapper[scala.BigInt, java.math.BigInteger] = new BigIntMapper()
-  implicit lazy val bigIntInfo: TypeInformation[BigInt] = mappedTypeInfo[scala.BigInt, BigInteger]
+  implicit lazy val bigIntMapper: TypeMapper[scala.BigInt, JBigInteger] = new BigIntMapper()
+  implicit lazy val bigIntInfo: TypeInformation[BigInt] = mappedTypeInfo[scala.BigInt, JBigInteger]
 
   implicit lazy val unitInfo: TypeInformation[Unit] = new UnitTypeInformation()
   implicit def mappedTypeInfo[A: ClassTag, B](implicit
@@ -140,7 +139,7 @@ object serializers extends LowPrioImplicits {
   implicit lazy val jCharInfo: TypeInformation[JCharacter]                 = BasicTypeInfo.CHAR_TYPE_INFO
   implicit lazy val jShortInfo: TypeInformation[JShort]                    = BasicTypeInfo.SHORT_TYPE_INFO
   implicit lazy val jVoidInfo: TypeInformation[java.lang.Void]             = BasicTypeInfo.VOID_TYPE_INFO
-  implicit lazy val jBigIntInfo: TypeInformation[BigInteger]               = BasicTypeInfo.BIG_INT_TYPE_INFO
+  implicit lazy val jBigIntInfo: TypeInformation[JBigInteger]              = BasicTypeInfo.BIG_INT_TYPE_INFO
   implicit lazy val jBigDecInfo: TypeInformation[JBigDecimal]              = BasicTypeInfo.BIG_DEC_TYPE_INFO
   implicit lazy val jInstantInfo: TypeInformation[Instant]                 = BasicTypeInfo.INSTANT_TYPE_INFO
   implicit lazy val jLocalDateTypeInfo: TypeInformation[LocalDate]         = LocalTimeTypeInfo.LOCAL_DATE
