@@ -16,11 +16,11 @@ class MappedTypeInfoTest extends AnyFlatSpec with Matchers with TestUtils {
   }
 
   it should "serialize type mappers across tasks" in {
-    val env         = StreamExecutionEnvironment.getExecutionEnvironment
-    val dataStream  = env.fromElements(Purchase(1, 1.0))
-    val purchase    = dataStream.keyBy(_.id).map(_.copy(price = 5.1)).executeAndCollect(1)
+    val env        = StreamExecutionEnvironment.getExecutionEnvironment
+    val dataStream = env.fromElements(Purchase(1, 1.0))
+    val purchase   = dataStream.keyBy(_.id).map(_.copy(price = 5.1)).executeAndCollect(1)
 
-    purchase.last should be (Purchase(1, 5.1))
+    purchase.last should be(Purchase(1, 5.1))
   }
 }
 
