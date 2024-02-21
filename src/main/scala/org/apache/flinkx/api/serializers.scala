@@ -1,6 +1,6 @@
 package org.apache.flinkx.api
 
-import org.apache.flinkx.api.mapper.{BigDecMapper, BigIntMapper}
+import org.apache.flinkx.api.mapper.{BigDecMapper, BigIntMapper, UuidMapper}
 import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
 import org.apache.flinkx.api.serializer._
 import org.apache.flinkx.api.typeinfo._
@@ -20,6 +20,7 @@ import java.lang.{Character => JCharacter}
 import java.math.{BigInteger => JBigInteger}
 import java.math.{BigDecimal => JBigDecimal}
 import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
+import java.util.UUID
 import scala.collection.mutable
 import scala.reflect.{ClassTag, classTag}
 
@@ -110,6 +111,8 @@ object serializers extends LowPrioImplicits {
   implicit lazy val bigDecInfo: TypeInformation[scala.BigDecimal] = mappedTypeInfo[scala.BigDecimal, JBigDecimal]
   implicit lazy val bigIntMapper: TypeMapper[scala.BigInt, JBigInteger] = new BigIntMapper()
   implicit lazy val bigIntInfo: TypeInformation[BigInt] = mappedTypeInfo[scala.BigInt, JBigInteger]
+  implicit lazy val uuidMapper: TypeMapper[UUID, Array[Byte]] = new UuidMapper()
+  implicit lazy val uuidInfo: TypeInformation[UUID] = mappedTypeInfo[UUID, Array[Byte]]
 
   implicit lazy val unitInfo: TypeInformation[Unit] = new UnitTypeInformation()
   implicit def mappedTypeInfo[A: ClassTag, B](implicit

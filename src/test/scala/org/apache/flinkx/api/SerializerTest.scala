@@ -35,6 +35,7 @@ import org.scalatest.matchers.should.Matchers
 import org.apache.flinkx.api.serializers._
 
 import java.time.{Instant, LocalDate, LocalDateTime}
+import java.util.UUID
 
 class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with TestUtils {
 
@@ -201,6 +202,11 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   it should "serialize bigdec" in {
     val ser = implicitly[TypeInformation[BigDecimal]].createSerializer(null)
     roundtrip(ser, BigDecimal(123))
+  }
+
+  it should "serialize uuid" in {
+    val ser = implicitly[TypeInformation[UUID]].createSerializer(null)
+    roundtrip(ser, UUID.randomUUID())
   }
 
 }
