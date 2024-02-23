@@ -133,7 +133,8 @@ abstract class CaseClassTypeInfo[T <: Product](
               case ct: CompositeType[_] =>
                 ct.getFlatFields("*", pos, result)
               case _ =>
-                result.add(new FlatFieldDescriptor(pos, fieldTypes(index)))()
+                result.add(new FlatFieldDescriptor(pos, fieldTypes(index)));
+                ()
             }
           } else {
             // skipping over non-matching fields
