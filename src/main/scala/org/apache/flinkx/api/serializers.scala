@@ -108,11 +108,11 @@ object serializers extends LowPrioImplicits {
   implicit lazy val shortInfo: TypeInformation[Short]   = BasicTypeInfo.getInfoFor(classOf[Short])
 
   implicit lazy val bigDecMapper: TypeMapper[scala.BigDecimal, JBigDecimal] = new BigDecMapper()
-  implicit lazy val bigDecInfo: TypeInformation[scala.BigDecimal] = mappedTypeInfo[scala.BigDecimal, JBigDecimal]
+  implicit lazy val bigDecInfo: TypeInformation[scala.BigDecimal]       = mappedTypeInfo[scala.BigDecimal, JBigDecimal]
   implicit lazy val bigIntMapper: TypeMapper[scala.BigInt, JBigInteger] = new BigIntMapper()
-  implicit lazy val bigIntInfo: TypeInformation[BigInt] = mappedTypeInfo[scala.BigInt, JBigInteger]
-  implicit lazy val uuidMapper: TypeMapper[UUID, Array[Byte]] = new UuidMapper()
-  implicit lazy val uuidInfo: TypeInformation[UUID] = mappedTypeInfo[UUID, Array[Byte]]
+  implicit lazy val bigIntInfo: TypeInformation[BigInt]                 = mappedTypeInfo[scala.BigInt, JBigInteger]
+  implicit lazy val uuidMapper: TypeMapper[UUID, Array[Byte]]           = new UuidMapper()
+  implicit lazy val uuidInfo: TypeInformation[UUID]                     = mappedTypeInfo[UUID, Array[Byte]]
 
   implicit lazy val unitInfo: TypeInformation[Unit] = new UnitTypeInformation()
   implicit def mappedTypeInfo[A: ClassTag, B](implicit
