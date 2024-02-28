@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         java: [11]
-        scala: [2.12.18, 2.13.13, 3.3.1]
+        scala: [2.12.19, 2.13.13, 3.3.1]
         flink: [1.15.4]
         include:
           - scala: 3.3.1
