@@ -4,9 +4,9 @@ import org.apache.flink.api.common.RuntimeExecutionMode
 import org.apache.flink.api.common.restartstrategy.RestartStrategies
 import org.apache.flink.runtime.testutils.MiniClusterResourceConfiguration
 import org.apache.flink.test.util.MiniClusterWithClientResource
-import org.scalatest.{BeforeAndAfterEach, Suite}
+import org.scalatest.{BeforeAndAfterAll, BeforeAndAfterEach, Suite}
 
-trait IntegrationTest extends BeforeAndAfterEach {
+trait IntegrationTest extends BeforeAndAfterEach with BeforeAndAfterAll {
   this: Suite =>
 
   // It is recommended to always test your pipelines locally with a parallelism > 1 to identify bugs which only
@@ -33,15 +33,19 @@ trait IntegrationTest extends BeforeAndAfterEach {
     env
   }
 
+  override protected def beforeAll(): Unit = {
+    super.beforeAll()
+    cluster.before()
+  }
+
   override protected def beforeEach(): Unit = {
     super.beforeEach()
-    cluster.before()
     IntegrationTestSink.values.clear()
   }
 
-  override def afterEach(): Unit = {
+  override def afterAll(): Unit = {
     cluster.after()
-    super.afterEach()
+    super.afterAll()
   }
 
   implicit final class DataStreamOps[T](private val dataStream: DataStream[T]) {
