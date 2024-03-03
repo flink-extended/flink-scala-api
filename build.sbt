@@ -1,5 +1,4 @@
-import sbtrelease.ReleaseStateTransformations._
-import ReleaseProcess._
+import sbtrelease.ReleaseStateTransformations.*
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
@@ -8,7 +7,7 @@ lazy val rootScalaVersion = "3.3.1"
 lazy val flinkVersion     = System.getProperty("flinkVersion", "1.16.3")
 
 lazy val root = (project in file("."))
-  .settings(ReleaseProcess.releaseSettings(flinkVersion): _*)
+  .settings(ReleaseProcess.releaseSettings(flinkVersion)*)
   .settings(
     name               := "flink-scala-api",
     scalaVersion       := rootScalaVersion,
@@ -21,7 +20,8 @@ lazy val root = (project in file("."))
       ("org.apache.flink" % "flink-streaming-java"   % flinkVersion % Test).classifier("tests"),
       "com.github.sbt"    % "junit-interface"        % "0.13.3"     % Test,
       "org.typelevel"    %% "cats-core"              % "2.10.0"     % Test,
-      "org.scalatest"    %% "scalatest"              % "3.2.18"     % Test
+      "org.scalatest"    %% "scalatest"              % "3.2.18"     % Test,
+      "ch.qos.logback"    % "logback-classic"        % "1.4.14"     % Test
     ),
     libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
