@@ -1,6 +1,5 @@
 package org.apache.flinkx.api
 
-import org.apache.flinkx.api.serializers._
 import org.apache.flink.api.common.functions._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.io.ParallelIteratorInputFormat
@@ -13,25 +12,15 @@ import org.apache.flink.streaming.api.windowing.assigners.GlobalWindows
 import org.apache.flink.streaming.api.windowing.triggers.{CountTrigger, PurgingTrigger}
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow
 import org.apache.flink.streaming.runtime.partitioner._
-import org.apache.flink.test.util.AbstractTestBase
 import org.apache.flink.util.Collector
-import org.hamcrest.CoreMatchers.equalTo
-import org.junit.Assert._
-import org.junit.rules.ExpectedException
-import org.junit.{Rule, Test}
-import scala.util.Try
+import org.apache.flinkx.api.serializers._
+import org.scalatest.flatspec.AnyFlatSpec
+import org.scalatest.matchers.should.Matchers
 
-class DataStreamTest extends AbstractTestBase {
+class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
+  import DataStreamTest._
 
-  // private val expectedException = ExpectedException.none()
-
-  // @Rule
-  // def thrownException = expectedException
-
-  @Test
-  def testNaming(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "set operator names" in {
     val source1Operator = env.fromSequence(0, 0).name("testSource1")
     val source1         = source1Operator
     assert("testSource1" == source1Operator.name)
@@ -80,9 +69,7 @@ class DataStreamTest extends AbstractTestBase {
     assert(plan contains "testWindowReduce")
   }
 
-  @Test
-  def testUserDefinedDescription(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
+  it should "set operator descriptions" in {
     val dataStream1 = env
       .fromSequence(0, 0)
       .setDescription("this is test source 1")
@@ -107,21 +94,18 @@ class DataStreamTest extends AbstractTestBase {
       .print()
     // test functionality through the operator names in the execution plan
     val plan = env.getExecutionPlan
-    assertTrue(plan.contains("this is test source 1"))
-    assertTrue(plan.contains("this is test source 2"))
-    assertTrue(plan.contains("this is test map 1"))
-    assertTrue(plan.contains("this is test map 2"))
-    assertTrue(plan.contains("this is test co flat map"))
-    assertTrue(plan.contains("this is test window reduce"))
+    assert(plan contains "this is test source 1")
+    assert(plan contains "this is test source 2")
+    assert(plan contains "this is test map 1")
+    assert(plan contains "this is test map 2")
+    assert(plan contains "this is test co flat map")
+    assert(plan contains "this is test window reduce")
   }
 
   /** Tests that [[DataStream.keyBy]] and [[DataStream.partitionCustom]] result in different and correct topologies.
     * Does the some for the [[ConnectedStreams]].
     */
-  @Test
-  def testPartitioning(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "set partitions" in {
     val src1: DataStream[(Long, Long)] = env.fromElements((0L, 0L))
     val src2: DataStream[(Long, Long)] = env.fromElements((0L, 0L))
 
@@ -245,11 +229,7 @@ class DataStreamTest extends AbstractTestBase {
     )
   }
 
-  /** Tests whether parallelism gets set.
-    */
-  @Test
-  def testParallelism() = {
-    val env         = StreamExecutionEnvironment.getExecutionEnvironment
+  it should "set parallelism" in {
     val parallelism = env.getParallelism
 
     val src = env.fromElements(new Tuple2[Long, Long](0L, 0L))
@@ -308,26 +288,23 @@ class DataStreamTest extends AbstractTestBase {
 
   /** Tests setting the parallelism after a partitioning operation (e.g., broadcast, rescale) should fail.
     */
-  @Test
-  def testParallelismFailAfterPartitioning(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "fail parallelism after partitioning" in {
     val src = env.fromElements(new Tuple2[Long, Long](0L, 0L))
     val map = src.map(_ => (0L, 0L))
 
     // This could be replaced with other partitioning operations (e.g., rescale, shuffle, forward),
     // which trigger the setConnectionType() method.
     val broadcastStream = map.broadcast
-    assertThrows(classOf[UnsupportedOperationException], () => broadcastStream.setParallelism(1))
+
+    an[UnsupportedOperationException] shouldBe thrownBy {
+      broadcastStream.setParallelism(1)
+    }
   }
 
   /** Tests whether resource gets set.
     */
   /*
-  @Test
-  def testResource() {
-    val env: StreamExecutionEnvironment = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "set resources" in {
     val minResource1: ResourceSpec = new ResourceSpec(1.0, 100)
     val preferredResource1: ResourceSpec = new ResourceSpec(2.0, 200)
     val minResource2: ResourceSpec = new ResourceSpec(1.0, 200)
@@ -396,10 +373,7 @@ class DataStreamTest extends AbstractTestBase {
       sink.getPreferredResource.getId).getPreferredResource)
   }*/
 
-  @Test
-  def testTypeInfo() = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "keep type information" in {
     val src1: DataStream[Long] = env.fromSequence(0, 0)
     assert(TypeExtractor.getForClass(classOf[Long]) == src1.dataType)
 
@@ -425,16 +399,15 @@ class DataStreamTest extends AbstractTestBase {
 
         override def merge(a: CustomCaseClass, b: CustomCaseClass): CustomCaseClass = ???
       })
+
     val typeInfo = implicitly[TypeInformation[CustomCaseClass]]
-    assertEquals(flatten.dataType, typeInfo)
+
+    typeInfo shouldBe flatten.dataType
   }
 
   /** Verify that a [[KeyedStream.process(ProcessFunction)]] call is correctly translated to an operator.
     */
-  @Test
-  def testKeyedStreamProcessTranslation(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "translate keyed stream process function to operator" in {
     val src = env.fromSequence(0, 0)
 
     val processFunction = new KeyedProcessFunction[Long, Long, Int] {
@@ -453,10 +426,7 @@ class DataStreamTest extends AbstractTestBase {
 
   /** Verify that a [[KeyedStream.process(KeyedProcessFunction)]] call is correctly translated to an operator.
     */
-  @Test
-  def testKeyedStreamKeyedProcessTranslation(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "translate keyed stream keyed process function to operator" in {
     val src = env.fromSequence(0, 0)
 
     val keyedProcessFunction = new KeyedProcessFunction[Long, Long, Int] {
@@ -475,10 +445,7 @@ class DataStreamTest extends AbstractTestBase {
 
   /** Verify that a [[DataStream.process(ProcessFunction)]] call is correctly translated to an operator.
     */
-  @Test
-  def testProcessTranslation(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "translate stream process function to operator" in {
     val src = env.fromSequence(0, 0)
 
     val processFunction = new ProcessFunction[Long, Int] {
@@ -491,9 +458,7 @@ class DataStreamTest extends AbstractTestBase {
     assert(getOperatorForDataStream(flatMapped).isInstanceOf[ProcessOperator[_, _]])
   }
 
-  @Test def operatorTest(): Unit = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "create stream graph from operators" in {
     val src = env.fromSequence(0, 0)
 
     val mapFunction = new MapFunction[Long, Int] {
@@ -583,10 +548,7 @@ class DataStreamTest extends AbstractTestBase {
     }
   }
 
-  @Test
-  def testChannelSelectors() = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
-
+  it should "assign partitioner" in {
     val src = env.fromSequence(0, 0)
 
     val broadcast     = src.broadcast
@@ -630,9 +592,7 @@ class DataStreamTest extends AbstractTestBase {
     assert(globalPartitioner.isInstanceOf[GlobalPartitioner[_]])
   }
 
-  @Test
-  def testIterations() = {
-    val env = StreamExecutionEnvironment.getExecutionEnvironment
+  it should "set iterations" in {
     // we need to rebalance before iteration
     val source = env.fromElements(1, 2, 3).map { (t: Int) => t }
 
@@ -653,11 +613,8 @@ class DataStreamTest extends AbstractTestBase {
     assert(sg.getIterationSourceSinkPairs.size() == 2)
   }
 
-  @Test
-  def testCreateInputPassesOnTypeInfo(): Unit = {
-    StreamExecutionEnvironment.getExecutionEnvironment.createInput[Tuple1[Integer]](
-      new ParallelIteratorInputFormat[Tuple1[Integer]](null)
-    )
+  it should "pass created type information" in {
+    env.createInput[Tuple1[Integer]](new ParallelIteratorInputFormat[Tuple1[Integer]](null))
   }
 
   /////////////////////////////////////////////////////////////
@@ -673,7 +630,6 @@ class DataStreamTest extends AbstractTestBase {
 
   private def getOperatorForDataStream(dataStream: DataStream[_]): StreamOperator[_] = {
     dataStream.print()
-    val env                      = dataStream.javaStream.getExecutionEnvironment
     val streamGraph: StreamGraph = env.getStreamGraph(false)
     streamGraph.getStreamNode(dataStream.getId).getOperator
   }
@@ -702,4 +658,6 @@ class DataStreamTest extends AbstractTestBase {
   }
 }
 
-case class CustomCaseClass(id: Int, name: String)
+object DataStreamTest {
+  case class CustomCaseClass(id: Int, name: String)
+}
