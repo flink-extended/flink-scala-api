@@ -1,6 +1,7 @@
 package org.apache.flinkx.api
 
 import org.apache.flinkx.api.SchemaEvolutionTest.{Click, Event}
+import org.apache.flink.core.memory.DataInputViewStreamWrapper
 import org.apache.flinkx.api.serializers._
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 
