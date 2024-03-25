@@ -28,6 +28,7 @@ import org.apache.flink.util.InstantiationUtil;
 
 import java.io.IOException;
 import java.util.Objects;
+import java.util.Optional;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
@@ -87,7 +88,9 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
     @Override
     protected CompositeTypeSerializerSnapshot.OuterSchemaCompatibility
     resolveOuterSchemaCompatibility(ScalaCaseClassSerializer<T> newSerializer) {
-        if (Objects.equals(type, newSerializer.getTupleClass())) {
+        var currentTypeName = Optional.ofNullable(type).map(Class::getName);
+        var newTypeName = Optional.ofNullable(newSerializer.getTupleClass()).map(Class::getName);
+        if (currentTypeName.equals(newTypeName)) {
             return OuterSchemaCompatibility.COMPATIBLE_AS_IS;
         } else {
             return OuterSchemaCompatibility.INCOMPATIBLE;
