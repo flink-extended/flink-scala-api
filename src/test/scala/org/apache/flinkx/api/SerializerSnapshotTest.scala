@@ -71,9 +71,9 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
   it should "be compatible after snapshot deserialization in different classloader" in {
     val ser = deriveTypeInformation[SimpleClass1].createSerializer(null)
-    val cl = newClassLoader(classOf[SimpleClass1])
+    val cl  = newClassLoader(classOf[SimpleClass1])
     try {
-      val restored = roundtripSerializer(ser, cl)
+      val restored      = roundtripSerializer(ser, cl)
       val compatibility = restored.snapshotConfiguration().resolveSchemaCompatibility(ser)
       compatibility shouldBe Symbol("compatibleAsIs")
     } finally {
@@ -82,7 +82,7 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
   }
 
   def roundtripSerializer[T](ser: TypeSerializer[T], cl: ClassLoader = getClass.getClassLoader): TypeSerializer[T] = {
-    val snap = ser.snapshotConfiguration()
+    val snap   = ser.snapshotConfiguration()
     val buffer = new ByteArrayOutputStream()
     val output = new DataOutputViewStreamWrapper(buffer)
     snap.writeSnapshot(output)
