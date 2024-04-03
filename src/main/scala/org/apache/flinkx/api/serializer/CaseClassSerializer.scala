@@ -102,6 +102,9 @@ abstract class CaseClassSerializer[T <: Product](
   }
 
   def serialize(value: T, target: DataOutputView): Unit = {
+    if (arity > 0)
+      target.writeInt(value.productArity)
+
     var i = 0
     while (i < arity) {
       val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
@@ -120,14 +123,16 @@ abstract class CaseClassSerializer[T <: Product](
 
   def deserialize(source: DataInputView): T = {
     initArray()
-    var i          = 0
-    var fieldFound = true
-    while (i < arity && fieldFound) {
+    var i           = 0
+    var fieldFound  = true
+    val sourceArity = if (arity > 0) Try(source.readInt()).getOrElse(arity) else 0
+    while (i < sourceArity && fieldFound) {
       Try(fieldSerializers(i).deserialize(source)) match {
-        case Failure(e)     =>
+        case Failure(e) =>
           log.warn(s"Failed to deserialize field at '$i' index", e)
           fieldFound = false
-        case Success(value) => fields(i) = value
+        case Success(value) =>
+          fields(i) = value
       }
       i += 1
     }
