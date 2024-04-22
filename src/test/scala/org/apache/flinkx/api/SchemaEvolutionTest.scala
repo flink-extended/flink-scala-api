@@ -31,8 +31,13 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
 
 object SchemaEvolutionTest {
   sealed trait Event
-  case class Click(id: String, inFileClicks: List[ClickEvent], fieldNotInFile: String = "") extends Event
-  case class Purchase(price: Double)                                                        extends Event
-  case class View(ts: Long)                                                                 extends Event
+  case class Click(
+      id: String,
+      inFileClicks: List[ClickEvent],
+      fieldInFile: String = "test1",
+      fieldNotInFile: String = "test2"
+  ) extends Event
+  case class Purchase(price: Double) extends Event
+  case class View(ts: Long)          extends Event
   case class ClickEvent(sessionId: String, date: String)
 }

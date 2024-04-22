@@ -28,4 +28,19 @@ private[serializer] trait ConstructorCompat:
             e
           )
 
-    { (arr: Array[AnyRef]) => constructor.newInstance(arr*).asInstanceOf[T] }
+    { (args: Array[AnyRef]) =>
+      {
+        lazy val defaultArgs = cls
+          .getMethods()
+          .filter(
+            _.getName()
+              .startsWith("$lessinit$greater$default")
+          )
+          .sortBy(_.getName())
+          .map(_.invoke(null))
+          .takeRight(numFields - args.length) // read default values for missing arguments
+
+        val allArgs = args.toList ++ (if (args.length == numFields) Nil else defaultArgs)
+        constructor.newInstance(allArgs*).asInstanceOf[T]
+      }
+    }
