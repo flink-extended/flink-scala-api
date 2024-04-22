@@ -22,6 +22,9 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
+import org.slf4j.{Logger, LoggerFactory}
+
+import scala.util.{Failure, Success, Try}
 
 /** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
   * differently. Copied from Flink 1.14.
@@ -37,6 +40,8 @@ abstract class CaseClassSerializer[T <: Product](
   @transient var fields: Array[AnyRef] = _
 
   @transient var instanceCreationFailed: Boolean = false
+
+  @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override def duplicate: CaseClassSerializer[T] = {
     clone().asInstanceOf[CaseClassSerializer[T]]
@@ -97,6 +102,9 @@ abstract class CaseClassSerializer[T <: Product](
   }
 
   def serialize(value: T, target: DataOutputView): Unit = {
+    if (arity > 0)
+      target.writeInt(value.productArity)
+
     var i = 0
     while (i < arity) {
       val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
@@ -110,23 +118,29 @@ abstract class CaseClassSerializer[T <: Product](
     }
   }
 
-  def deserialize(reuse: T, source: DataInputView): T = {
+  def deserialize(reuse: T, source: DataInputView): T =
     deserialize(source)
-  }
 
   def deserialize(source: DataInputView): T = {
     initArray()
-    var i = 0
-    while (i < arity) {
-      fields(i) = fieldSerializers(i).deserialize(source)
+    var i           = 0
+    var fieldFound  = true
+    val sourceArity = if (arity > 0) Try(source.readInt()).getOrElse(arity) else 0
+    while (i < sourceArity && fieldFound) {
+      Try(fieldSerializers(i).deserialize(source)) match {
+        case Failure(e) =>
+          log.warn(s"Failed to deserialize field at '$i' index", e)
+          fieldFound = false
+        case Success(value) =>
+          fields(i) = value
+      }
       i += 1
     }
-    createInstance(fields)
+    createInstance(fields.filter(_ != null))
   }
 
-  def initArray(): Unit = {
+  private def initArray(): Unit =
     if (fields == null) {
       fields = new Array[AnyRef](arity)
     }
-  }
 }
