@@ -24,7 +24,7 @@ lazy val root = (project in file("."))
     libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
         Seq(
-          "com.softwaremill.magnolia1_2" %% "magnolia"      % "1.1.8",
+          "com.softwaremill.magnolia1_2" %% "magnolia"      % "1.1.9",
           "org.scala-lang"                % "scala-reflect" % scalaVersion.value
         )
       } else {
