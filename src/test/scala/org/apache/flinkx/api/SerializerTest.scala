@@ -136,6 +136,13 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 //    noKryo(ser)
 //  }
 
+  it should "instantiate a new TypeSerializer instance with case classes" in {
+    val ti = implicitly[TypeInformation[Simple]]
+    val ser1 = ti.createSerializer(null)
+    val ser2 = ti.createSerializer(null)
+    ser1 shouldNot be theSameInstanceAs ser2
+  }
+
   it should "be serializable in case of annotations on classes" in {
     val ser = implicitly[TypeInformation[Annotated]].createSerializer(null)
     serializable(ser)

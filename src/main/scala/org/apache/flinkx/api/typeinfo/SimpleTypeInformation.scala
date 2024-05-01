@@ -7,7 +7,7 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import scala.reflect.{classTag, ClassTag}
 
 abstract class SimpleTypeInformation[T: ClassTag: TypeSerializer] extends TypeInformation[T] {
-  override def createSerializer(config: ExecutionConfig): TypeSerializer[T] = implicitly[TypeSerializer[T]]
+  override def createSerializer(config: ExecutionConfig): TypeSerializer[T] = implicitly[TypeSerializer[T]].duplicate()
   override def isBasicType: Boolean                                         = false
   override def isTupleType: Boolean                                         = false
   override def isKeyType: Boolean                                           = false
