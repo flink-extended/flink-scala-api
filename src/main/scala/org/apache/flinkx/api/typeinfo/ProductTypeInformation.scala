@@ -15,5 +15,7 @@ class ProductTypeInformation[T <: Product](
       fieldTypes,
       fieldNames
     ) {
-  override def createSerializer(config: ExecutionConfig): TypeSerializer[T] = ser
+  override def createSerializer(config: ExecutionConfig): TypeSerializer[T] =
+    if (ser.isImmutableType) ser
+    else ser.duplicate()
 }
