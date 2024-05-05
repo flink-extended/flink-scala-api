@@ -37,10 +37,6 @@ abstract class CaseClassSerializer[T <: Product](
 ) extends TupleSerializerBase[T](clazz, scalaFieldSerializers)
     with Cloneable {
 
-  @transient var fields: Array[AnyRef] = _
-
-  @transient var instanceCreationFailed: Boolean = false
-
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override def duplicate: CaseClassSerializer[T] = {
@@ -50,63 +46,40 @@ abstract class CaseClassSerializer[T <: Product](
   @throws[CloneNotSupportedException]
   override protected def clone(): Object = {
     val result = super.clone().asInstanceOf[CaseClassSerializer[T]]
-
     // achieve a deep copy by duplicating the field serializers
     result.fieldSerializers = result.fieldSerializers.map(_.duplicate())
-    result.fields = null
-    result.instanceCreationFailed = false
-
     result
   }
 
-  def createInstance: T = {
-    if (instanceCreationFailed) {
-      null.asInstanceOf[T]
-    } else {
-      initArray()
-      try {
-        var i = 0
-        while (i < arity) {
-          fields(i) = fieldSerializers(i).createInstance()
-          i += 1
-        }
-        createInstance(fields)
-      } catch {
-        case _: Throwable =>
-          instanceCreationFailed = true
-          null.asInstanceOf[T]
-      }
+  def createInstance: T =
+    try {
+      val fields = (0 until arity).map(i => fieldSerializers(i).createInstance())
+      createInstance(fields.toArray)
+    } catch {
+      case t: Throwable =>
+        log.warn(s"Failed to create an instance returning null", t)
+        null.asInstanceOf[T]
     }
-  }
 
-  override def createOrReuseInstance(fields: Array[Object], reuse: T): T = {
+  override def createOrReuseInstance(fields: Array[Object], reuse: T): T =
     createInstance(fields)
-  }
 
-  def copy(from: T, reuse: T): T = {
+  def copy(from: T, reuse: T): T =
     copy(from)
-  }
 
-  def copy(from: T): T = {
+  def copy(from: T): T =
     if (from == null) {
       null.asInstanceOf[T]
     } else {
-      initArray()
-      var i = 0
-      while (i < arity) {
-        fields(i) = fieldSerializers(i).copy(from.productElement(i).asInstanceOf[AnyRef])
-        i += 1
-      }
-      createInstance(fields)
+      val fields = (0 until arity).map(i => fieldSerializers(i).copy(from.productElement(i).asInstanceOf[AnyRef]))
+      createInstance(fields.toArray)
     }
-  }
 
   def serialize(value: T, target: DataOutputView): Unit = {
     if (arity > 0)
       target.writeInt(value.productArity)
 
-    var i = 0
-    while (i < arity) {
+    (0 until arity).foreach { i =>
       val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
       val o          = value.productElement(i)
       try serializer.serialize(o, target)
@@ -114,7 +87,6 @@ abstract class CaseClassSerializer[T <: Product](
         case e: NullPointerException =>
           throw new NullFieldException(i, e)
       }
-      i += 1
     }
   }
 
@@ -122,10 +94,10 @@ abstract class CaseClassSerializer[T <: Product](
     deserialize(source)
 
   def deserialize(source: DataInputView): T = {
-    initArray()
     var i           = 0
     var fieldFound  = true
     val sourceArity = if (arity > 0) Try(source.readInt()).getOrElse(arity) else 0
+    val fields      = new Array[AnyRef](arity)
     while (i < sourceArity && fieldFound) {
       Try(fieldSerializers(i).deserialize(source)) match {
         case Failure(e) =>
@@ -138,9 +110,4 @@ abstract class CaseClassSerializer[T <: Product](
     }
     createInstance(fields.filter(_ != null))
   }
-
-  private def initArray(): Unit =
-    if (fields == null) {
-      fields = new Array[AnyRef](arity)
-    }
 }
