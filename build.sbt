@@ -17,7 +17,7 @@ lazy val root = (project in file("."))
       "org.apache.flink"  % "flink-java"           % flinkVersion,
       "org.apache.flink"  % "flink-test-utils"     % flinkVersion % Test,
       ("org.apache.flink" % "flink-streaming-java" % flinkVersion % Test).classifier("tests"),
-      "org.typelevel"    %% "cats-core"            % "2.10.0"     % Test,
+      "org.typelevel"    %% "cats-core"            % "2.12.0"     % Test,
       "org.scalatest"    %% "scalatest"            % "3.2.18"     % Test,
       "ch.qos.logback"    % "logback-classic"      % "1.5.6"      % Test
     ),
