@@ -236,6 +236,7 @@ implicit val mapper2: TypeMapper[WrappedString, String] = new TypeMapper[Wrapped
 
 ### Schema evolution
 
+#### ADT
 For the child case classes being part of ADT, the serializers use a Flink's `ScalaCaseClassSerializer`, so all the compatibility rules
 are the same as for normal case classes.
 
@@ -244,6 +245,23 @@ For the sealed trait membership itself, this library uses own serialization form
 * you can add new members at the end of the list
 * you cannot remove ADT members
 * you cannot replace ADT members
+
+#### Case Class Changes
+
+On a case class level, this library supports new field addition(s) with default value(s). This allows to restore a Flink job from a savepoint created using previous case class schema.
+For example:
+
+1. A Flink job was stopped with a savepoint using below case class schema:
+```scala
+case class Click(id: String, inFileClicks: List[ClickEvent])
+```
+2. Now the Click case class is changed to:
+```scala
+case class Click(id: String, inFileClicks: List[ClickEvent], 
+    fieldInFile: String = "test1",
+    fieldNotInFile: String = "test2")   
+```
+3. Launch the same job with new case class schema version from the last savepoint. Job restore should work successfully.
 
 ### Compatibility
 
