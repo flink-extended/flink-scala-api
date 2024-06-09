@@ -77,8 +77,11 @@ abstract class CaseClassSerializer[T <: Product](
       createInstance(fields.toArray)
     }
 
+  private def isClassArityUsageDisabled =
+    sys.env.contains("DISABLE_CASE_CLASS_ARITY_USAGE")
+
   def serialize(value: T, target: DataOutputView): Unit = {
-    if (arity > 0)
+    if (arity > 0 && !isClassArityUsageDisabled)
       target.writeInt(value.productArity)
 
     (0 until arity).foreach { i =>
@@ -93,12 +96,15 @@ abstract class CaseClassSerializer[T <: Product](
   }
 
   def deserialize(reuse: T, source: DataInputView): T =
-    deserialize(source)
+    deserializeFromSource(source, isClassArityUsageDisabled)
 
-  def deserialize(source: DataInputView): T = {
+  def deserialize(source: DataInputView): T =
+    deserializeFromSource(source, isClassArityUsageDisabled)
+
+  private[api] def deserializeFromSource(source: DataInputView, classArityUsageDisabled: Boolean): T = {
     var i           = 0
     var fieldFound  = true
-    val sourceArity = if (arity > 0) Try(source.readInt()).getOrElse(arity) else 0
+    val sourceArity = if (arity > 0 && !classArityUsageDisabled) Try(source.readInt()).getOrElse(arity) else arity
     val fields      = new Array[AnyRef](arity)
     while (i < sourceArity && fieldFound) {
       Try(fieldSerializers(i).deserialize(source)) match {
