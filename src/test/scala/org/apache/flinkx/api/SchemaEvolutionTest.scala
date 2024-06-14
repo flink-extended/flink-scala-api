@@ -40,7 +40,7 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
     val buffer = this.getClass.getResourceAsStream("/without-arity-test.dat")
     val serializer = arityTestInfo.createSerializer(null) match {
       case s: ScalaCaseClassSerializer[_] => s
-      case s                              => fail(s"Serializer must be of CaseClassSerializer type, but was $s")
+      case s                              => fail(s"Derived serializer must be of CaseClassSerializer type, but was $s")
     }
     val decoded =
       serializer.deserializeFromSource(new DataInputViewStreamWrapper(buffer), classArityUsageDisabled = true)
