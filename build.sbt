@@ -45,13 +45,7 @@ lazy val root = (project in file("."))
     organization := "org.flinkextended",
     description  := "Community-maintained fork of official Apache Flink Scala API",
     licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-    homepage     := Some(url("https://github.com/flink-extended/flink-scala-api")),
-    credentials += Credentials(
-      "Sonatype Nexus Repository Manager",
-      "oss.sonatype.org",
-      "(Sonatype user name)",
-      "(Sonatype password)"
-    ),
+    homepage     := Some(url("https://github.com/flink-extended/flink-scala-api")),    
     sonatypeCredentialHost := "s01.oss.sonatype.org",
     sonatypeRepository     := "https://s01.oss.sonatype.org/service/local",
     publishMavenStyle      := true,
