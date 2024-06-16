@@ -137,7 +137,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 //  }
 
   it should "return the same TypeSerializer instance with case classes" in {
-    val ti = implicitly[TypeInformation[Simple]]
+    val ti   = implicitly[TypeInformation[Simple]]
     val ser1 = ti.createSerializer(null)
     val ser2 = ti.createSerializer(null)
     ser1 should be theSameInstanceAs ser2
