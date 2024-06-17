@@ -8,9 +8,9 @@ import scala.reflect.runtime.universe._
 import org.apache.flinkx.api.serializers.drop
 
 private[serializer] trait ConstructorCompat {
-  
+
   @nowarn("msg=(eliminated by erasure)|(explicit array)")
-  final def lookupConstructor[T <: Product](cls: Class[T], numFields: Int): Array[AnyRef] => T = {    
+  final def lookupConstructor[T <: Product](cls: Class[T], numFields: Int): Array[AnyRef] => T = {
     val rootMirror  = universe.runtimeMirror(cls.getClassLoader)
     val classSymbol = rootMirror.classSymbol(cls)
 
