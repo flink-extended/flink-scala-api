@@ -6,27 +6,33 @@ import org.apache.flinkx.api.AnyTest._
 import org.apache.flinkx.api.AnyTest.FAny.FValueAny.FTerm
 import org.apache.flinkx.api.AnyTest.FAny.FValueAny.FTerm.StringTerm
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api.common.ExecutionConfig
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 class AnyTest extends AnyFlatSpec with Matchers with TestUtils {
+  val ec = new ExecutionConfig()
+
+  def createSerializer[T: TypeInformation] =
+    implicitly[TypeInformation[T]].createSerializer(ec)
+
   it should "serialize concrete class" in {
-    val ser = implicitly[TypeInformation[StringTerm]].createSerializer(null)
+    val ser = createSerializer[StringTerm]
     roundtrip(ser, StringTerm("fo"))
   }
 
   it should "serialize ADT" in {
-    val ser = implicitly[TypeInformation[FAny]].createSerializer(null)
+    val ser = createSerializer[FAny]
     roundtrip(ser, StringTerm("fo"))
   }
 
   it should "serialize NEL" in {
-    val ser = implicitly[TypeInformation[NonEmptyList[FTerm]]].createSerializer(null)
+    val ser = createSerializer[NonEmptyList[FTerm]]
     roundtrip(ser, NonEmptyList.one(StringTerm("fo")))
   }
 
   it should "serialize nested nel" in {
-    val ser = implicitly[TypeInformation[TermFilter]].createSerializer(null)
+    val ser = createSerializer[TermFilter]
     roundtrip(ser, TermFilter("a", NonEmptyList.one(StringTerm("fo"))))
   }
 }

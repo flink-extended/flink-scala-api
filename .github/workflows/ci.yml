@@ -16,11 +16,11 @@ jobs:
       matrix:
         java: [11]
         scala: [2.12.19, 2.13.14, 3.3.3]
-        flink: [1.16.3, 1.17.2]
+        flink: [1.17.2, 1.18.1]
         include:
           - scala: 3.3.3
             java: 17
-            flink: 1.18.1
+            flink: 1.19.0
     steps:
       - uses: actions/checkout@v3
         with:

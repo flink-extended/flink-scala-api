@@ -12,11 +12,13 @@ import org.apache.flinkx.api.SerializerSnapshotTest.{
   TraitMap
 }
 import org.apache.flink.api.common.typeutils.TypeSerializer
+import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flinkx.api.serializers._
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.util.ChildFirstClassLoader
 import org.scalatest.Assertion
 
@@ -24,53 +26,56 @@ import java.net.URLClassLoader
 
 class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
+  def createSerializer[T: TypeInformation] = 
+    implicitly[TypeInformation[T]].createSerializer(new ExecutionConfig())
+
   it should "roundtrip product serializer snapshot" in {
-    val ser = deriveTypeInformation[SimpleClass1].createSerializer(null)
+    val ser = createSerializer[SimpleClass1]
     assertRoundtripSerializer(ser)
   }
 
   it should "roundtrip coproduct serializer snapshot" in {
-    val ser = deriveTypeInformation[OuterTrait].createSerializer(null)
+    val ser = createSerializer[OuterTrait]
     assertRoundtripSerializer(ser)
   }
 
   it should "roundtrip coproduct serializer snapshot with singletons" in {
-    val ser = deriveTypeInformation[ADT2].createSerializer(null)
+    val ser = createSerializer[ADT2]
     assertRoundtripSerializer(ser)
   }
 
   it should "roundtrip serializer snapshot with list of primitives" in {
-    val ser = deriveTypeInformation[List[Double]].createSerializer(null)
+    val ser = createSerializer[List[Double]]
     assertRoundtripSerializer(ser)
   }
 
   it should "roundtrip serializer snapshot with set as array of primitives" in {
-    val ser = implicitly[TypeInformation[Set[Double]]].createSerializer(null)
+    val ser = createSerializer[Set[Double]]
     assertRoundtripSerializer(ser)
   }
 
   it should "do array ser snapshot" in {
-    val set = deriveTypeInformation[SimpleClassArray].createSerializer(null)
+    val set = createSerializer[SimpleClassArray]
     assertRoundtripSerializer(set)
   }
 
   it should "do map ser snapshot" in {
-    assertRoundtripSerializer(deriveTypeInformation[SimpleClassMap1].createSerializer(null))
-    assertRoundtripSerializer(deriveTypeInformation[SimpleClassMap2].createSerializer(null))
+    assertRoundtripSerializer(createSerializer[SimpleClassMap1])
+    assertRoundtripSerializer(createSerializer[SimpleClassMap2])
   }
 
   it should "do list ser snapshot" in {
-    assertRoundtripSerializer(deriveTypeInformation[SimpleClassList].createSerializer(null))
+    assertRoundtripSerializer(createSerializer[SimpleClassList])
   }
 
   it should "do map ser snapshot adt " in {
     implicit val ti: Typeclass[OuterTrait] = deriveTypeInformation[OuterTrait]
     drop(ti)
-    assertRoundtripSerializer(deriveTypeInformation[TraitMap].createSerializer(null))
+    assertRoundtripSerializer(createSerializer[TraitMap])
   }
 
   it should "be compatible after snapshot deserialization in different classloader" in {
-    val ser = deriveTypeInformation[SimpleClass1].createSerializer(null)
+    val ser = createSerializer[SimpleClass1]
     val cl  = newClassLoader(classOf[SimpleClass1])
     try {
       val restored      = roundtripSerializer(ser, cl)
