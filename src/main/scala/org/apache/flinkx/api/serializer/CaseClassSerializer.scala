@@ -40,7 +40,7 @@ abstract class CaseClassSerializer[T <: Product](
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override def isImmutableType: Boolean =
-    scalaFieldSerializers.forall(_.isImmutableType)
+    scalaFieldSerializers.forall(s => Option(s).exists(_.isImmutableType))
 
   override def duplicate: CaseClassSerializer[T] =
     clone().asInstanceOf[CaseClassSerializer[T]]
