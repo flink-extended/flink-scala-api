@@ -18,7 +18,7 @@ lazy val root = (project in file("."))
       "org.apache.flink"  % "flink-test-utils"     % flinkVersion % Test,
       ("org.apache.flink" % "flink-streaming-java" % flinkVersion % Test).classifier("tests"),
       "org.typelevel"    %% "cats-core"            % "2.12.0"     % Test,
-      "org.scalatest"    %% "scalatest"            % "3.2.18"     % Test,
+      "org.scalatest"    %% "scalatest"            % "3.2.19"     % Test,
       "ch.qos.logback"    % "logback-classic"      % "1.5.6"      % Test
     ),
     libraryDependencies ++= {
@@ -42,10 +42,10 @@ lazy val root = (project in file("."))
       val Some((major, _)) = CrossVersion.partialVersion(scalaVersion.value)
       file(s"$dir-$major")
     },
-    organization := "org.flinkextended",
-    description  := "Community-maintained fork of official Apache Flink Scala API",
-    licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-    homepage     := Some(url("https://github.com/flink-extended/flink-scala-api")),    
+    organization           := "org.flinkextended",
+    description            := "Community-maintained fork of official Apache Flink Scala API",
+    licenses               := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+    homepage               := Some(url("https://github.com/flink-extended/flink-scala-api")),
     sonatypeCredentialHost := "s01.oss.sonatype.org",
     sonatypeRepository     := "https://s01.oss.sonatype.org/service/local",
     publishMavenStyle      := true,
