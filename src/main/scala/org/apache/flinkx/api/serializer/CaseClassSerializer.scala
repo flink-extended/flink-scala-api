@@ -78,7 +78,13 @@ abstract class CaseClassSerializer[T <: Product](
     }
 
   private def isClassArityUsageDisabled =
-    sys.env.contains("DISABLE_CASE_CLASS_ARITY_USAGE")
+    sys.env
+      .get("DISABLE_CASE_CLASS_ARITY_USAGE")
+      .map(v =>
+        Try(v.toBoolean)
+          .getOrElse(false)
+      )
+      .exists(_ == true)
 
   def serialize(value: T, target: DataOutputView): Unit = {
     if (arity > 0 && !isClassArityUsageDisabled)
