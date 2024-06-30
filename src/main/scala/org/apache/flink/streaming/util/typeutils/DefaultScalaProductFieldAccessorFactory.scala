@@ -35,7 +35,11 @@ class DefaultScalaProductFieldAccessorFactory extends ScalaProductFieldAccessorF
 
     if (pos < 0 || pos >= arity)
       throw new CompositeType.InvalidFieldReferenceException(
+<<<<<<< HEAD
         s"Tried to select $pos. field on \"$typeInfo\", which is an invalid index."
+=======
+        s"""Tried to select $pos. field on "$typeInfo", which is an invalid index."""
+>>>>>>> d5aec93 (Rewrite in Scala)
       )
 
     fieldType = typeInfo.asInstanceOf[TupleTypeInfoBase[T]].getTypeAt(pos)
@@ -71,7 +75,7 @@ class DefaultScalaProductFieldAccessorFactory extends ScalaProductFieldAccessorF
 
     if (pos < 0 || pos >= arity)
       throw new CompositeType.InvalidFieldReferenceException(
-        s"Tried to select ${pos.asInstanceOf[Integer]}. field on \"$typeInfo\", which is an invalid index."
+        s"""Tried to select ${pos.asInstanceOf[Integer]}. field on "$typeInfo", which is an invalid index."""
       )
     checkNotNull(innerAccessor, "innerAccessor must not be null.")
 
