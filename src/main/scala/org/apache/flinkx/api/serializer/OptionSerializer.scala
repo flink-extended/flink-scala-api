@@ -37,9 +37,7 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends TypeSer
     }
   }
 
-  override def createInstance: Option[A] = {
-    None
-  }
+  override def createInstance: Option[A] = None
 
   override def isImmutableType: Boolean = elemSerializer == null || elemSerializer.isImmutableType
 
@@ -87,15 +85,13 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends TypeSer
     }
   }
 
-  override def hashCode(): Int = {
-    elemSerializer.hashCode()
-  }
+  override def hashCode(): Int = 
+    elemSerializer.hashCode()  
 
   // --------------------------------------------------------------------------------------------
   // Serializer configuration snapshotting & compatibility
   // --------------------------------------------------------------------------------------------
 
-  override def snapshotConfiguration(): TypeSerializerSnapshot[Option[A]] = {
-    new ScalaOptionSerializerSnapshot[A](this)
-  }
+  override def snapshotConfiguration(): TypeSerializerSnapshot[Option[A]] =
+    new ScalaOptionSerializerSnapshot[A](this)  
 }
