@@ -85,13 +85,13 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends TypeSer
     }
   }
 
-  override def hashCode(): Int = 
-    elemSerializer.hashCode()  
+  override def hashCode(): Int =
+    elemSerializer.hashCode()
 
   // --------------------------------------------------------------------------------------------
   // Serializer configuration snapshotting & compatibility
   // --------------------------------------------------------------------------------------------
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[Option[A]] =
-    new ScalaOptionSerializerSnapshot[A](this)  
+    new ScalaOptionSerializerSnapshot[A](this)
 }

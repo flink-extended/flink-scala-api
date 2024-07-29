@@ -13,12 +13,12 @@ import java.io.ByteArrayOutputStream
 import java.nio.file.{Files, Path}
 
 class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
-  private implicit val eventTypeInfo: TypeInformation[Event] = deriveTypeInformation[Event]
+  private implicit val eventTypeInfo: TypeInformation[Event]       = deriveTypeInformation[Event]
   private implicit val arityTestInfo: TypeInformation[NoArityTest] = deriveTypeInformation[NoArityTest]
   private val clicks =
     List(ClickEvent("a", "2021-01-01"), ClickEvent("b", "2021-01-01"), ClickEvent("c", "2021-01-01"))
 
-  def createSerializer[T: TypeInformation] = 
+  def createSerializer[T: TypeInformation] =
     implicitly[TypeInformation[T]].createSerializer(new ExecutionConfig())
 
   ignore should "generate blob for event=click+purchase" in {

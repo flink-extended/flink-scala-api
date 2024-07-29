@@ -10,9 +10,9 @@ import org.apache.flinkx.api.serializers._
 
 class CatsTest extends AnyFlatSpec with Matchers with TestUtils {
   implicit val stringListTi: TypeInformation[NonEmptyList[String]] = deriveTypeInformation
-  implicit val intListTi: TypeInformation[NonEmptyList[Int]] = deriveTypeInformation
+  implicit val intListTi: TypeInformation[NonEmptyList[Int]]       = deriveTypeInformation
 
-  def createSerializer[T: TypeInformation] = 
+  def createSerializer[T: TypeInformation] =
     implicitly[TypeInformation[T]].createSerializer(new ExecutionConfig())
 
   it should "derive for NEL[String]" in {
