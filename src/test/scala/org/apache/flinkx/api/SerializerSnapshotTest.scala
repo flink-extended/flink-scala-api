@@ -26,7 +26,7 @@ import java.net.URLClassLoader
 
 class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
-  def createSerializer[T: TypeInformation] = 
+  def createSerializer[T: TypeInformation] =
     implicitly[TypeInformation[T]].createSerializer(new ExecutionConfig())
 
   it should "roundtrip product serializer snapshot" in {
