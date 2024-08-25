@@ -1,10 +1,9 @@
-//> using dep "org.flinkextended::flink-scala-api:1.17.2_1.1.2"
-//> using dep "org.apache.flink:flink-clients:1.17.1"
-//> using dep "org.apache.flink:flink-csv:1.17.1"
-//> using dep "org.apache.flink:flink-connector-files:1.17.1"
-//> using dep "org.apache.flink:flink-connector-kafka:1.17.1"
-//> using dep "org.apache.flink:flink-table-runtime:1.17.1"
-//> using dep "org.apache.flink:flink-table-planner-loader:1.17.1"
+//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.6"
+//> using dep "org.apache.flink:flink-clients:1.18.1"
+//> using dep "org.apache.flink:flink-csv:1.18.1"
+//> using dep "org.apache.flink:flink-connector-files:1.18.1"
+//> using dep "org.apache.flink:flink-table-runtime:1.18.1"
+//> using dep "org.apache.flink:flink-table-planner-loader:1.18.1"
 
 import org.apache.flink.table.api._
 import org.apache.flink.connector.datagen.table.DataGenConnectorOptions
@@ -29,22 +28,21 @@ table.createTemporaryTable(
     .schema(schema)
     .option(DataGenConnectorOptions.NUMBER_OF_ROWS, JLong(1000))
     .option("fields.id.kind", "sequence")
-    .option("fields.id.start", "10001")
-    .option("fields.id.end",   "20000")
+    .option("fields.id.start", "1")
+    .option("fields.id.end", "10000")
     .build
 )
 
-val brokers = "confluentkafka-cp-kafka:9092"
+val currentDirectory = java.io.File(".").getCanonicalPath
 
 table.createTemporaryTable(
   "SinkTable",
   TableDescriptor
-    .forConnector("kafka")
+    .forConnector("filesystem")
     .schema(schema)
-    .option("properties.bootstrap.servers", brokers)
-    .option("topic", "bids")
     .option("format", "csv")
-    .option("value.format", "csv")
+    .option("sink.rolling-policy.file-size", "124 kb")
+    .option("path", s"file://$currentDirectory/sink-table")
     .build
 )
 

@@ -52,13 +52,13 @@ We suggest to remove the official `flink-scala` and `flink-streaming-scala` depe
 
 ## Examples
 
-There is a wide range of [code examples](https://github.com/flink-extended/flink-scala-api/tree/master/examples) to introduce you to flink-scala-api, both using Scala scripts and multimodule applications. These examples include:
+There is a wide range of [code examples](https://github.com/flink-extended/flink-scala-api/tree/master/modules/examples) to introduce you to flink-scala-api, both using Scala scripts and multimodule applications. These examples include:
 
 - Flink jobs built using Scala 3 with Ammonite and Scala CLI;
 - A complete application for fraud detection;
-- Examples using datastream and table APIs;
-- Simple jobs developed interactively via Jupyter notebooks;
-- Word count reading texts from  a web socket;
+- Examples using Datastream and Table APIs;
+- Simple job developed interactively via Jupyter notebooks;
+- Word count reading text from a web socket;
 - Example usage of DataGen connector and Kafka sink;
 - And more;
 

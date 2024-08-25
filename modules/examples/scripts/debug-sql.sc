@@ -1,21 +1,20 @@
-import $ivy.`io.findify::flink-scala-api:1.15-2`
+import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.1.6`
 
-import $ivy.`org.apache.flink:flink-clients_2.12:1.14.6`
+import $ivy.`org.apache.flink:flink-clients:1.18.1`
 
-// import $ivy.`org.apache.flink:flink-streaming-java_2.12:1.14.6`
-import $ivy.`org.apache.flink:flink-streaming-scala_2.12:1.14.6`
+import $ivy.`org.apache.flink:flink-streaming-scala_2.12:1.18.1`
 
-import $ivy.`org.apache.flink:flink-table-api-java:1.14.6`
-import $ivy.`org.apache.flink:flink-table-api-java-bridge_2.12:1.14.6`
-import $ivy.`org.apache.flink:flink-table-runtime_2.12:1.14.6`
-import $ivy.`org.apache.flink:flink-table-planner_2.12:1.14.6`
+import $ivy.`org.apache.flink:flink-table-api-java:1.18.1`
+import $ivy.`org.apache.flink:flink-table-api-java-bridge:1.18.1`
+import $ivy.`org.apache.flink:flink-table-runtime:1.18.1`
+import $ivy.`org.apache.flink:flink-table-planner_2.12:1.18.1`
 
 import org.apache.flink.table.api._
 import org.apache.flink.table.api.bridge.java.StreamTableEnvironment
 import org.apache.flink.connector.datagen.table.DataGenConnectorOptions
 
-import io.findify.flink.api._
-import io.findify.flinkadt.api._
+import org.apache.flinkx.api._
+import org.apache.flinkx.api.serializers._
 
 import java.lang.{Long => JLong}
 

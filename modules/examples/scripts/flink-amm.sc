@@ -17,24 +17,10 @@ import org.apache.flink.api.serializers._
 
 import _root_.java.lang.{Long => JLong}
 
-val env = StreamExecutionEnvironment.getExecutionEnvironment
-val tEnv = StreamTableEnvironment.create(env.getJavaEnv)
+val env      = StreamExecutionEnvironment.getExecutionEnvironment
+val tEnv     = StreamTableEnvironment.create(env.getJavaEnv)
 val settings = EnvironmentSettings.newInstance().inStreamingMode().build()
-val table = TableEnvironment.create(settings)
-
-
-// table.createTemporaryTable(
-//   "SourceTable",
-//   TableDescriptor
-//     .forConnector("datagen")
-//     .schema(
-//       Schema.newBuilder
-//         .column("BookId", DataTypes.INT())
-//         .build
-//     )
-//     .option(DataGenConnectorOptions.ROWS_PER_SECOND, new JLong(1))
-//     .build
-// )
+val table    = TableEnvironment.create(settings)
 
 val tableDescriptor = TableDescriptor
   .forConnector("faker")

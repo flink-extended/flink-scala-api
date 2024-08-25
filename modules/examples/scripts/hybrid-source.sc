@@ -1,8 +1,8 @@
-//> using dep "org.flinkextended::flink-scala-api:1.17.2_1.1.2"
-//> using dep "org.apache.flink:flink-clients:1.17.1"
-//> using dep "org.apache.flink:flink-csv:1.17.1"
-//> using dep "org.apache.flink:flink-connector-files:1.17.1"
-//> using dep "org.apache.flink:flink-connector-kafka:1.17.1"
+//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.6"
+//> using dep "org.apache.flink:flink-clients:1.18.1"
+//> using dep "org.apache.flink:flink-csv:1.18.1"
+//> using dep "org.apache.flink:flink-connector-files:1.18.1"
+//> using dep "org.apache.flink:flink-connector-kafka:3.0.2-1.18"
 
 import org.apache.flinkx.api.*
 import org.apache.flinkx.api.serializers.*

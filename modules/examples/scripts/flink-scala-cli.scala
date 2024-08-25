@@ -1,5 +1,5 @@
-//> using dep "org.flinkextended::flink-scala-api:1.17.1_1.1.0"
-//> using dep "org.apache.flink:flink-clients:1.17.1"
+//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.6"
+//> using dep "org.apache.flink:flink-clients:1.18.1"
 
 import org.apache.flinkx.api.*
 import org.apache.flinkx.api.serializers.*
