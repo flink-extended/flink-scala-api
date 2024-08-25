@@ -124,18 +124,18 @@ lazy val `examples` = (project in file("modules/examples"))
     Test / fork  := true,
     libraryDependencies ++= Seq(
       "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.1.6",
-      "org.apache.flink"   % "flink-runtime-web"          % flinkVersion  % Provided,
-      "org.apache.flink"   % "flink-clients"              % flinkVersion  % Provided,
-      "org.apache.flink"   % "flink-state-processor-api"  % flinkVersion,
-      "org.apache.flink"   % "flink-connector-kafka"      % s"3.0.2-1.18" % Provided,
-      "org.apache.flink"   % "flink-connector-files"      % flinkVersion  % Provided,
-      "org.apache.flink"   % "flink-table-runtime"        % flinkVersion  % Provided,
-      "org.apache.flink"   % "flink-table-planner-loader" % flinkVersion  % Provided,
-      "io.bullet"         %% "borer-core"                 % "1.14.0"      % Provided,
-      "ch.qos.logback"     % "logback-classic"            % "1.4.14"      % Provided,
-      "org.apache.flink"   % "flink-test-utils"           % flinkVersion  % Test,
-      "org.apache.flink"   % "flink-streaming-java"       % flinkVersion  % Test classifier "tests",
-      "org.scalatest"     %% "scalatest"                  % "3.2.15"      % Test
+      "org.apache.flink"   % "flink-runtime-web"          % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-clients"              % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-state-processor-api"  % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-connector-kafka"      % "3.0.2-1.18" % Provided,
+      "org.apache.flink"   % "flink-connector-files"      % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-table-runtime"        % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-table-planner-loader" % "1.18.1"     % Provided,
+      "io.bullet"         %% "borer-core"                 % "1.14.0"     % Provided,
+      "ch.qos.logback"     % "logback-classic"            % "1.4.14"     % Provided,
+      "org.apache.flink"   % "flink-test-utils"           % "1.18.1"     % Test,
+      "org.apache.flink"   % "flink-streaming-java"       % "1.18.1"     % Test classifier "tests",
+      "org.scalatest"     %% "scalatest"                  % "3.2.15"     % Test
     ),
     Compile / run := Defaults
       .runTask(
