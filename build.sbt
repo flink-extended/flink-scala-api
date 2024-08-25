@@ -7,6 +7,12 @@ lazy val rootScalaVersion = "3.3.3"
 lazy val flinkVersion     = System.getProperty("flinkVersion", "1.18.1")
 
 lazy val root = (project in file("."))
+  .aggregate(`scala-api`, `examples`)
+  .settings(
+    publish / skip := true
+  )
+
+lazy val `scala-api` = (project in file("modules/scala-api"))
   .settings(ReleaseProcess.releaseSettings(flinkVersion) *)
   .settings(
     name               := "flink-scala-api",
@@ -108,3 +114,36 @@ lazy val root = (project in file("."))
     mdocIn := new File("README.md")
   )
   .enablePlugins(MdocPlugin)
+
+val flinkMajorAndMinorVersion =
+  flinkVersion.split("\\.").toList.take(2).mkString(".")
+
+lazy val `examples` = (project in file("modules/examples"))
+  .settings(
+    scalaVersion := rootScalaVersion,
+    Test / fork  := true,
+    libraryDependencies ++= Seq(
+      "org.flinkextended" %% "flink-scala-api"            % s"${flinkVersion}_1.1.6",
+      "org.apache.flink"   % "flink-runtime-web"          % flinkVersion                        % Provided,
+      "org.apache.flink"   % "flink-clients"              % flinkVersion                        % Provided,
+      "org.apache.flink"   % "flink-state-processor-api"  % flinkVersion,
+      "org.apache.flink"   % "flink-connector-kafka"      % s"3.0.2-$flinkMajorAndMinorVersion" % Provided,
+      "org.apache.flink"   % "flink-connector-files"      % flinkVersion                        % Provided,
+      "org.apache.flink"   % "flink-table-runtime"        % flinkVersion                        % Provided,
+      "org.apache.flink"   % "flink-table-planner-loader" % flinkVersion                        % Provided,
+      "io.bullet"         %% "borer-core"                 % "1.14.0"                            % Provided,
+      "ch.qos.logback"     % "logback-classic"            % "1.4.14"                            % Provided,
+      "org.apache.flink"   % "flink-test-utils"           % flinkVersion                        % Test,
+      "org.apache.flink" % "flink-streaming-java" % flinkVersion % Test classifier "tests",
+      "org.scalatest"   %% "scalatest"            % "3.2.15"     % Test
+    ),
+    Compile / run := Defaults
+      .runTask(
+        Compile / fullClasspath,
+        Compile / run / mainClass,
+        Compile / run / runner
+      )
+      .evaluated,
+    Compile / run / fork := true
+  )
+  .enablePlugins(ProtobufPlugin)

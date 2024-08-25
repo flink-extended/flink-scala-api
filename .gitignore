@@ -11,3 +11,6 @@ target
 .vscode
 metals.sbt
 .scala-build
+.ammonite/*
+*.jar
+*checkpoint
