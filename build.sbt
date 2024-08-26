@@ -7,6 +7,12 @@ lazy val rootScalaVersion = "3.3.3"
 lazy val flinkVersion     = System.getProperty("flinkVersion", "1.18.1")
 
 lazy val root = (project in file("."))
+  .aggregate(`scala-api`, `examples`)
+  .settings(
+    publish / skip := true
+  )
+
+lazy val `scala-api` = (project in file("modules/scala-api"))
   .settings(ReleaseProcess.releaseSettings(flinkVersion) *)
   .settings(
     name               := "flink-scala-api",
@@ -108,3 +114,36 @@ lazy val root = (project in file("."))
     mdocIn := new File("README.md")
   )
   .enablePlugins(MdocPlugin)
+
+val flinkMajorAndMinorVersion =
+  flinkVersion.split("\\.").toList.take(2).mkString(".")
+
+lazy val `examples` = (project in file("modules/examples"))
+  .settings(
+    scalaVersion := rootScalaVersion,
+    Test / fork  := true,
+    libraryDependencies ++= Seq(
+      "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.1.6",
+      "org.apache.flink"   % "flink-runtime-web"          % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-clients"              % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-state-processor-api"  % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-connector-kafka"      % "3.0.2-1.18" % Provided,
+      "org.apache.flink"   % "flink-connector-files"      % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-table-runtime"        % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-table-planner-loader" % "1.18.1"     % Provided,
+      "io.bullet"         %% "borer-core"                 % "1.14.0"     % Provided,
+      "ch.qos.logback"     % "logback-classic"            % "1.4.14"     % Provided,
+      "org.apache.flink"   % "flink-test-utils"           % "1.18.1"     % Test,
+      "org.apache.flink"   % "flink-streaming-java"       % "1.18.1"     % Test classifier "tests",
+      "org.scalatest"     %% "scalatest"                  % "3.2.15"     % Test
+    ),
+    Compile / run := Defaults
+      .runTask(
+        Compile / fullClasspath,
+        Compile / run / mainClass,
+        Compile / run / runner
+      )
+      .evaluated,
+    Compile / run / fork := true
+  )
+  .enablePlugins(ProtobufPlugin)

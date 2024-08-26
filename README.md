@@ -50,6 +50,17 @@ If you want to create new project easily check this __Giter8 template__ out: [no
 
 We suggest to remove the official `flink-scala` and `flink-streaming-scala` dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. But it's technically possible and not required.
 
+## Examples
+
+There is a wide range of [code examples](https://github.com/flink-extended/flink-scala-api/tree/master/modules/examples) to introduce you to flink-scala-api, both using Scala scripts and multimodule applications. These examples include:
+
+- Flink jobs built using Scala 3 with Ammonite and Scala CLI;
+- A complete application for fraud detection;
+- Examples using Datastream and Table APIs;
+- Simple job developed interactively via Jupyter notebooks;
+- Word count reading text from a web socket;
+- Example usage of DataGen connector and Kafka sink;
+- And more;
 
 ## Differences with the Official Flink Scala API
 
