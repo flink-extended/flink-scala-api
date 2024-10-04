@@ -17,7 +17,7 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
   .settings(
     name               := "flink-scala-api",
     scalaVersion       := rootScalaVersion,
-    crossScalaVersions := Seq("2.12.20", "2.13.14", rootScalaVersion),
+    crossScalaVersions := Seq("2.12.20", "2.13.15", rootScalaVersion),
     libraryDependencies ++= Seq(
       "org.apache.flink"  % "flink-streaming-java" % flinkVersion,
       "org.apache.flink"  % "flink-java"           % flinkVersion,
