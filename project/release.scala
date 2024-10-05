@@ -14,13 +14,13 @@ object ReleaseProcess extends AutoPlugin {
   def releaseSettings(flinkVersion: String): Seq[Setting[_]] = Seq(
     releaseVersion := { ver =>
       Version(cutFlinkPrefix(ver))
-        .map(_.withoutQualifier.string)
+        .map(_.withoutQualifier.unapply)
         .map(v => flinkVersion + "_" + v)
         .getOrElse(versionFormatError(ver))
     },
     releaseNextVersion := { ver =>
       Version(cutFlinkPrefix(ver))
-        .map(_.bump(releaseVersionBump.value).asSnapshot.string)
+        .map(_.bump(releaseVersionBump.value).asSnapshot.unapply)
         .getOrElse(versionFormatError(ver))
     }
   )
