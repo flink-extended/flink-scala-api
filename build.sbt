@@ -122,6 +122,7 @@ lazy val `examples` = (project in file("modules/examples"))
   .settings(
     scalaVersion := rootScalaVersion,
     Test / fork  := true,
+    publish / skip := true,
     libraryDependencies ++= Seq(
       "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.1.6",
       "org.apache.flink"   % "flink-runtime-web"          % "1.18.1"     % Provided,
