@@ -22,14 +22,14 @@ import org.apache.commons.io.IOUtils
 import java.lang.invoke.{MethodHandleInfo, SerializedLambda}
 import java.lang.reflect.{Field, Modifier}
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectOutputStream}
-import scala.collection.mutable.{Map, Set, Stack}
-import org.apache.commons.lang3.{ClassUtils, JavaVersion, SystemUtils}
+import org.apache.commons.lang3.ClassUtils
 import org.apache.flink.shaded.asm9.org.objectweb.asm.{ClassReader, ClassVisitor, Handle, MethodVisitor, Type}
 import org.apache.flink.shaded.asm9.org.objectweb.asm.Opcodes._
 import org.apache.flink.shaded.asm9.org.objectweb.asm.tree.{ClassNode, MethodNode}
-import org.apache.flink.util.{FlinkException, InstantiationUtil}
+import org.apache.flink.util.FlinkException
 import org.slf4j.LoggerFactory
 
+import scala.collection.mutable
 import scala.jdk.CollectionConverters._
 
 /** A cleaner that renders closures serializable if they can be done so safely.
@@ -82,12 +82,12 @@ object ClosureCleaner {
   /** Return a list of classes that represent closures enclosed in the given closure object.
     */
   private def getInnerClosureClasses(obj: AnyRef): List[Class[_]] = {
-    val seen  = Set[Class[_]](obj.getClass)
-    val stack = Stack[Class[_]](obj.getClass)
-    while (!stack.isEmpty) {
+    val seen  = mutable.Set[Class[_]](obj.getClass)
+    val stack = mutable.Stack[Class[_]](obj.getClass)
+    while (stack.nonEmpty) {
       val cr = getClassReader(stack.pop())
       if (cr != null) {
-        val set = Set.empty[Class[_]]
+        val set = mutable.Set.empty[Class[_]]
         cr.accept(new InnerClosureFinder(set), 0)
         for (cls <- set -- seen) {
           seen += cls
@@ -99,14 +99,14 @@ object ClosureCleaner {
   }
 
   /** Initializes the accessed fields for outer classes and their super classes. */
-  private def initAccessedFields(accessedFields: Map[Class[_], Set[String]], outerClasses: Seq[Class[_]]): Unit = {
+  private def initAccessedFields(accessedFields: mutable.Map[Class[_], mutable.Set[String]], outerClasses: Seq[Class[_]]): Unit = {
     for (cls <- outerClasses) {
       var currentClass = cls
       assert(currentClass != null, "The outer class can't be null.")
 
       while (currentClass != null) {
-        accessedFields(currentClass) = Set.empty[String]
-        currentClass = currentClass.getSuperclass()
+        accessedFields(currentClass) = mutable.Set.empty[String]
+        currentClass = currentClass.getSuperclass
       }
     }
   }
@@ -116,7 +116,7 @@ object ClosureCleaner {
       outerClass: Class[_],
       clone: AnyRef,
       obj: AnyRef,
-      accessedFields: Map[Class[_], Set[String]]
+      accessedFields: mutable.Map[Class[_], mutable.Set[String]]
   ): Unit = {
     for (fieldName <- accessedFields(outerClass)) {
       val field = outerClass.getDeclaredField(fieldName)
@@ -131,7 +131,7 @@ object ClosureCleaner {
       parent: AnyRef,
       obj: AnyRef,
       outerClass: Class[_],
-      accessedFields: Map[Class[_], Set[String]]
+      accessedFields: mutable.Map[Class[_], mutable.Set[String]]
   ): AnyRef = {
     val clone = instantiateClass(outerClass, parent)
 
@@ -140,7 +140,7 @@ object ClosureCleaner {
 
     while (currentClass != null) {
       setAccessedFields(currentClass, clone, obj, accessedFields)
-      currentClass = currentClass.getSuperclass()
+      currentClass = currentClass.getSuperclass
     }
 
     clone
@@ -159,7 +159,7 @@ object ClosureCleaner {
     *   whether to clean enclosing closures transitively
     */
   def clean(closure: AnyRef, checkSerializable: Boolean = true, cleanTransitively: Boolean = true): Unit = {
-    clean(closure, checkSerializable, cleanTransitively, Map.empty)
+    clean(closure, checkSerializable, cleanTransitively, mutable.Map.empty)
   }
 
   def scalaClean[T <: AnyRef](fun: T, checkSerializable: Boolean = true, cleanTransitively: Boolean = true): T = {
@@ -204,7 +204,7 @@ object ClosureCleaner {
       func: AnyRef,
       checkSerializable: Boolean,
       cleanTransitively: Boolean,
-      accessedFields: Map[Class[_], Set[String]]
+      accessedFields: mutable.Map[Class[_], mutable.Set[String]]
   ): Unit = {
 
     // indylambda check. Most likely to be the case with 2.12, 2.13
@@ -447,7 +447,7 @@ object ClosureCleaner {
 
   private def instantiateClass(cls: Class[_], enclosingObject: AnyRef): AnyRef = {
     // Use reflection to instantiate object without calling constructor
-    val rf         = sun.reflect.ReflectionFactory.getReflectionFactory()
+    val rf         = sun.reflect.ReflectionFactory.getReflectionFactory
     val parentCtor = classOf[Object].getDeclaredConstructor()
     val newCtor    = rf.newConstructorForSerialization(cls, parentCtor)
     val obj        = newCtor.newInstance().asInstanceOf[AnyRef]
@@ -627,14 +627,14 @@ object IndylambdaScalaClosures {
   def findAccessedFields(
       lambdaProxy: SerializedLambda,
       lambdaClassLoader: ClassLoader,
-      accessedFields: Map[Class[_], Set[String]],
+      accessedFields: mutable.Map[Class[_], mutable.Set[String]],
       findTransitively: Boolean
   ): Unit = {
 
     // We may need to visit the same class multiple times for different methods on it, and we'll
     // need to lookup by name. So we use ASM's Tree API and cache the ClassNode/MethodNode.
-    val classInfoByInternalName = Map.empty[String, (Class[_], ClassNode)]
-    val methodNodeById          = Map.empty[MethodIdentifier[_], MethodNode]
+    val classInfoByInternalName = mutable.Map.empty[String, (Class[_], ClassNode)]
+    val methodNodeById          = mutable.Map.empty[MethodIdentifier[_], MethodNode]
     def getOrUpdateClassInfo(classInternalName: String): (Class[_], ClassNode) = {
       val classInfo = classInfoByInternalName.getOrElseUpdate(
         classInternalName, {
@@ -672,19 +672,19 @@ object IndylambdaScalaClosures {
     //          inner closure
     // we need to track calls from "inner closure" to outer classes relative to it (class T, A, B)
     // to better find and track field accesses.
-    val trackedClassInternalNames = Set[String](implClassInternalName)
+    val trackedClassInternalNames = mutable.Set[String](implClassInternalName)
 
     // Depth-first search for inner closures and track the fields that were accessed in them.
     // Start from the lambda body's implementation method, follow method invocations
-    val visited = Set.empty[MethodIdentifier[_]]
-    val stack   = Stack[MethodIdentifier[_]](implMethodId)
+    val visited = mutable.Set.empty[MethodIdentifier[_]]
+    val stack   = mutable.Stack[MethodIdentifier[_]](implMethodId)
     def pushIfNotVisited(methodId: MethodIdentifier[_]): Unit = {
       if (!visited.contains(methodId)) {
         stack.push(methodId)
       }
     }
 
-    while (!stack.isEmpty) {
+    while (stack.nonEmpty) {
       val currentId = stack.pop()
       visited += currentId
 
@@ -816,10 +816,10 @@ private case class MethodIdentifier[T](cls: Class[T], name: String, desc: String
   *   a set of visited methods to avoid cycles
   */
 private class FieldAccessFinder(
-    fields: Map[Class[_], Set[String]],
+    fields: mutable.Map[Class[_], mutable.Set[String]],
     findTransitively: Boolean,
     specificMethod: Option[MethodIdentifier[_]] = None,
-    visitedMethods: Set[MethodIdentifier[_]] = Set.empty
+    visitedMethods: mutable.Set[MethodIdentifier[_]] = mutable.Set.empty
 ) extends ClassVisitor(ASM9) {
 
   override def visitMethod(
@@ -868,7 +868,7 @@ private class FieldAccessFinder(
                 ClosureCleaner
                   .getClassReader(currentClass)
                   .accept(new FieldAccessFinder(fields, findTransitively, Some(m), visitedMethods), 0)
-                currentClass = currentClass.getSuperclass()
+                currentClass = currentClass.getSuperclass
               }
             }
           }
@@ -878,7 +878,7 @@ private class FieldAccessFinder(
   }
 }
 
-private class InnerClosureFinder(output: Set[Class[_]]) extends ClassVisitor(ASM9) {
+private class InnerClosureFinder(output: mutable.Set[Class[_]]) extends ClassVisitor(ASM9) {
   var myName: String = null
 
   // TODO: Recursively find inner closures that we indirectly reference, e.g.
@@ -908,7 +908,7 @@ private class InnerClosureFinder(output: Set[Class[_]]) extends ClassVisitor(ASM
       override def visitMethodInsn(op: Int, owner: String, name: String, desc: String, itf: Boolean): Unit = {
         val argTypes = Type.getArgumentTypes(desc)
         if (
-          op == INVOKESPECIAL && name == "<init>" && argTypes.length > 0
+          op == INVOKESPECIAL && name == "<init>" && argTypes.nonEmpty
           && argTypes(0).toString.startsWith("L") // is it an object?
           && argTypes(0).getInternalName == myName
         ) {

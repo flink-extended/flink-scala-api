@@ -21,7 +21,7 @@ package org.apache.flinkx.api.function
 import org.apache.flink.api.common.functions.AbstractRichFunction
 import org.apache.flink.streaming.api.windowing.windows.Window
 
-/** Rich variant of the [[org.apache.flink.api.function.WindowFunction]].
+/** Rich variant of the [[org.apache.flinkx.api.function.WindowFunction]].
   *
   * As a [[org.apache.flink.api.common.functions.RichFunction]], it gives access to the
   * [[org.apache.flink.api.common.functions.RuntimeContext]] and provides setup and tear-down methods.

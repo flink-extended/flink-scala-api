@@ -24,12 +24,9 @@ class DataStreamUtils[T: TypeInformation: ClassTag](val self: DataStream[T]) {
     * @return
     *   The iterator
     *
-    * @deprecated
-    *   Replaced with [[DataStream#executeAndCollect]].
     */
-  def collect(): Iterator[T] = {
-    JavaStreamUtils.collect(self.javaStream).asScala
-  }
+  def collect(): Iterator[T] =
+    self.javaStream.executeAndCollect().asScala
 
   /** Reinterprets the given [[DataStream]] as a [[KeyedStream]], which extracts keys with the given [[KeySelector]].
     *

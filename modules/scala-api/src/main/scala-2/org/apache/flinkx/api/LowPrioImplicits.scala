@@ -6,12 +6,10 @@ import magnolia1.{CaseClass, Magnolia, SealedTrait}
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
-import scala.annotation.tailrec
 import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.reflect._
 import scala.reflect.runtime.universe.{Try => _, _}
-import scala.util.{Failure, Success, Try}
 
 private[api] trait LowPrioImplicits {
   type Typeclass[T] = TypeInformation[T]

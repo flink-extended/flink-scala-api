@@ -32,7 +32,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
   /** Gets the type of the key by which this stream is keyed.
     */
   @Internal
-  def getKeyType = javaStream.getKeyType()
+  private def getKeyType = javaStream.getKeyType
 
   // ------------------------------------------------------------------------
   //  basic transformations
@@ -203,42 +203,6 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
   // ------------------------------------------------------------------------
   //  Windowing
   // ------------------------------------------------------------------------
-
-  /** Windows this [[KeyedStream]] into tumbling time windows.
-    *
-    * This is a shortcut for either `.window(TumblingEventTimeWindows.of(size))` or
-    * `.window(TumblingProcessingTimeWindows.of(size))` depending on the time characteristic set using
-    * [[StreamExecutionEnvironment.setStreamTimeCharacteristic()]]
-    *
-    * @param size
-    *   The size of the window.
-    *
-    * @deprecated
-    *   Please use [[window()]] with either [[TumblingEventTimeWindows]] or [[TumblingProcessingTimeWindows]]. For more
-    *   information, see the deprecation notice on [[org.apache.flink.streaming.api.TimeCharacteristic]].
-    */
-  @deprecated
-  def timeWindow(size: Time): WindowedStream[T, K, TimeWindow] = {
-    new WindowedStream(javaStream.timeWindow(size))
-  }
-
-  /** Windows this [[KeyedStream]] into sliding time windows.
-    *
-    * This is a shortcut for either `.window(SlidingEventTimeWindows.of(size))` or
-    * `.window(SlidingProcessingTimeWindows.of(size))` depending on the time characteristic set using
-    * [[StreamExecutionEnvironment.setStreamTimeCharacteristic()]]
-    *
-    * @param size
-    *   The size of the window.
-    *
-    * @deprecated
-    *   Please use [[window()]] with either [[SlidingEventTimeWindows]] or [[SlidingProcessingTimeWindows]]. For more
-    *   information, see the deprecation notice on [[org.apache.flink.streaming.api.TimeCharacteristic]].
-    */
-  @deprecated
-  def timeWindow(size: Time, slide: Time): WindowedStream[T, K, TimeWindow] = {
-    new WindowedStream(javaStream.timeWindow(size, slide))
-  }
 
   /** Windows this [[KeyedStream]] into sliding count windows.
     *
@@ -511,7 +475,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
       override val stateSerializer: TypeSerializer[S] = serializer
 
       override def flatMap(in: T, out: Collector[R]): Unit = {
-        applyWithState(in, cleanFun) foreach out.collect
+        applyWithState(in, cleanFun).foreach(out.collect)
       }
     }
 

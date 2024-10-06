@@ -5,8 +5,6 @@ import scala.reflect.runtime.{currentMirror => cm}
 import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
 
-import org.apache.flinkx.api.serializers.drop
-
 private[serializer] trait ConstructorCompat {
 
   @nowarn("msg=(eliminated by erasure)|(explicit array)")

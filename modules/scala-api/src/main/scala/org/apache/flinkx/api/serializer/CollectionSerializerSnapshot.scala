@@ -4,7 +4,7 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSche
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
 
-class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]]() extends TypeSerializerSnapshot[F[T]] {
+class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]] extends TypeSerializerSnapshot[F[T]] {
   def this(ser: TypeSerializer[T], serClass: Class[S], valueClass: Class[T]) = {
     this()
     nestedSerializer = ser
