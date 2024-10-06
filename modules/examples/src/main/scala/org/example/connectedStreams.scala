@@ -13,11 +13,11 @@ import org.apache.flinkx.api.serializers.*
   given tranTypeInfo: TypeInformation[Transaction] = deriveTypeInformation
 
   val control = env
-    .addSource(TransactionsSource.iterator())
+    .addSource(TransactionsSource.iterator)
     .keyBy(_.accountId)
 
   val streamOfWords = env
-    .addSource(TransactionsSource.iterator())
+    .addSource(TransactionsSource.iterator)
     .keyBy(_.accountId)
   
   control

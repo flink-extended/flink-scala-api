@@ -120,11 +120,12 @@ val flinkMajorAndMinorVersion =
 
 lazy val `examples` = (project in file("modules/examples"))
   .settings(
-    scalaVersion := rootScalaVersion,
-    Test / fork  := true,
+    scalaVersion   := rootScalaVersion,
+    Test / fork    := true,
     publish / skip := true,
+    releaseProcess := Seq.empty[ReleaseStep], // Release for example is not needed
     libraryDependencies ++= Seq(
-      "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.1.6",
+      "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.1.7",
       "org.apache.flink"   % "flink-runtime-web"          % "1.18.1"     % Provided,
       "org.apache.flink"   % "flink-clients"              % "1.18.1"     % Provided,
       "org.apache.flink"   % "flink-state-processor-api"  % "1.18.1"     % Provided,
