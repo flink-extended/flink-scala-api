@@ -53,30 +53,12 @@ class DataStream[T](stream: JavaStream[T]) {
     */
   @deprecated
   @PublicEvolving
-  def getType(): TypeInformation[T] = stream.getType()
-
-  /** Returns the parallelism of this operation.
-    *
-    * @deprecated
-    *   Use [[parallelism]] instead.
-    */
-  @deprecated
-  @PublicEvolving
-  def getParallelism = stream.getParallelism
-
-  /** Returns the execution config.
-    *
-    * @deprecated
-    *   Use [[executionConfig]] instead.
-    */
-  @deprecated
-  @PublicEvolving
-  def getExecutionConfig = stream.getExecutionConfig
+  def getType: TypeInformation[T] = stream.getType
 
   /** Returns the ID of the DataStream.
     */
   @Internal
-  private[flinkx] def getId = stream.getId()
+  private[flinkx] def getId = stream.getId
 
   // --------------------------------------------------------------------------
   //  Scalaesk accessors
@@ -88,20 +70,20 @@ class DataStream[T](stream: JavaStream[T]) {
 
   /** Returns the TypeInformation for the elements of this DataStream.
     */
-  def dataType: TypeInformation[T] = stream.getType()
+  def dataType: TypeInformation[T] = stream.getType
 
   /** Returns the execution config.
     */
-  def executionConfig: ExecutionConfig = stream.getExecutionConfig()
+  def executionConfig: ExecutionConfig = stream.getExecutionConfig
 
   /** Returns the [[StreamExecutionEnvironment]] associated with this data stream
     */
   def executionEnvironment: StreamExecutionEnvironment =
-    new StreamExecutionEnvironment(stream.getExecutionEnvironment())
+    new StreamExecutionEnvironment(stream.getExecutionEnvironment)
 
   /** Returns the parallelism of this operation.
     */
-  def parallelism: Int = stream.getParallelism()
+  def parallelism: Int = stream.getParallelism
 
   /** Sets the parallelism of this operation. This must be at least 1.
     */
@@ -130,23 +112,12 @@ class DataStream[T](stream: JavaStream[T]) {
   /** Returns the minimum resources of this operation.
     */
   @PublicEvolving
-  def minResources: ResourceSpec = stream.getMinResources()
+  def minResources: ResourceSpec = stream.getMinResources
 
   /** Returns the preferred resources of this operation.
     */
   @PublicEvolving
-  def preferredResources: ResourceSpec = stream.getPreferredResources()
-
-  /** Gets the name of the current data stream. This name is used by the visualization and logging during runtime.
-    *
-    * @return
-    *   Name of the stream.
-    * @deprecated
-    *   Use [[name]] instead
-    */
-  @deprecated
-  @PublicEvolving
-  def getName: String = name
+  def preferredResources: ResourceSpec = stream.getPreferredResources
 
   /** Gets the name of the current data stream. This name is used by the visualization and logging during runtime.
     *
@@ -365,7 +336,7 @@ class DataStream[T](stream: JavaStream[T]) {
     val keyType: TypeInformation[K] = implicitly[TypeInformation[K]]
 
     val keyExtractor = new KeySelector[T, K] with ResultTypeQueryable[K] {
-      def getKey(in: T)                                = cleanFun(in)
+      def getKey(in: T): K = cleanFun(in)
       override def getProducedType: TypeInformation[K] = keyType
     }
     asScalaStream(new JavaKeyedStream(stream, keyExtractor, keyType))
@@ -411,8 +382,8 @@ class DataStream[T](stream: JavaStream[T]) {
     val cleanFun = clean(fun)
 
     val keyExtractor = new KeySelector[T, K] with ResultTypeQueryable[K] {
-      def getKey(in: T)                                  = cleanFun(in)
-      override def getProducedType(): TypeInformation[K] = keyType
+      def getKey(in: T): K = cleanFun(in)
+      override def getProducedType: TypeInformation[K] = keyType
     }
 
     asScalaStream(stream.partitionCustom(partitioner, keyExtractor))
@@ -582,7 +553,7 @@ class DataStream[T](stream: JavaStream[T]) {
     }
     val cleanFun = clean(fun)
     val flatMapper = new FlatMapFunction[T, R] {
-      def flatMap(in: T, out: Collector[R]) = { cleanFun(in, out) }
+      def flatMap(in: T, out: Collector[R]): Unit = { cleanFun(in, out) }
     }
     flatMap(flatMapper)
   }
@@ -595,7 +566,7 @@ class DataStream[T](stream: JavaStream[T]) {
     }
     val cleanFun = clean(fun)
     val flatMapper = new FlatMapFunction[T, R] {
-      def flatMap(in: T, out: Collector[R]) = { cleanFun(in).foreach(out.collect _) }
+      def flatMap(in: T, out: Collector[R]): Unit = { cleanFun(in).foreach(out.collect) }
     }
     flatMap(flatMapper)
   }
@@ -634,7 +605,7 @@ class DataStream[T](stream: JavaStream[T]) {
     }
     val cleanFun = clean(fun)
     val filterFun = new FilterFunction[T] {
-      def filter(in: T) = cleanFun(in)
+      def filter(in: T): Boolean = cleanFun(in)
     }
     filter(filterFun)
   }
@@ -757,7 +728,7 @@ class DataStream[T](stream: JavaStream[T]) {
     *   The closed DataStream.
     */
   @PublicEvolving
-  def printToErr() = stream.printToErr()
+  def printToErr(): DataStreamSink[T] = stream.printToErr()
 
   /** Writes a DataStream to the standard output stream (stdout). For each element of the DataStream the result of
     * [[AnyRef.toString()]] is written.
@@ -780,7 +751,7 @@ class DataStream[T](stream: JavaStream[T]) {
     *   The closed DataStream.
     */
   @PublicEvolving
-  def printToErr(sinkIdentifier: String) = stream.printToErr(sinkIdentifier)
+  def printToErr(sinkIdentifier: String): DataStreamSink[T] = stream.printToErr(sinkIdentifier)
 
   /** Writes a DataStream using the given [[OutputFormat]].
     */

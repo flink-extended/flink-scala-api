@@ -17,35 +17,37 @@
  */
 package org.apache.flinkx.api
 
+import com.esotericsoftware.kryo.Serializer
 import org.apache.flink.annotation.{Experimental, Internal, Public, PublicEvolving}
-import org.apache.flink.api.common.{ExecutionConfig, RuntimeExecutionMode}
 import org.apache.flink.api.common.ExecutionConfig.ClosureCleanerLevel
+import org.apache.flink.api.common.cache.DistributedCache
 import org.apache.flink.api.common.eventtime.WatermarkStrategy
 import org.apache.flink.api.common.io.{FileInputFormat, FilePathFilter, InputFormat}
 import org.apache.flink.api.common.operators.SlotSharingGroup
 import org.apache.flink.api.common.restartstrategy.RestartStrategies.RestartStrategyConfiguration
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.connector.source.{Source, SourceSplit}
+import org.apache.flink.api.common.{ExecutionConfig, JobExecutionResult, RuntimeExecutionMode}
 import org.apache.flink.api.connector.source.lib.NumberSequenceSource
+import org.apache.flink.api.connector.source.{Source, SourceSplit}
+import org.apache.flink.api.java.tuple
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
 import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
 import org.apache.flink.configuration.{Configuration, ReadableConfig}
 import org.apache.flink.core.execution.{JobClient, JobListener}
 import org.apache.flink.core.fs.Path
 import org.apache.flink.runtime.state.StateBackend
-import org.apache.flink.streaming.api.{CheckpointingMode, TimeCharacteristic}
+import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.environment.{CheckpointConfig, StreamExecutionEnvironment => JavaEnv}
-import org.apache.flink.streaming.api.functions.source._
 import org.apache.flink.streaming.api.functions.source.SourceFunction.SourceContext
+import org.apache.flink.streaming.api.functions.source._
 import org.apache.flink.streaming.api.graph.StreamGraph
 import org.apache.flink.util.{SplittableIterator, TernaryBoolean}
-import ScalaStreamOps._
-
-import scala.jdk.CollectionConverters._
-import language.implicitConversions
-import com.esotericsoftware.kryo.Serializer
+import org.apache.flinkx.api.ScalaStreamOps._
 
 import java.net.URI
+import java.util
+import scala.jdk.CollectionConverters._
+import scala.language.implicitConversions
 
 @Public
 class StreamExecutionEnvironment(javaEnv: JavaEnv) {
@@ -57,11 +59,11 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   def getConfig = javaEnv.getConfig
 
   /** Gets cache files. */
-  def getCachedFiles = javaEnv.getCachedFiles
+  def getCachedFiles: util.List[tuple.Tuple2[String, DistributedCache.DistributedCacheEntry]] = javaEnv.getCachedFiles
 
   /** Gets the config JobListeners. */
   @PublicEvolving
-  def getJobListeners = javaEnv.getJobListeners
+  def getJobListeners: util.List[JobListener] = javaEnv.getJobListeners
 
   /** Sets the parallelism for operations executed through this environment. Setting a parallelism of x here will cause
     * all operators (such as join, map, reduce) to run with x parallel instances. This value can be overridden by
@@ -122,7 +124,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     * The maximum degree of parallelism specifies the upper limit for dynamic scaling. It also defines the number of key
     * groups used for partitioned state.
     */
-  def getMaxParallelism = javaEnv.getMaxParallelism
+  def getMaxParallelism: Int = javaEnv.getMaxParallelism
 
   /** Sets the maximum time frequency (milliseconds) for the flushing of the output buffers. By default the output
     * buffers flush frequently to provide low latency and to aid smooth developer experience. Setting the parameter can
@@ -138,7 +140,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   }
 
   /** Gets the default buffer timeout set for this environment */
-  def getBufferTimeout = javaEnv.getBufferTimeout
+  def getBufferTimeout: Long = javaEnv.getBufferTimeout
 
   /** Disables operator chaining for streaming operators. Operator chaining allows non-shuffle operations to be
     * co-located in the same thread fully avoiding serialization and de-serialization.
@@ -155,7 +157,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
 
   /** Gets the checkpoint config, which defines values like checkpoint interval, delay between checkpoints, etc.
     */
-  def getCheckpointConfig = javaEnv.getCheckpointConfig()
+  def getCheckpointConfig: CheckpointConfig = javaEnv.getCheckpointConfig
 
   /** Enables checkpointing for the streaming job. The distributed state of the streaming dataflow will be periodically
     * snapshotted. In case of a failure, the streaming dataflow will be restarted from the latest completed checkpoint.
@@ -194,13 +196,13 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     enableCheckpointing(interval, CheckpointingMode.EXACTLY_ONCE)
   }
 
-  def getCheckpointingMode = javaEnv.getCheckpointingMode()
+  def getCheckpointingMode = javaEnv.getCheckpointingMode
 
   /** Sets the state backend that describes how to store operator. It defines the data structures that hold state during
     * execution (for example hash tables, RocksDB, or other data stores).
     *
     * State managed by the state backend includes both keyed state that is accessible on
-    * [[org.apache.flink.api.KeyedStream]], as well as state maintained directly by the user code that implements
+    * [[org.apache.flinkx.api.KeyedStream]], as well as state maintained directly by the user code that implements
     * [[org.apache.flink.streaming.api.checkpoint.CheckpointedFunction]].
     *
     * The [[org.apache.flink.runtime.state.hashmap.HashMapStateBackend]] maintains state in heap memory, as objects. It
@@ -226,7 +228,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
 
   /** Returns the state backend that defines how to store and checkpoint state. */
   @PublicEvolving
-  def getStateBackend: StateBackend = javaEnv.getStateBackend()
+  def getStateBackend: StateBackend = javaEnv.getStateBackend
 
   /** Enable the change log for current state backend. This change log allows operators to persist state changes in a
     * very fine-grained manner. Currently, the change log only applies to keyed state, so non-keyed operator state and
@@ -339,31 +341,8 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     *   The restart strategy configuration to be used
     */
   @PublicEvolving
-  def getRestartStrategy: RestartStrategyConfiguration = {
-    javaEnv.getRestartStrategy()
-  }
-
-  /** Sets the number of times that failed tasks are re-executed. A value of zero effectively disables fault tolerance.
-    * A value of "-1" indicates that the system default value (as defined in the configuration) should be used.
-    *
-    * @deprecated
-    *   This method will be replaced by [[setRestartStrategy()]]. The FixedDelayRestartStrategyConfiguration contains
-    *   the number of execution retries.
-    */
-  @PublicEvolving
-  def setNumberOfExecutionRetries(numRetries: Int): Unit = {
-    javaEnv.setNumberOfExecutionRetries(numRetries)
-  }
-
-  /** Gets the number of times the system will try to re-execute failed tasks. A value of "-1" indicates that the system
-    * default value (as defined in the configuration) should be used.
-    *
-    * @deprecated
-    *   This method will be replaced by [[getRestartStrategy]]. The FixedDelayRestartStrategyConfiguration contains the
-    *   number of execution retries.
-    */
-  @PublicEvolving
-  def getNumberOfExecutionRetries = javaEnv.getNumberOfExecutionRetries
+  def getRestartStrategy: RestartStrategyConfiguration =
+    javaEnv.getRestartStrategy
 
   // --------------------------------------------------------------------------------------------
   // Registry for types and serializers
@@ -387,7 +366,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     * @param serializerClass
     *   The class of the serializer to use.
     */
-  def addDefaultKryoSerializer(`type`: Class[_], serializerClass: Class[_ <: Serializer[_]]) = {
+  def addDefaultKryoSerializer(`type`: Class[_], serializerClass: Class[_ <: Serializer[_]]): Unit = {
     javaEnv.addDefaultKryoSerializer(`type`, serializerClass)
   }
 
@@ -401,7 +380,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   }
 
   /** Registers the given type with the serializer at the [[KryoSerializer]]. */
-  def registerTypeWithKryoSerializer(clazz: Class[_], serializer: Class[_ <: Serializer[_]]) = {
+  def registerTypeWithKryoSerializer(clazz: Class[_], serializer: Class[_ <: Serializer[_]]): Unit = {
     javaEnv.registerTypeWithKryoSerializer(clazz, serializer)
   }
 
@@ -409,23 +388,9 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     * type is registered with the POJO serializer. If the type ends up being serialized with Kryo, then it will be
     * registered at Kryo to make sure that only tags are written.
     */
-  def registerType(typeClass: Class[_]) = {
+  def registerType(typeClass: Class[_]): Unit = {
     javaEnv.registerType(typeClass)
   }
-
-  // --------------------------------------------------------------------------------------------
-  //  Time characteristic
-  // --------------------------------------------------------------------------------------------
-
-  /** Gets the time characteristic/
-    *
-    * @see
-    *   #setStreamTimeCharacteristic
-    * @return
-    *   The time characteristic.
-    */
-  @PublicEvolving
-  def getStreamTimeCharacteristic = javaEnv.getStreamTimeCharacteristic()
 
   /** Sets all relevant options contained in the [[ReadableConfig]] such as e.g.
     * [[org.apache.flink.streaming.api.environment.StreamPipelineOptions#TIME_CHARACTERISTIC]]. It will reconfigure
@@ -464,17 +429,6 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   // --------------------------------------------------------------------------------------------
   // Data stream creations
   // --------------------------------------------------------------------------------------------
-  /** Creates a new DataStream that contains a sequence of numbers. This source is a parallel source. If you manually
-    * set the parallelism to `1` the emitted elements are in order.
-    *
-    * @deprecated
-    *   Use [[fromSequence(long, long)]] instead to create a new data stream that contains [[NumberSequenceSource]].
-    */
-  @deprecated
-  def generateSequence(from: Long, to: Long): DataStream[Long] = {
-    new DataStream[java.lang.Long](javaEnv.generateSequence(from, to))
-      .asInstanceOf[DataStream[Long]]
-  }
 
   /** Creates a new data stream that contains a sequence of numbers (longs) and is useful for testing and for cases that
     * just need a stream of N events of any kind.
@@ -624,10 +578,10 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     require(function != null, "Function must not be null.")
     val sourceFunction = new SourceFunction[T] {
       val cleanFun = scalaClean(function)
-      override def run(ctx: SourceContext[T]) = {
+      override def run(ctx: SourceContext[T]): Unit = {
         cleanFun(ctx)
       }
-      override def cancel() = {}
+      override def cancel(): Unit = {}
     }
     addSource(sourceFunction)
   }
@@ -652,7 +606,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     * @return
     *   The result of the job execution, containing elapsed time and accumulators.
     */
-  def execute() = javaEnv.execute()
+  def execute(): JobExecutionResult = javaEnv.execute()
 
   /** Triggers the program execution. The environment will execute all parts of the program that have resulted in a
     * "sink" operation. Sink operations are for example printing results or forwarding them to a message queue.
@@ -662,7 +616,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     * @return
     *   The result of the job execution, containing elapsed time and accumulators.
     */
-  def execute(jobName: String) = javaEnv.execute(jobName)
+  def execute(jobName: String): JobExecutionResult = javaEnv.execute(jobName)
 
   /** Register a [[JobListener]] in this environment. The [[JobListener]] will be notified on specific job status
     * changed.
@@ -712,7 +666,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   /** Creates the plan with which the system will execute the program, and returns it as a String using a JSON
     * representation of the execution data flow graph. Note that this needs to be called, before the plan is executed.
     */
-  def getExecutionPlan = javaEnv.getExecutionPlan
+  def getExecutionPlan: String = javaEnv.getExecutionPlan
 
   /** Getter of the [[org.apache.flink.streaming.api.graph.StreamGraph]] of the streaming job. This call clears
     * previously registered [[org.apache.flink.api.dag.Transformation transformations]].
@@ -754,14 +708,14 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     *   The encased ExecutionEnvironment
     */
   @Internal
-  def getWrappedStreamExecutionEnvironment = javaEnv
+  def getWrappedStreamExecutionEnvironment: JavaEnv = javaEnv
 
   /** Returns a "closure-cleaned" version of the given function. Cleans only if closure cleaning is not disabled in the
     * [[org.apache.flink.api.common.ExecutionConfig]]
     */
   private[flinkx] def scalaClean[F <: AnyRef](f: F): F = {
     if (getConfig.isClosureCleanerEnabled) {
-      ClosureCleaner.scalaClean(f, true, getConfig.getClosureCleanerLevel == ClosureCleanerLevel.RECURSIVE)
+      ClosureCleaner.scalaClean(f, checkSerializable = true, cleanTransitively = getConfig.getClosureCleanerLevel == ClosureCleanerLevel.RECURSIVE)
     } else {
       ClosureCleaner.ensureSerializable(f)
     }

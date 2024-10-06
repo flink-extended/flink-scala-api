@@ -353,12 +353,16 @@ P.S. this flag can be deprecated in future when most of the users migrate to the
 
 ## Release
 
-Define two environment variables before starting SBT shell: 
+Create SBT file at ~/.sbt/1.0/sonatype.sbt with the following content:
 
 ```bash
-export SONATYPE_USERNAME=<your user name for Sonatype>
-export SONATYPE_PASSWORD=<your password for Sonatype> 
+credentials += Credentials("Sonatype Nexus Repository Manager",
+        "s01.oss.sonatype.org",
+        "<access token: user name>",
+        "<access token: password>")
 ```
+
+replace values with your access token user name and password.
 
 Release new version:
 
@@ -369,7 +373,7 @@ sh release.sh
 Increment to next SNAPSHOT version and push to Git server:
 
 ```bash
-RELEASE_PUBLISH=true sbt 'release with-defaults'
+RELEASE_PUBLISH=true sbt "; project scala-api; release with-defaults"
 ```
 
 ## License

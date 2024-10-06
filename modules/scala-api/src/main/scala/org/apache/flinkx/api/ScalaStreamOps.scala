@@ -12,21 +12,21 @@ import language.experimental.macros
 
 object ScalaStreamOps {
 
-  /** Converts an [[org.apache.flink.streaming.api.datastream.DataStream]] to a [[org.apache.flink.api.DataStream]].
+  /** Converts an [[org.apache.flink.streaming.api.datastream.DataStream]] to a [[org.apache.flinkx.api.DataStream]].
     */
   def asScalaStream[R](stream: JavaStream[R]) = new DataStream[R](stream)
 
-  /** Converts an [[org.apache.flink.streaming.api.datastream.KeyedStream]] to a [[org.apache.flink.api.KeyedStream]].
+  /** Converts an [[org.apache.flink.streaming.api.datastream.KeyedStream]] to a [[org.apache.flinkx.api.KeyedStream]].
     */
   def asScalaStream[R, K](stream: KeyedJavaStream[R, K]) = new KeyedStream[R, K](stream)
 
   /** Converts an [[org.apache.flink.streaming.api.datastream.ConnectedStreams]] to a
-    * [[org.apache.flink.api.ConnectedStreams]].
+    * [[org.apache.flinkx.api.ConnectedStreams]].
     */
   def asScalaStream[IN1, IN2](stream: ConnectedJavaStreams[IN1, IN2]) = new ConnectedStreams[IN1, IN2](stream)
 
   /** Converts an [[org.apache.flink.streaming.api.datastream.BroadcastConnectedStream]] to a
-    * [[org.apache.flink.api.BroadcastConnectedStream]].
+    * [[org.apache.flinkx.api.BroadcastConnectedStream]].
     */
   def asScalaStream[IN1, IN2](stream: BroadcastConnectedJavaStreams[IN1, IN2]) =
     new BroadcastConnectedStream[IN1, IN2](stream)

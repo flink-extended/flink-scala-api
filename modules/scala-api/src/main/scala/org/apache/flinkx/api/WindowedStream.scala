@@ -531,7 +531,7 @@ class WindowedStream[T, K, W <: Window](javaStream: JavaWStream[T, K, W]) {
   def minBy(field: String): DataStream[T] = aggregate(AggregationType.MINBY, field)
 
   private def aggregate(aggregationType: AggregationType, field: String): DataStream[T] = {
-    val position = fieldNames2Indices(getInputType(), Array(field))(0)
+    val position = fieldNames2Indices(getInputType, Array(field))(0)
     aggregate(aggregationType, position)
   }
 
@@ -569,5 +569,5 @@ class WindowedStream[T, K, W <: Window](javaStream: JavaWStream[T, K, W]) {
 
   /** Gets the output type.
     */
-  private def getInputType(): TypeInformation[T] = javaStream.getInputType
+  private def getInputType: TypeInformation[T] = javaStream.getInputType
 }

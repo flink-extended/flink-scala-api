@@ -27,7 +27,6 @@ import org.apache.flink.core.memory.DataOutputView;
 import org.apache.flink.util.InstantiationUtil;
 
 import java.io.IOException;
-import java.util.Objects;
 import java.util.Optional;
 
 import static org.apache.flink.util.Preconditions.checkNotNull;
