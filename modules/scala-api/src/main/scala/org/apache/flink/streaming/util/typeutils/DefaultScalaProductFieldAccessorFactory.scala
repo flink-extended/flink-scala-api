@@ -7,7 +7,7 @@ import org.apache.flink.api.java.typeutils.TupleTypeInfoBase
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.util.Preconditions.checkNotNull
 
-class DefaultScalaProductFieldAccessorFactory extends ScalaProductFieldAccessorFactory {
+class DefaultScalaProductFieldAccessorFactory extends ScalaProductFieldAccessorFactory with Serializable {
 
   override def createSimpleProductFieldAccessor[T, F](
       pos: Int,
