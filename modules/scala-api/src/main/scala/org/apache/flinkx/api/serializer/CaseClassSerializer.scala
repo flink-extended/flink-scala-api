@@ -22,6 +22,7 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
+import org.apache.flinkx.api.serializer.CaseClassSerializer.isClassArityUsageDisabled
 import org.slf4j.{Logger, LoggerFactory}
 
 import scala.util.{Failure, Success, Try}
@@ -38,14 +39,6 @@ abstract class CaseClassSerializer[T <: Product](
     with Cloneable {
 
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
-
-  @transient private val isClassArityUsageDisabled =
-    sys.env
-      .get("DISABLE_CASE_CLASS_ARITY_USAGE")
-      .exists(v =>
-        Try(v.toBoolean)
-          .getOrElse(false)
-      )
 
   override def isImmutableType: Boolean =
     scalaFieldSerializers.forall(s => Option(s).exists(_.isImmutableType))
@@ -85,7 +78,6 @@ abstract class CaseClassSerializer[T <: Product](
       createInstance(fields.toArray)
     }
 
-
   def serialize(value: T, target: DataOutputView): Unit = {
     if (arity > 0 && !isClassArityUsageDisabled)
       target.writeInt(value.productArity)
@@ -124,4 +116,14 @@ abstract class CaseClassSerializer[T <: Product](
     }
     createInstance(fields.filter(_ != null))
   }
+}
+
+object CaseClassSerializer {
+  private val isClassArityUsageDisabled =
+    sys.env
+      .get("DISABLE_CASE_CLASS_ARITY_USAGE")
+      .exists(v =>
+        Try(v.toBoolean)
+          .getOrElse(false)
+      )
 }
