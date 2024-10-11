@@ -39,6 +39,14 @@ abstract class CaseClassSerializer[T <: Product](
 
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
+  @transient private val isClassArityUsageDisabled =
+    sys.env
+      .get("DISABLE_CASE_CLASS_ARITY_USAGE")
+      .exists(v =>
+        Try(v.toBoolean)
+          .getOrElse(false)
+      )
+
   override def isImmutableType: Boolean =
     scalaFieldSerializers.forall(s => Option(s).exists(_.isImmutableType))
 
@@ -77,13 +85,6 @@ abstract class CaseClassSerializer[T <: Product](
       createInstance(fields.toArray)
     }
 
-  private def isClassArityUsageDisabled =
-    sys.env
-      .get("DISABLE_CASE_CLASS_ARITY_USAGE")
-      .exists(v =>
-        Try(v.toBoolean)
-          .getOrElse(false)
-      )
 
   def serialize(value: T, target: DataOutputView): Unit = {
     if (arity > 0 && !isClassArityUsageDisabled)
