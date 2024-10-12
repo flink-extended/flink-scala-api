@@ -25,7 +25,7 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
       ("org.apache.flink" % "flink-streaming-java" % flinkVersion % Test).classifier("tests"),
       "org.typelevel"    %% "cats-core"            % "2.12.0"     % Test,
       "org.scalatest"    %% "scalatest"            % "3.2.19"     % Test,
-      "ch.qos.logback"    % "logback-classic"      % "1.5.8"      % Test
+      "ch.qos.logback"    % "logback-classic"      % "1.5.10"     % Test
     ),
     libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
@@ -125,7 +125,7 @@ lazy val `examples` = (project in file("modules/examples"))
     publish / skip := true,
     releaseProcess := Seq.empty[ReleaseStep], // Release for example is not needed
     libraryDependencies ++= Seq(
-      "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.1.7",
+      "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.2.0",
       "org.apache.flink"   % "flink-runtime-web"          % "1.18.1"     % Provided,
       "org.apache.flink"   % "flink-clients"              % "1.18.1"     % Provided,
       "org.apache.flink"   % "flink-state-processor-api"  % "1.18.1"     % Provided,
