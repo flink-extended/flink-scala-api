@@ -55,7 +55,7 @@ We suggest to remove the official `flink-scala` and `flink-streaming-scala` depe
 There is a wide range of [code examples](https://github.com/flink-extended/flink-scala-api/tree/master/modules/examples) to introduce you to flink-scala-api, both using Scala scripts and multimodule applications. These examples include:
 
 - Flink jobs built using Scala 3 with Ammonite and Scala CLI;
-- Real time data processing job with Google Pub/Sub connector and custom JSON serializers and deserializers;
+- Streaming job using Google Pub/Sub and JSON serialiser;
 - A complete application for fraud detection;
 - Examples using Datastream and Table APIs;
 - Simple job developed interactively via Jupyter notebooks;
