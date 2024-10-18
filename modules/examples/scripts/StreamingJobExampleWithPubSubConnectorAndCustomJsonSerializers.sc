@@ -13,17 +13,15 @@ import upickle.default.*
 import java.time.temporal.ChronoUnit
 import java.time.{Instant, LocalDate}
 
-/**
- * This code is available in article version with more details of the
- * implementation:
- * https://dev.to/geazi_anc/data-engineering-with-scala-mastering-real-time-data-processing-with-apache-flink-and-google-pubsub-3b39
- */
+/** This code is available in article version with more details of the implementation:
+  * https://dev.to/geazi_anc/data-engineering-with-scala-mastering-real-time-data-processing-with-apache-flink-and-google-pubsub-3b39
+  */
 
 // model definitions
 final case class CreatedCustomer(fullName: String, birthDate: String) derives ReadWriter:
-  def firstName: String = fullName.split(" ").head
-  def lastName: String  = fullName.split(" ").last
-  def age: Int          = ChronoUnit.YEARS.between(LocalDate.parse(birthDate), LocalDate.now()).toInt
+  val firstName = fullName.split(" ").head
+  val lastName  = fullName.split(" ").last
+  val age       = ChronoUnit.YEARS.between(LocalDate.parse(birthDate), LocalDate.now()).toInt
 
 final case class RegisteredCustomer(firstName: String, lastName: String, age: Int, isActive: Boolean, createdAt: String)
     derives ReadWriter
@@ -52,7 +50,7 @@ val pubsubSource = PubSubSource
   .withProjectName(projectName)
   .withSubscriptionName(subscriptionName)
   .build()
-val pubsubSink   = PubSubSink
+val pubsubSink = PubSubSink
   .newBuilder()
   .withSerializationSchema(new RegisteredCustomerSerializer())
   .withProjectName(projectName)
