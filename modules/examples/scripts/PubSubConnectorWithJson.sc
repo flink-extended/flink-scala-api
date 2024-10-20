@@ -1,5 +1,5 @@
 //> using toolkit default
-//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.6"
+//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.7"
 //> using dep "org.apache.flink:flink-clients:1.18.1"
 //> using dep org.apache.flink:flink-connector-gcp-pubsub:3.1.0-1.18
 

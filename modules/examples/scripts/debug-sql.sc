@@ -1,4 +1,4 @@
-import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.1.6`
+import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.1.7`
 
 import $ivy.`org.apache.flink:flink-clients:1.18.1`
 
@@ -18,7 +18,7 @@ import org.apache.flinkx.api.serializers._
 
 import java.lang.{Long => JLong}
 
-val env = StreamExecutionEnvironment.getExecutionEnvironment
+val env  = StreamExecutionEnvironment.getExecutionEnvironment
 val tEnv = StreamTableEnvironment.create(env.getJavaEnv)
 
 val settings = EnvironmentSettings.newInstance().inStreamingMode().build()
@@ -39,17 +39,20 @@ table.createTemporaryTable(
 )
 
 val tableDescriptor = TableDescriptor
-      .forConnector("datagen")
-      .schema(
-        Schema.newBuilder
-          .column("id", DataTypes.INT.notNull)
-          .column("a", DataTypes.ROW(DataTypes.FIELD("np", DataTypes.INT.notNull())).notNull())
-          .build)
+  .forConnector("datagen")
+  .schema(
+    Schema.newBuilder
+      .column("id", DataTypes.INT.notNull)
+      .column("a", DataTypes.ROW(DataTypes.FIELD("np", DataTypes.INT.notNull())).notNull())
       .build
+  )
+  .build
 table.createTemporaryTable("t1", tableDescriptor)
 table.createTemporaryTable("t2", tableDescriptor)
 // table.dropTemporaryTable("t1")
 // table.dropTemporaryTable("t2")
 
-val res = table.executeSql("EXPLAIN SELECT a.id, COALESCE(a.a.np, b.a.np) c1, IFNULL(a.a.np, b.a.np) c2 FROM t1 a left JOIN t2 b ON a.id=b.id where a.a is null or a.a.np is null")
+val res = table.executeSql(
+  "EXPLAIN SELECT a.id, COALESCE(a.a.np, b.a.np) c1, IFNULL(a.a.np, b.a.np) c2 FROM t1 a left JOIN t2 b ON a.id=b.id where a.a is null or a.a.np is null"
+)
 res.print
