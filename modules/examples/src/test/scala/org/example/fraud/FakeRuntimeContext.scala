@@ -29,8 +29,24 @@ import org.apache.flink.api.common.state.{
 import org.apache.flink.metrics.groups.OperatorMetricGroup
 
 import java.util
+import org.apache.flink.api.common.typeutils.TypeSerializer
+import org.apache.flink.api.common.JobInfo
+import org.apache.flink.api.common.TaskInfo
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import java.{util => ju}
 
 class FakeRuntimeContext extends RuntimeContext:
+
+
+  override def getJobInfo(): JobInfo = ???
+
+  override def getTaskInfo(): TaskInfo = ???
+
+  override def getGlobalJobParameters(): ju.Map[String, String] = ???
+
+  override def createSerializer[T](typeInformation: TypeInformation[T]): TypeSerializer[T] = ???
+
+  override def isObjectReuseEnabled(): Boolean = true
 
   override def getJobId: JobID = ???
 

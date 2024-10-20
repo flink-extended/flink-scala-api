@@ -125,18 +125,18 @@ lazy val `examples` = (project in file("modules/examples"))
     publish / skip := true,
     releaseProcess := Seq.empty[ReleaseStep], // Release for example is not needed
     libraryDependencies ++= Seq(
-      "org.flinkextended" %% "flink-scala-api"            % "1.18.1_1.2.0",
-      "org.apache.flink"   % "flink-runtime-web"          % "1.18.1"     % Provided,
-      "org.apache.flink"   % "flink-clients"              % "1.18.1"     % Provided,
-      "org.apache.flink"   % "flink-state-processor-api"  % "1.18.1"     % Provided,
+      "org.flinkextended" %% "flink-scala-api"            % "1.20.0_1.2.0",
+      "org.apache.flink"   % "flink-runtime-web"          % "1.20.0"     % Provided,
+      "org.apache.flink"   % "flink-clients"              % "1.20.0"     % Provided,
+      "org.apache.flink"   % "flink-state-processor-api"  % "1.20.0"     % Provided,
       "org.apache.flink"   % "flink-connector-kafka"      % "3.0.2-1.18" % Provided,
-      "org.apache.flink"   % "flink-connector-files"      % "1.18.1"     % Provided,
-      "org.apache.flink"   % "flink-table-runtime"        % "1.18.1"     % Provided,
-      "org.apache.flink"   % "flink-table-planner-loader" % "1.18.1"     % Provided,
+      "org.apache.flink"   % "flink-connector-files"      % "1.20.0"     % Provided,
+      "org.apache.flink"   % "flink-table-runtime"        % "1.20.0"     % Provided,
+      "org.apache.flink"   % "flink-table-planner-loader" % "1.20.0"     % Provided,
       "io.bullet"         %% "borer-core"                 % "1.14.1"     % Provided,
       "ch.qos.logback"     % "logback-classic"            % "1.4.14"     % Provided,
-      "org.apache.flink"   % "flink-test-utils"           % "1.18.1"     % Test,
-      "org.apache.flink"   % "flink-streaming-java"       % "1.18.1"     % Test classifier "tests",
+      "org.apache.flink"   % "flink-test-utils"           % "1.20.0"     % Test,
+      "org.apache.flink"   % "flink-streaming-java"       % "1.20.0"     % Test classifier "tests",
       "org.scalatest"     %% "scalatest"                  % "3.2.15"     % Test
     ),
     Compile / run := Defaults
