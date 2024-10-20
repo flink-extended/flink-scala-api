@@ -1,4 +1,4 @@
-//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.6"
+//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.7"
 //> using dep "org.apache.flink:flink-clients:1.18.1"
 
 import org.apache.flinkx.api.*
@@ -12,7 +12,7 @@ import java.io.File
     .getOrElse(Array.empty[File])
   val elems = files.filter(_.isFile).map(_.getAbsolutePath())
 
-  val env = StreamExecutionEnvironment.getExecutionEnvironment
+  val env  = StreamExecutionEnvironment.getExecutionEnvironment
   val text = env.fromElements(elems*)
 
   text.addSink(logger.info(_))

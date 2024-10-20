@@ -1,4 +1,4 @@
-//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.6"
+//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.7"
 //> using dep "org.apache.flink:flink-clients:1.18.1"
 //> using dep "org.apache.flink:flink-csv:1.18.1"
 //> using dep "org.apache.flink:flink-connector-files:1.18.1"
@@ -26,7 +26,7 @@ val fileSource = FileSource
   .build
 
 val switchTimestamp = -1L
-val brokers = "confluentkafka-cp-kafka:9092"
+val brokers         = "confluentkafka-cp-kafka:9092"
 
 val kafkaSource = KafkaSource
   .builder[String]()

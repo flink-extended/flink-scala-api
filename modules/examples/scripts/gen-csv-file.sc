@@ -1,4 +1,4 @@
-//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.6"
+//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.1.7"
 //> using dep "org.apache.flink:flink-clients:1.18.1"
 //> using dep "org.apache.flink:flink-csv:1.18.1"
 //> using dep "org.apache.flink:flink-connector-files:1.18.1"
@@ -12,9 +12,9 @@ import org.apache.flinkx.api.serializers._
 
 import java.lang.{Long => JLong}
 
-val env = StreamExecutionEnvironment.getExecutionEnvironment
+val env      = StreamExecutionEnvironment.getExecutionEnvironment
 val settings = EnvironmentSettings.newInstance.inStreamingMode.build
-val table = TableEnvironment.create(settings)
+val table    = TableEnvironment.create(settings)
 val schema = Schema.newBuilder
   .column("id", DataTypes.INT())
   .column("bid_price", DataTypes.DOUBLE())
