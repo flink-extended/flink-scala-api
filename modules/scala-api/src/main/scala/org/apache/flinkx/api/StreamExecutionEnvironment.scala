@@ -886,9 +886,32 @@ object StreamExecutionEnvironment {
       parallelism: Int,
       jarFiles: String*
   ): StreamExecutionEnvironment = {
-
     val javaEnv = JavaEnv.createRemoteEnvironment(host, port, jarFiles: _*)
     javaEnv.setParallelism(parallelism)
+    new StreamExecutionEnvironment(javaEnv)
+  }
+  
+  /** Creates a remote execution environment. The remote environment sends (parts of) the program to a cluster for
+    * execution. Note that all file paths used in the program must be accessible from the cluster. The execution will
+    * use the specified parallelism.
+    *
+    * @param host
+    *   The host name or address of the master (JobManager), where the program should be executed.
+    * @param port
+    *   The port of the master (JobManager), where the program should be executed.
+    * @param configuration
+    *   Pass a custom configuration into the cluster.
+    * @param jarFiles
+    *   The JAR files with code that needs to be shipped to the cluster. If the program uses user-defined functions,
+    *   user-defined input formats, or any libraries, those must be provided in the JAR files.
+    */
+  def createRemoteEnvironment(
+      host: String,
+      port: Int,
+      config: Configuration,
+      jarFiles: String*
+  ): StreamExecutionEnvironment = {
+    val javaEnv = JavaEnv.createRemoteEnvironment(host, port, config, jarFiles: _*)    
     new StreamExecutionEnvironment(javaEnv)
   }
 }
