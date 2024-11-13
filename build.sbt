@@ -35,7 +35,7 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
         )
       } else {
         Seq(
-          "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.3.7",
+          "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.3.8",
           "org.scala-lang"               %% "scala3-compiler" % scalaVersion.value
         )
       }
