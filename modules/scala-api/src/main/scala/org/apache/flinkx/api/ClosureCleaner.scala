@@ -31,6 +31,7 @@ import org.slf4j.LoggerFactory
 
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
+import scala.annotation.tailrec
 
 /** A cleaner that renders closures serializable if they can be done so safely.
   */
@@ -63,20 +64,27 @@ object ClosureCleaner {
   // not a good idea (whereas we can clone closure objects just fine since we
   // understand how all their fields are used).
   private def getOuterClassesAndObjects(obj: AnyRef): (List[Class[_]], List[AnyRef]) = {
-    for (f <- obj.getClass.getDeclaredFields if f.getName == "$outer") {
-      f.setAccessible(true)
-      val outer = f.get(obj)
-      // The outer pointer may be null if we have cleaned this closure before
-      if (outer != null) {
-        if (isClosure(f.getType)) {
-          val recurRet = getOuterClassesAndObjects(outer)
-          return (f.getType :: recurRet._1, outer :: recurRet._2)
-        } else {
-          return (f.getType :: Nil, outer :: Nil) // Stop at the first $outer that is not a closure
-        }
+
+    @tailrec
+    def loop(fields: List[Field]): (List[Class[_]], List[AnyRef]) =
+      fields match {
+        case f :: tail =>
+          f.setAccessible(true)
+          val outer = f.get(obj)
+          // The outer pointer may be null if we have cleaned this closure before
+          if (outer != null) {
+            if (isClosure(f.getType)) {
+              val recurRet = getOuterClassesAndObjects(outer)
+              (f.getType :: recurRet._1, outer :: recurRet._2)
+            } else {
+              (f.getType :: Nil, outer :: Nil) // Stop at the first $outer that is not a closure
+            }
+          } else loop(tail)
+        case Nil => (Nil, Nil)
       }
-    }
-    (Nil, Nil)
+
+    val fields = obj.getClass.getDeclaredFields.filter(_.getName == "$outer").toList
+    loop(fields)
   }
 
   /** Return a list of classes that represent closures enclosed in the given closure object.
@@ -89,17 +97,20 @@ object ClosureCleaner {
       if (cr != null) {
         val set = mutable.Set.empty[Class[_]]
         cr.accept(new InnerClosureFinder(set), 0)
-        for (cls <- set -- seen) {
+        for (cls <- set.toSet -- seen) {
           seen += cls
           stack.push(cls)
         }
       }
     }
-    (seen - obj.getClass).toList
+    (seen.toSet - obj.getClass).toList
   }
 
   /** Initializes the accessed fields for outer classes and their super classes. */
-  private def initAccessedFields(accessedFields: mutable.Map[Class[_], mutable.Set[String]], outerClasses: Seq[Class[_]]): Unit = {
+  private def initAccessedFields(
+      accessedFields: mutable.Map[Class[_], mutable.Set[String]],
+      outerClasses: Seq[Class[_]]
+  ): Unit = {
     for (cls <- outerClasses) {
       var currentClass = cls
       assert(currentClass != null, "The outer class can't be null.")

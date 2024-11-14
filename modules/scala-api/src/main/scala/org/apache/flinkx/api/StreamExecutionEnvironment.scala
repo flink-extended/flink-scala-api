@@ -487,19 +487,29 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
 
   /** Creates a DataStream that represents the Strings produced by reading the given file line wise. The file will be
     * read with the system's default character set.
+    * 
+    * @deprecated Use {@code
+    *     FileSource#forRecordStreamFormat()/forBulkFileFormat()/forRecordFileFormat() instead}.
     */
+  @Deprecated  
   def readTextFile(filePath: String): DataStream[String] =
     asScalaStream(javaEnv.readTextFile(filePath))
 
   /** Creates a data stream that represents the Strings produced by reading the given file line wise. The character set
     * with the given name will be used to read the files.
+    * @deprecated Use {@code
+    *     FileSource#forRecordStreamFormat()/forBulkFileFormat()/forRecordFileFormat() instead}.
     */
+  @Deprecated  
   def readTextFile(filePath: String, charsetName: String): DataStream[String] =
     asScalaStream(javaEnv.readTextFile(filePath, charsetName))
 
   /** Reads the given file with the given input format. The file path should be passed as a URI (e.g.,
     * "file:///some/local/file" or "hdfs://host:port/file/path").
+    * @deprecated Use {@code
+    *     FileSource#forRecordStreamFormat()/forBulkFileFormat()/forRecordFileFormat() instead}.
     */
+  @Deprecated  
   def readFile[T: TypeInformation](inputFormat: FileInputFormat[T], filePath: String): DataStream[T] =
     asScalaStream(javaEnv.readFile(inputFormat, filePath))
 
@@ -526,8 +536,11 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     *   In the case of periodic path monitoring, this specifies the interval (in millis) between consecutive path scans
     * @return
     *   The data stream that represents the data read from the given file
+    * 
+    * @deprecated Use {@code
+    *     FileSource#forRecordStreamFormat()/forBulkFileFormat()/forRecordFileFormat() instead}.
     */
-  @PublicEvolving
+  @Deprecated
   def readFile[T: TypeInformation](
       inputFormat: FileInputFormat[T],
       filePath: String,
@@ -563,7 +576,13 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     * have a parallelism of 1. To enable parallel execution, the user defined source should implement
     * ParallelSourceFunction or extend RichParallelSourceFunction. In these cases the resulting source will have the
     * parallelism of the environment. To change this afterwards call DataStreamSource.setParallelism(int)
+    * 
+    * @deprecated This method relies on the {@link
+    *     org.apache.flink.streaming.api.functions.source.SourceFunction} API, which is due to be
+    *     removed. Use the {@link #fromSource[TypeInformation](Source, WatermarkStrategy, String)}
+    *     method based on the new {@link org.apache.flink.api.connector.source.Source} API instead.
     */
+  @Deprecated
   def addSource[T: TypeInformation](function: SourceFunction[T]): DataStream[T] = {
     require(function != null, "Function must not be null.")
 
@@ -573,7 +592,13 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   }
 
   /** Create a DataStream using a user defined source function for arbitrary source functionality.
-    */
+   * 
+   * @deprecated This method relies on the {@link
+   *     org.apache.flink.streaming.api.functions.source.SourceFunction} API, which is due to be
+   *     removed. Use the {@link #fromSource[TypeInformation](Source, WatermarkStrategy, String)}
+   *     method based on the new {@link org.apache.flink.api.connector.source.Source} API instead.
+   */
+  @Deprecated
   def addSource[T: TypeInformation](function: SourceContext[T] => Unit): DataStream[T] = {
     require(function != null, "Function must not be null.")
     val sourceFunction = new SourceFunction[T] {
