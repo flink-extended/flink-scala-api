@@ -30,6 +30,7 @@ trait CommonTaggedDerivation[TypeClass[_]]:
       )*
     )
 
+    @annotation.nowarn
     val caseClass = new CaseClass[Typeclass, A](
       typeInfo[A],
       isObject[A],

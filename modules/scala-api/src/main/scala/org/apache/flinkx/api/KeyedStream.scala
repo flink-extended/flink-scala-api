@@ -460,7 +460,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     * Note that the user state object needs to be serializable.
     */
   def flatMapWithState[R: TypeInformation, S: TypeInformation](
-      fun: (T, Option[S]) => (TraversableOnce[R], Option[S])
+      fun: (T, Option[S]) => (IterableOnce[R], Option[S])
   ): DataStream[R] = {
     if (fun == null) {
       throw new NullPointerException("Flatmap function must not be null.")
@@ -470,12 +470,12 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
     val serializer: TypeSerializer[S]     = stateTypeInfo.createSerializer(javaStream.getExecutionConfig)
 
-    val flatMapper = new RichFlatMapFunction[T, R] with StatefulFunction[T, TraversableOnce[R], S] {
+    val flatMapper = new RichFlatMapFunction[T, R] with StatefulFunction[T, IterableOnce[R], S] {
 
       override val stateSerializer: TypeSerializer[S] = serializer
 
       override def flatMap(in: T, out: Collector[R]): Unit = {
-        applyWithState(in, cleanFun).foreach(out.collect)
+        applyWithState(in, cleanFun).iterator.foreach(out.collect)
       }
     }
 
@@ -488,8 +488,10 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     *   Name under which to the publish the queryable state instance
     * @return
     *   Queryable state instance
+    * @deprecated The Queryable State feature is deprecated since Flink 1.18, and will be removed in a
+    *     future Flink major version.
     */
-  @PublicEvolving
+  @Deprecated
   def asQueryableState(queryableStateName: String): QueryableStateStream[K, T] = {
     val stateDescriptor = new ValueStateDescriptor(queryableStateName, dataType.createSerializer(executionConfig))
 
@@ -504,8 +506,11 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     *   State descriptor to create state instance from
     * @return
     *   Queryable state instance
+    * 
+    * @deprecated The Queryable State feature is deprecated since Flink 1.18, and will be removed in a
+    *     future Flink major version.
     */
-  @PublicEvolving
+  @Deprecated
   def asQueryableState(
       queryableStateName: String,
       stateDescriptor: ValueStateDescriptor[T]
@@ -529,8 +534,10 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     *   State descriptor to create state instance from
     * @return
     *   Queryable state instance
+    * @deprecated The Queryable State feature is deprecated since Flink 1.18, and will be removed in a
+    *     future Flink major version.
     */
-  @PublicEvolving
+  @Deprecated
   def asQueryableState(
       queryableStateName: String,
       stateDescriptor: ReducingStateDescriptor[T]

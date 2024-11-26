@@ -55,7 +55,7 @@ class OnDataStream[T](stream: DataStream[T]) {
     *   A dataset of R
     */
   @PublicEvolving
-  def flatMapWith[R: TypeInformation](fun: T => TraversableOnce[R]): DataStream[R] =
+  def flatMapWith[R: TypeInformation](fun: T => IterableOnce[R]): DataStream[R] =
     stream.flatMap(fun)
 
   /** Applies a predicate `fun` to each item of the stream, keeping only those for which the predicate holds

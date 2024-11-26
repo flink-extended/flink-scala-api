@@ -560,13 +560,13 @@ class DataStream[T](stream: JavaStream[T]) {
 
   /** Creates a new DataStream by applying the given function to every element and flattening the results.
     */
-  def flatMap[R: TypeInformation](fun: T => TraversableOnce[R]): DataStream[R] = {
+  def flatMap[R: TypeInformation](fun: T => IterableOnce[R]): DataStream[R] = {
     if (fun == null) {
       throw new NullPointerException("FlatMap function must not be null.")
     }
     val cleanFun = clean(fun)
     val flatMapper = new FlatMapFunction[T, R] {
-      def flatMap(in: T, out: Collector[R]): Unit = { cleanFun(in).foreach(out.collect) }
+      def flatMap(in: T, out: Collector[R]): Unit = { cleanFun(in).iterator.foreach(out.collect) }
     }
     flatMap(flatMapper)
   }
@@ -690,8 +690,10 @@ class DataStream[T](stream: JavaStream[T]) {
     * For cases where the timestamps are not monotonously increasing, use the more general methods
     * [[assignTimestampsAndWatermarks(AssignerWithPeriodicWatermarks)]] and
     * [[assignTimestampsAndWatermarks(AssignerWithPunctuatedWatermarks)]].
+    * 
+    * @deprecated Please use {@link #assignTimestampsAndWatermarks(WatermarkStrategy)} instead.
     */
-  @PublicEvolving
+  @Deprecated
   def assignAscendingTimestamps(extractor: T => Long): DataStream[T] = {
     val cleanExtractor = clean(extractor)
     val extractorFunction = new AscendingTimestampExtractor[T] {
@@ -754,8 +756,12 @@ class DataStream[T](stream: JavaStream[T]) {
   def printToErr(sinkIdentifier: String): DataStreamSink[T] = stream.printToErr(sinkIdentifier)
 
   /** Writes a DataStream using the given [[OutputFormat]].
-    */
-  @PublicEvolving
+   * 
+   * @deprecated Please use the {@link
+   *     org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink} explicitly
+   *     using the {@link #addSink(SinkFunction)} method.
+   */
+  @Deprecated
   def writeUsingOutputFormat(format: OutputFormat[T]): DataStreamSink[T] = {
     stream.writeUsingOutputFormat(format)
   }
@@ -790,7 +796,10 @@ class DataStream[T](stream: JavaStream[T]) {
 
   /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
     * StreamExecutionEnvironment.execute(...) method is called.
+    * 
+    * @deprecated Please use the sinkTo(sink: org.apache.flink.api.connector.sink2.Sink[T])
     */
+  @Deprecated  
   def sinkTo(sink: org.apache.flink.api.connector.sink.Sink[T, _, _, _]): DataStreamSink[T] =
     stream.sinkTo(sink)
 

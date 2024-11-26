@@ -34,7 +34,7 @@ import Keys.ExpressionKeys
 import org.apache.flink.api.java.typeutils.TupleTypeInfoBase
 
 import scala.annotation.{nowarn, tailrec}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.collection.mutable.ArrayBuffer
 
 /** TypeInformation for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
@@ -198,27 +198,32 @@ abstract class CaseClassTypeInfo[T <: Product](
       field = "_" + (Integer.valueOf(field) + 1)
     }
 
-    for (i <- fieldNames.indices) {
-      if (fieldNames(i) == field) {
-        if (tail == null) {
-          return getTypeAt(i)
-        } else {
-          fieldTypes(i) match {
-            case co: CompositeType[_] =>
-              return co.getTypeAt(tail)
-            case _ =>
-              throw new InvalidFieldReferenceException(
-                "Nested field expression \"" + tail +
-                  "\" not possible on atomic type " + fieldTypes(i) + "."
-              )
-          }
-        }
+    @tailrec
+    def loop(indices: List[Int]): TypeInformation[X] =
+      indices match {
+        case i :: ii =>
+          if (fieldNames(i) == field) {
+            if (tail == null) {
+              getTypeAt(i)
+            } else {
+              fieldTypes(i) match {
+                case co: CompositeType[_] =>
+                  co.getTypeAt(tail)
+                case _ =>
+                  throw new InvalidFieldReferenceException(
+                    "Nested field expression \"" + tail +
+                      "\" not possible on atomic type " + fieldTypes(i) + "."
+                  )
+              }
+            }
+          } else loop(ii)
+        case Nil =>
+          throw new InvalidFieldReferenceException(
+            s"Unable to find field \"$field\" in type $this."
+          )
       }
-    }
-    throw new InvalidFieldReferenceException(
-      "Unable to find field \"" + field +
-        "\" in type " + this + "."
-    )
+
+    loop(fieldNames.indices.toList)
   }
 
   @PublicEvolving

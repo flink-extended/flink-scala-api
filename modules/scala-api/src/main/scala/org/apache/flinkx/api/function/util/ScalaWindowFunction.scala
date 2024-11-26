@@ -22,7 +22,7 @@ import org.apache.flink.streaming.api.functions.windowing.{WindowFunction => JWi
 import org.apache.flink.streaming.api.windowing.windows.Window
 import org.apache.flink.util.Collector
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 /** A wrapper function that exposes a Scala Function4 as a Java WindowFunction.
   */

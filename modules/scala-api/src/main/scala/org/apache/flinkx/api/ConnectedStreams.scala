@@ -189,7 +189,7 @@ class ConnectedStreams[IN1, IN2](javaStream: JavaCStream[IN1, IN2]) {
     * @return
     *   The resulting data stream.
     */
-  def flatMap[R: TypeInformation](fun1: IN1 => TraversableOnce[R], fun2: IN2 => TraversableOnce[R]): DataStream[R] = {
+  def flatMap[R: TypeInformation](fun1: IN1 => IterableOnce[R], fun2: IN2 => IterableOnce[R]): DataStream[R] = {
 
     if (fun1 == null || fun2 == null) {
       throw new NullPointerException("FlatMap functions must not be null.")
@@ -198,8 +198,8 @@ class ConnectedStreams[IN1, IN2](javaStream: JavaCStream[IN1, IN2]) {
     val cleanFun2 = clean(fun2)
 
     val flatMapper = new CoFlatMapFunction[IN1, IN2, R] {
-      def flatMap1(value: IN1, out: Collector[R]): Unit = { cleanFun1(value).foreach(out.collect) }
-      def flatMap2(value: IN2, out: Collector[R]): Unit = { cleanFun2(value).foreach(out.collect) }
+      def flatMap1(value: IN1, out: Collector[R]): Unit = { cleanFun1(value).iterator.foreach(out.collect) }
+      def flatMap2(value: IN2, out: Collector[R]): Unit = { cleanFun2(value).iterator.foreach(out.collect) }
     }
 
     flatMap(flatMapper)

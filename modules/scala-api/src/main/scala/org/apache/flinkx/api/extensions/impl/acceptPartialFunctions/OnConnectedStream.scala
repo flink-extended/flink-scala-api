@@ -63,8 +63,8 @@ class OnConnectedStream[IN1, IN2](stream: ConnectedStreams[IN1, IN2]) {
     */
   @PublicEvolving
   def flatMapWith[R: TypeInformation](
-      flatMap1: IN1 => TraversableOnce[R],
-      flatMap2: IN2 => TraversableOnce[R]
+      flatMap1: IN1 => IterableOnce[R],
+      flatMap2: IN2 => IterableOnce[R]
   ): DataStream[R] =
     stream.flatMap(flatMap1, flatMap2)
 

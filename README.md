@@ -1,12 +1,12 @@
-# Scala 2.12/2.13/3.x API for Apache Flink
+# Scala 2.13/3.x API for Apache Flink
 
 [![CI Status](https://github.com/flink-extended/flink-scala-api/workflows/CI/badge.svg)](https://github.com/flinkextended/flink-scala-api/actions)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api_2.12/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api_2.12)
+[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api_2.13/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api_2.13)
 [![License: Apache 2](https://img.shields.io/badge/License-Apache2-green.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Last commit](https://img.shields.io/github/last-commit/flink-extended/flink-scala-api)
 ![Last release](https://img.shields.io/github/release/flink-extended/flink-scala-api)
 
-This project is a community-maintained fork of official Apache Flink Scala API, cross-built for scala 2.12, 2.13 and 3.x.
+This project is a community-maintained fork of official Apache Flink Scala API, cross-built for scala 2.13 and 3.x.
 
 ## Migration 
 
@@ -26,18 +26,34 @@ import org.apache.flinkx.api.serializers._
 
 ## Usage 
 
-`flink-scala-api` is released to Maven-central for 2.12, 2.13 and 3. For SBT, add this snippet to `build.sbt`:
+`flink-scala-api` is released to Maven-central for 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
 libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.1.6"
 ```
 
-For Ammonite:
+## For Ammonite
 
 ```scala
 import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.1.6`
 // you might need flink-client too in order to run in the REPL
 import $ivy.`org.apache.flink:flink-clients:1.18.1`
 ```
+
+## For Scala 2.12
+
+If you want first to migrate to org.flinkextended:flink-scala-api staying on Scala 2.12, you can use the last build for Scala 2.12:
+
+```scala
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.2.0"
+// or
+"org.flinkextended" %% "flink-scala-api" % "1.19.1_1.2.0"
+// or
+"org.flinkextended" %% "flink-scala-api" % "1.20.0_1.2.0"
+```
+
+Build for Scala 2.12 is no longer published.
+
+## SBT Project Template
 
 If you want to create new project easily check this __Giter8 template__ out: [novakov-alexey/flink-scala-api.g8](https://github.com/novakov-alexey/flink-scala-api.g8)
 
