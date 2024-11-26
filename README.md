@@ -31,13 +31,29 @@ import org.apache.flinkx.api.serializers._
 libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.1.6"
 ```
 
-For Ammonite:
+## For Ammonite
 
 ```scala
 import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.1.6`
 // you might need flink-client too in order to run in the REPL
 import $ivy.`org.apache.flink:flink-clients:1.18.1`
 ```
+
+## For Scala 2.12
+
+If you want first to migrate to org.flinkextended:flink-scala-api staying on Scala 2.12, you can use the last build for Scala 2.12:
+
+```scala
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.2.0"
+// or
+"org.flinkextended" %% "flink-scala-api" % "1.19.1_1.2.0"
+// or
+"org.flinkextended" %% "flink-scala-api" % "1.20.0_1.2.0"
+```
+
+Build for Scala 2.12 is no longer published.
+
+## SBT Project Template
 
 If you want to create new project easily check this __Giter8 template__ out: [novakov-alexey/flink-scala-api.g8](https://github.com/novakov-alexey/flink-scala-api.g8)
 
