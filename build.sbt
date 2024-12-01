@@ -4,6 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
 
 lazy val rootScalaVersion = "3.3.4"
+lazy val crossVersions    = Seq("2.13.15", rootScalaVersion)
 lazy val flinkVersion     = System.getProperty("flinkVersion", "1.18.1")
 
 lazy val root = (project in file("."))
@@ -18,10 +19,10 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
   .settings(
     name               := "flink-scala-api",
     scalaVersion       := rootScalaVersion,
-    crossScalaVersions := Seq("2.13.15", rootScalaVersion),
+    crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
-      "org.apache.flink"  % "flink-streaming-java" % flinkVersion,
-      "org.apache.flink"  % "flink-java"           % flinkVersion,
+      "org.apache.flink"  % "flink-streaming-java" % flinkVersion % Provided,
+      "org.apache.flink"  % "flink-java"           % flinkVersion % Provided,
       "org.apache.flink"  % "flink-test-utils"     % flinkVersion % Test,
       ("org.apache.flink" % "flink-streaming-java" % flinkVersion % Test).classifier("tests"),
       "org.typelevel"    %% "cats-core"            % "2.12.0"     % Test,
@@ -32,12 +33,12 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
       if (scalaBinaryVersion.value.startsWith("2")) {
         Seq(
           "com.softwaremill.magnolia1_2" %% "magnolia"      % "1.1.10",
-          "org.scala-lang"                % "scala-reflect" % scalaVersion.value
+          "org.scala-lang"                % "scala-reflect" % scalaVersion.value % Provided
         )
       } else {
         Seq(
           "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.3.8",
-          "org.scala-lang"               %% "scala3-compiler" % scalaVersion.value
+          "org.scala-lang"               %% "scala3-compiler" % scalaVersion.value % Provided
         )
       }
     },
@@ -111,9 +112,21 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
                             commitNextVersion,
                             pushChanges
                           )
-                        else Seq.empty[ReleaseStep]),
-    mdocIn := new File("README.md")
+                        else Seq.empty[ReleaseStep])
   )
+
+lazy val docs = project // new documentation project
+  .in(file("modules/docs")) // important: it must not be docs/
+  .settings(
+    scalaVersion       := rootScalaVersion,
+    crossScalaVersions := crossVersions,
+    mdocIn             := new File("README.md"),
+    publish / skip     := true,
+    libraryDependencies ++= Seq(
+      "org.apache.flink" % "flink-streaming-java" % flinkVersion
+    )
+  )
+  .dependsOn(`scala-api`)
   .enablePlugins(MdocPlugin)
 
 val flinkMajorAndMinorVersion =
