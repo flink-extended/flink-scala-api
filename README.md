@@ -28,13 +28,13 @@ import org.apache.flinkx.api.serializers._
 
 `flink-scala-api` is released to Maven-central for 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
-libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.1.6"
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.2.1"
 ```
 
 ## For Ammonite
 
 ```scala
-import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.1.6`
+import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.2.1`
 // you might need flink-client too in order to run in the REPL
 import $ivy.`org.apache.flink:flink-clients:1.18.1`
 ```
