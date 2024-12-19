@@ -13,6 +13,8 @@ This project is a community-maintained fork of official Apache Flink Scala API, 
 `flink-scala-api` uses a different package name for all api-related classes like `DataStream`, so you can do
 gradual migration of a big project and use both upstream and this versions of scala API in the same project. 
 
+### API
+
 The actual migration should be straightforward and simple, replace old import to the new ones:
 ```scala
 // original api import
@@ -22,6 +24,18 @@ import org.apache.flink.streaming.api.scala._
 // flink-scala-api imports
 import org.apache.flinkx.api._
 import org.apache.flinkx.api.serializers._
+```
+
+### State
+
+`flink-scala-api` generates at compile-time specific TypeInformation & TypeSerializer. To use them for state serialization, ensure to replace state descriptor constructors using `Class[T]` param with constructors using `TypeInformation[T]` param:
+```scala
+// state using Kryo
+val eventStateDescriptor = new ValueStateDescriptor[Event]("event", classOf[Event])
+```
+```scala
+// state using flink-scala-api
+val eventStateDescriptor = new ValueStateDescriptor[Event]("event", implicitly[TypeInformation[Event]])
 ```
 
 ## Usage 
