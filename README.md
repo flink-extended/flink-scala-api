@@ -28,7 +28,7 @@ import org.apache.flinkx.api.serializers._
 
 ### State
 
-`flink-scala-api` generates at compile-time specific TypeInformation & TypeSerializer. To use them for state serialization, ensure to replace state descriptor constructors using `Class[T]` param with constructors using `TypeInformation[T]` param:
+Ensure to replace state descriptor constructors using `Class[T]` param with constructors using `TypeInformation[T]` or  `TypeSerializer[T]` param:
 ```scala
 // state using Kryo
 val eventStateDescriptor = new ValueStateDescriptor[Event]("event", classOf[Event])
