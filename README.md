@@ -32,15 +32,19 @@ Ensure to replace state descriptor constructors using `Class[T]` param with cons
 ```scala mdoc
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
+
 // state using Kryo
-val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event", classOf[Option[String]])
+val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
+  classOf[Option[String]])
 ```
 ```scala mdoc:reset-object
 import org.apache.flinkx.api.serializers._
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
+
 // state using flink-scala-api
-val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event", implicitly[TypeInformation[Option[String]]])
+val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
+  implicitly[TypeInformation[Option[String]]])
 ```
 
 ## Usage 
