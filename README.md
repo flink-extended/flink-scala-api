@@ -28,14 +28,19 @@ import org.apache.flinkx.api.serializers._
 
 ### State
 
-Ensure to replace state descriptor constructors using `Class[T]` param with constructors using `TypeInformation[T]` or  `TypeSerializer[T]` param:
-```scala
+Ensure to replace state descriptor constructors using `Class[T]` param with constructors using `TypeInformation[T]` or `TypeSerializer[T]` param:
+```scala mdoc
+import org.apache.flink.api.common.state.ValueStateDescriptor
+import org.apache.flink.api.common.typeinfo.TypeInformation
 // state using Kryo
-val eventStateDescriptor = new ValueStateDescriptor[Event]("event", classOf[Event])
+val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event", classOf[Option[String]])
 ```
-```scala
+```scala mdoc:reset-object
+import org.apache.flinkx.api.serializers._
+import org.apache.flink.api.common.state.ValueStateDescriptor
+import org.apache.flink.api.common.typeinfo.TypeInformation
 // state using flink-scala-api
-val eventStateDescriptor = new ValueStateDescriptor[Event]("event", implicitly[TypeInformation[Event]])
+val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event", implicitly[TypeInformation[Option[String]]])
 ```
 
 ## Usage 
