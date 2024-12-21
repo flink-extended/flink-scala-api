@@ -27,7 +27,7 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
       ("org.apache.flink" % "flink-streaming-java" % flinkVersion % Test).classifier("tests"),
       "org.typelevel"    %% "cats-core"            % "2.12.0"     % Test,
       "org.scalatest"    %% "scalatest"            % "3.2.19"     % Test,
-      "ch.qos.logback"    % "logback-classic"      % "1.5.13"     % Test
+      "ch.qos.logback"    % "logback-classic"      % "1.5.14"     % Test
     ),
     libraryDependencies ++= {
       if (scalaBinaryVersion.value.startsWith("2")) {
