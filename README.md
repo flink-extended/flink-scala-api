@@ -37,6 +37,9 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
   classOf[Option[String]])
 ```
+Although `flink-scala-api` does fallback to Kryo silently, above code example will eventually use Kryo. This may happen when old flink-scala-api is already disabled, but this Flink Scala API is not yet properly used: no serializers are used or imported from `org.apache.flinkx.api.serializers._`.
+Below code example is the right way to use Scala serializers coming from this library: it completely prevents Kryo from being used. Even if `implicitly` cannot find an appropriate TypeInformation instance for your type `T`, it will fail in compile time.
+
 ```scala mdoc:reset-object
 import org.apache.flinkx.api.serializers._
 import org.apache.flink.api.common.state.ValueStateDescriptor
@@ -46,6 +49,8 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
   implicitly[TypeInformation[Option[String]]])
 ```
+
+See more on Java types serilization here: [java-types](README.md#java-types)
 
 ## Usage 
 
