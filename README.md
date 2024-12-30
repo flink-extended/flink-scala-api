@@ -50,7 +50,7 @@ val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
   implicitly[TypeInformation[Option[String]]])
 ```
 
-See more on Java types serilization here: [java-types](README.md#java-types)
+See more on Java types serilization here: [java-types](#java-types)
 
 ## Usage 
 
