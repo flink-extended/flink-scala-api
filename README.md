@@ -89,10 +89,16 @@ If you want to create new project easily check this __Giter8 template__ out: [no
 
 - `flink-scala-api` version consists of Flink version plus Scala API version, for example 1.18.1_1.1.6
 - First three numbers correspond to the Flink Version, for example 1.18.1
-- Three more numbers is this project version, for example 1.1.6. You should just use the latest available Scala API project version in in your project dependency configuration. 
+- Three more numbers is this project version, for example 1.1.6. You should just use the latest available Scala API project version in your project dependency configuration. 
 - Three major Flink versions are supported. See supported version in the local [release.sh](release.sh) file.
 
-We suggest to remove the official `flink-scala` and `flink-streaming-scala` dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. But it's technically possible and not required.
+We suggest to remove the official `flink-scala` and `flink-streaming-scala` deprecated dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. `flink-scala` dependency is embedding Scala version 2.12.7:
+- If you keep them, in order to use the Scala version of your choice, remove `scala` package from `classloader.parent-first-patterns.default` Flink's configuration property:
+```diff
+- classloader.parent-first-patterns.default: java.;scala.;org.apache.flink.;com.esotericsoftware.kryo;org.apache.hadoop.;javax.annotation.;org.xml;javax.xml;org.apache.xerces;org.w3c;org.rocksdb.;org.slf4j;org.apache.log4j;org.apache.logging;org.apache.commons.logging;ch.qos.logback
++ classloader.parent-first-patterns.default: java.;org.apache.flink.;com.esotericsoftware.kryo;org.apache.hadoop.;javax.annotation.;org.xml;javax.xml;org.apache.xerces;org.w3c;org.rocksdb.;org.slf4j;org.apache.log4j;org.apache.logging;org.apache.commons.logging;ch.qos.logback
+```
+- If you choose to remove them, we recommend to test your application with Kryo explicitly disabled (Flink property `pipeline.generic-types: false`), see details in [Interaction with Flink's type system](#interaction-with-flinks-type-system).
 
 ## Examples
 
@@ -124,7 +130,7 @@ types with the following perks:
 * correctly handles `case object` 
 * can be extended with custom serializers even for deeply-nested types, as it uses implicitly available serializers
   in the current scope
-* has no silent fallback to Kryo: it will just fail the compilation in a case when serializer cannot be made
+* `TypeInformation` derivation macro has no silent fallback to Kryo: it will just fail the compilation in a case when serializer cannot be made
 * reuses all the low-level serialization code from Flink for basic Java and Scala types
 
 Scala serializers are based on a prototype of Magnolia-based serializer framework for Apache Flink, with
@@ -170,7 +176,23 @@ compatibility issues.
 Sorry, but it's already deprecated and as a community project we have no resources to support it. If you need it,
 PRs are welcome.
 
-## Flink ADT
+## Interaction with Flink's type system
+
+This Scala API is enforcing usage of Flink's `TypeInformation` objects by requiring them to be implicitly available in the scope. It plays well with the derivation macro generating TypeInformations for Scala ADTs.
+
+However, this project cannot enforce TypeInformation usage in the Flink Java API where there is other ways to provide information on types to Flink, notably using `Class`, for exemple:
+- `TypeInformation.of(Class<T>)`
+- `StateDescriptor` and subclasses: constructors with a `Class<T>` param
+- `TypeHint`
+
+Usage of this code may lead to silently fallback to Kryo.
+
+> [!WARNING]  
+> Official `flink-scala` deprecated dependency contains Scala-specialized Kryo serializers. If this dependency is removed from the classpath (see [Supported Flink versions](#supported-flink-versions)), usage of Kryo with Scala classes leads to erroneous re-instantiations of `object` and `case object` singletons.
+> 
+> We recommend to test your application with Kryo explicitly disabled (Flink property `pipeline.generic-types: false`).
+
+### Flink ADT
 
 To derive a TypeInformation for a sealed trait, you can do:
 
