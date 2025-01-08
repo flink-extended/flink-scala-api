@@ -609,6 +609,19 @@ class DataStream[T](stream: JavaStream[T]) {
     }
     filter(filterFun)
   }
+  
+  /** Creates a new DataStream that contains only the elements not satisfying the given filter predicate.
+    */
+  def filterNot(fun: T => Boolean): DataStream[T] = {
+    if (fun == null) {
+      throw new NullPointerException("FilteNot function must not be null.")
+    }
+    val cleanFun = clean(fun)
+    val filterFun = new FilterFunction[T] {
+      def filter(in: T): Boolean = !cleanFun(in)
+    }
+    filter(filterFun)
+  }
 
   /** Windows this [[DataStream]] into sliding count windows.
     *
