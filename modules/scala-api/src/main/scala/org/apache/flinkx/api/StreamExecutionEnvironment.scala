@@ -825,6 +825,15 @@ object StreamExecutionEnvironment {
     new StreamExecutionEnvironment(JavaEnv.getExecutionEnvironment)
   }
 
+  /** Creates an execution environment that represents the context in which the program is currently executed.
+    *    
+    * @param configuration
+    *  Pass a custom configuration into the cluster.
+    */ 
+  def getExecutionEnvironment(configuration: Configuration): StreamExecutionEnvironment = {
+    new StreamExecutionEnvironment(JavaEnv.getExecutionEnvironment(configuration))
+  }
+
   // --------------------------------------------------------------------------
   //  local environment
   // --------------------------------------------------------------------------
