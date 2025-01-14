@@ -488,8 +488,8 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     *   Name under which to the publish the queryable state instance
     * @return
     *   Queryable state instance
-    * @deprecated The Queryable State feature is deprecated since Flink 1.18, and will be removed in a
-    *     future Flink major version.
+    * @deprecated
+    *   The Queryable State feature is deprecated since Flink 1.18, and will be removed in a future Flink major version.
     */
   @Deprecated
   def asQueryableState(queryableStateName: String): QueryableStateStream[K, T] = {
@@ -506,9 +506,9 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     *   State descriptor to create state instance from
     * @return
     *   Queryable state instance
-    * 
-    * @deprecated The Queryable State feature is deprecated since Flink 1.18, and will be removed in a
-    *     future Flink major version.
+    *
+    * @deprecated
+    *   The Queryable State feature is deprecated since Flink 1.18, and will be removed in a future Flink major version.
     */
   @Deprecated
   def asQueryableState(
@@ -534,8 +534,8 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     *   State descriptor to create state instance from
     * @return
     *   Queryable state instance
-    * @deprecated The Queryable State feature is deprecated since Flink 1.18, and will be removed in a
-    *     future Flink major version.
+    * @deprecated
+    *   The Queryable State feature is deprecated since Flink 1.18, and will be removed in a future Flink major version.
     */
   @Deprecated
   def asQueryableState(

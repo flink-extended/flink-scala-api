@@ -34,8 +34,7 @@ final case class TestEvent(
     bag: List[Int] = Nil
 )
 
-class CustomEventTimeTrigger[T, W <: TimeWindow](trigger: EventTimeTrigger)
-    extends Trigger[T, W]:
+class CustomEventTimeTrigger[T, W <: TimeWindow](trigger: EventTimeTrigger) extends Trigger[T, W]:
 
   override def onElement(
       element: T,
@@ -87,8 +86,7 @@ def windowAction(
   val output =
     reduced.copy(
       windowStart = window.getStart,
-      runningCount =
-        if reduced.runningCount > 0 then reduced.runningCount else 1
+      runningCount = if reduced.runningCount > 0 then reduced.runningCount else 1
     )
   println(
     s"\n{start: ${window.getStart} .. end: ${window.getEnd}, count: ${output.runningCount} \ninput: "
@@ -111,13 +109,11 @@ def reduceEvents(a: TestEvent, b: TestEvent) =
 @main def runningWindowedSum =
   val env = StreamExecutionEnvironment.getExecutionEnvironment
 
-  val windowSize = Time.of(10, TimeUnit.SECONDS)
+  val windowSize  = Time.of(10, TimeUnit.SECONDS)
   val windowSlide = Time.of(2, TimeUnit.SECONDS)
   val watermarkStrategy = WatermarkStrategy
     .forBoundedOutOfOrderness[TestEvent](Duration.ofSeconds(1000))
-    .withTimestampAssigner((event: TestEvent, streamRecordTimestamp: Long) =>
-      event.timestamp
-    )
+    .withTimestampAssigner((event: TestEvent, streamRecordTimestamp: Long) => event.timestamp)
 
   env
     .fromElements(
@@ -133,11 +129,10 @@ def reduceEvents(a: TestEvent, b: TestEvent) =
 
   env.execute()
 
-class RunningCountFunc(windowSize: Duration)
-    extends KeyedProcessFunction[Long, TestEvent, TestEvent]:
+class RunningCountFunc(windowSize: Duration) extends KeyedProcessFunction[Long, TestEvent, TestEvent]:
 
-  val oldEntriesCleanupInterval = 1000L
-  var minTimestamp: ValueState[Long] = _
+  val oldEntriesCleanupInterval         = 1000L
+  var minTimestamp: ValueState[Long]    = _
   var timeToCount: MapState[Long, Long] = _
   override def open(parameters: Configuration): Unit =
     timeToCount = getRuntimeContext.getMapState(
@@ -158,8 +153,7 @@ class RunningCountFunc(windowSize: Duration)
       out: Collector[TestEvent]
   ): Unit =
     val currentCount =
-      if timeToCount.contains(event.timestamp) then
-        timeToCount.get(event.timestamp)
+      if timeToCount.contains(event.timestamp) then timeToCount.get(event.timestamp)
       else 0
     timeToCount.put(event.timestamp, currentCount + 1)
 

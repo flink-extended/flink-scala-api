@@ -48,7 +48,7 @@ class CustomTriggerTest extends AnyFlatSpec with Matchers with Inspectors:
         serializer
       )
 
-    val windowSize = Time.of(10, TimeUnit.SECONDS)
+    val windowSize  = Time.of(10, TimeUnit.SECONDS)
     val windowSlide = Time.of(2, TimeUnit.SECONDS)
 
     val operator = WindowOperator(

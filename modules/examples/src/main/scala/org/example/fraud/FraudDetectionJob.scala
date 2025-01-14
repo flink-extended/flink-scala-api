@@ -18,7 +18,6 @@ package org.example.fraud
  * limitations under the License.
  */
 
-
 import java.io.File
 
 import org.apache.flinkx.api.*
@@ -73,7 +72,7 @@ import Givens.given
   conf.setString("execution.checkpointing.min-pause", "3s")
   conf.setString("state.backend", "filesystem")
 
-  val env = StreamExecutionEnvironment.getExecutionEnvironment //.createLocalEnvironmentWithWebUI(conf)
+  val env = StreamExecutionEnvironment.getExecutionEnvironment // .createLocalEnvironmentWithWebUI(conf)
 
   val transactions = env
     .addSource(TransactionsSource.iterator)
@@ -94,21 +93,20 @@ import Givens.given
 
 @main def fraudDetectionState() =
   val env = StreamExecutionEnvironment.getExecutionEnvironment
-  val savepoint = SavepointReader.read(env.getJavaEnv, "///tmp/savepoints/savepoint-827976-a94a8feb6c07",
-    HashMapStateBackend())
-  val keyedState = savepoint.readKeyedState("fraud-state", ReaderFunction(), TypeInformation.of(classOf[Long]), keyedStateInfo)
+  val savepoint =
+    SavepointReader.read(env.getJavaEnv, "///tmp/savepoints/savepoint-827976-a94a8feb6c07", HashMapStateBackend())
+  val keyedState =
+    savepoint.readKeyedState("fraud-state", ReaderFunction(), TypeInformation.of(classOf[Long]), keyedStateInfo)
   keyedState.print()
   env.execute()
 
 case class MaxTransaction(amount: Double, timestamp: Long)
 
-class MaxAggregate
-    extends AggregateFunction[Transaction, MaxTransaction, MaxTransaction]:
+class MaxAggregate extends AggregateFunction[Transaction, MaxTransaction, MaxTransaction]:
   override def createAccumulator(): MaxTransaction = MaxTransaction(0d, 0L)
 
   override def add(value: Transaction, accumulator: MaxTransaction): MaxTransaction =
-    if value.amount > accumulator._1 then
-      MaxTransaction(value.amount, value.timestamp)
+    if value.amount > accumulator._1 then MaxTransaction(value.amount, value.timestamp)
     else accumulator
 
   override def getResult(accumulator: MaxTransaction): MaxTransaction =

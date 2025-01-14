@@ -9,8 +9,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.configuration.Configuration
 import org.example.Transaction
 
-class RunningAverage
-    extends RichMapFunction[Transaction, (Transaction, Double)]:
+class RunningAverage extends RichMapFunction[Transaction, (Transaction, Double)]:
 
   given tranTypeInfo: TypeInformation[Transaction] =
     TypeInformation.of(classOf[Transaction])

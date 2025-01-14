@@ -7,6 +7,6 @@ import scala.language.implicitConversions
 
 object conv {
   implicit def toJavaEnv(e: StreamExecutionEnvironment): JavaEnv = e.getJavaEnv
-  
+
   implicit def toJavaDataStream[T](d: DataStream[T]): JavaStream[T] = d.javaStream
 }

@@ -37,14 +37,14 @@ class FakeKafkaSource(
     (0 to FakeKafkaSource.NO_OF_PARTITIONS).filter(
       _ % numberOfParallelSubtasks == indexOfThisSubtask
     )
-  
+
   val rand = Random(seed)
 
   @transient @volatile var cancelled = false
 
   override def open(parameters: Configuration): Unit =
     println(s"Now reading from partitions: $assignedPartitions")
-    
+
   override def run(ctx: SourceContext[FakeKafkaRecord]): Unit =
     if assignedPartitions.nonEmpty then
       while !cancelled do {
@@ -61,8 +61,7 @@ class FakeKafkaSource(
           var serializedMeasurement =
             serializedMeasurements(rand.nextInt(serializedMeasurements.length))
 
-          if rand.nextFloat() > 1 - poisonPillRate then
-            serializedMeasurement = Arrays.copyOf(serializedMeasurement, 10)
+          if rand.nextFloat() > 1 - poisonPillRate then serializedMeasurement = Arrays.copyOf(serializedMeasurement, 10)
 
           (ctx.getCheckpointLock()).synchronized {
             ctx.collect(

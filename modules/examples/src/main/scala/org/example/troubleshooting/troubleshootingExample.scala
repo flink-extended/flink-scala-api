@@ -82,8 +82,7 @@ object WindowedMeasurementsForArea:
   def getArea(location: String): String =
     if location.length > 0 then location.substring(0, 1) else ""
 
-class MeasurementDeserializer
-    extends RichFlatMapFunction[FakeKafkaRecord, Measurement]:
+class MeasurementDeserializer extends RichFlatMapFunction[FakeKafkaRecord, Measurement]:
 
   lazy val numInvalidRecords =
     getRuntimeContext.getMetricGroup.counter("numInvalidRecords")
@@ -97,7 +96,7 @@ class MeasurementDeserializer
       case Failure(_)     => numInvalidRecords.inc
       case Success(value) => out.collect(value)
 
-val RANDOM_SEED = 1
+val RANDOM_SEED         = 1
 val NUM_OF_MEASUREMENTS = 100_000
 
 def createSerializedMeasurements: Array[Array[Byte]] =

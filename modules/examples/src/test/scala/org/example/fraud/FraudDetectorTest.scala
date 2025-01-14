@@ -29,16 +29,16 @@ class FraudDetectorTest extends AnyFlatSpec with Matchers:
 
   def makeContext(detector: FraudDetector) =
     new detector.Context:
-      override def getCurrentKey(): Long = ???
+      override def getCurrentKey(): Long                              = ???
       override def output[X](outputTag: OutputTag[X], value: X): Unit = ???
-      override def timestamp(): java.lang.Long = 0L
+      override def timestamp(): java.lang.Long                        = 0L
       override def timerService(): TimerService = new TimerService:
-        override def currentProcessingTime(): Long = 0L
+        override def currentProcessingTime(): Long                 = 0L
         override def registerProcessingTimeTimer(time: Long): Unit = ()
-        override def currentWatermark(): Long = ???
-        override def deleteProcessingTimeTimer(time: Long): Unit = ()
-        override def registerEventTimeTimer(time: Long): Unit = ???
-        override def deleteEventTimeTimer(time: Long): Unit = ???
+        override def currentWatermark(): Long                      = ???
+        override def deleteProcessingTimeTimer(time: Long): Unit   = ()
+        override def registerEventTimeTimer(time: Long): Unit      = ???
+        override def deleteEventTimeTimer(time: Long): Unit        = ???
 
   it should "detect fraud" in {
     // given
@@ -46,7 +46,7 @@ class FraudDetectorTest extends AnyFlatSpec with Matchers:
     detector.setRuntimeContext(FakeRuntimeContext())
     detector.open(new Configuration())
 
-    val ctx = makeContext(detector)
+    val ctx       = makeContext(detector)
     val collector = FakeCollector()
     // when
     detector.processElement(Transaction(1, 1, 0.1), ctx, collector)
