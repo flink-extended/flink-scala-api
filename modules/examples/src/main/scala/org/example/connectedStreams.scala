@@ -19,7 +19,7 @@ import org.apache.flinkx.api.serializers.*
   val streamOfWords = env
     .addSource(TransactionsSource.iterator)
     .keyBy(_.accountId)
-  
+
   control
     .connect(streamOfWords)
     .flatMap(ControlFunction())
@@ -27,8 +27,7 @@ import org.apache.flinkx.api.serializers.*
 
   env.execute()
 
-class ControlFunction
-    extends RichCoFlatMapFunction[Transaction, Transaction, Transaction]:
+class ControlFunction extends RichCoFlatMapFunction[Transaction, Transaction, Transaction]:
 
   @transient lazy val state: ValueState[Double] = getRuntimeContext.getState(
     new ValueStateDescriptor(

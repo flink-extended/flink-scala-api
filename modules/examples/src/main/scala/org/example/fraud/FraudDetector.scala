@@ -55,8 +55,8 @@ case class FraudStateVars(
     timerState.clear()
 
 object FraudDetector:
-  val SmallAmount = 1.00
-  val LargeAmount = 500.00
+  val SmallAmount     = 1.00
+  val LargeAmount     = 500.00
   val OneMinute: Long = 1.minute.toMillis
 
   def readState(context: RuntimeContext): FraudStateVars =

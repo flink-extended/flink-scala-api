@@ -1,19 +1,10 @@
 package org.example.fraud
 
 import org.apache.flink.api.common.{ExecutionConfig, JobID}
-import org.apache.flink.api.common.accumulators.{
-  Accumulator,
-  DoubleCounter,
-  Histogram,
-  IntCounter,
-  LongCounter
-}
+import org.apache.flink.api.common.accumulators.{Accumulator, DoubleCounter, Histogram, IntCounter, LongCounter}
 import org.apache.flink.api.common.cache.DistributedCache
 import org.apache.flink.api.common.externalresource.ExternalResourceInfo
-import org.apache.flink.api.common.functions.{
-  BroadcastVariableInitializer,
-  RuntimeContext
-}
+import org.apache.flink.api.common.functions.{BroadcastVariableInitializer, RuntimeContext}
 import org.apache.flink.api.common.state.{
   AggregatingState,
   AggregatingStateDescriptor,
@@ -36,7 +27,6 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import java.{util => ju}
 
 class FakeRuntimeContext extends RuntimeContext:
-
 
   override def getJobInfo(): JobInfo = ???
 
@@ -125,8 +115,8 @@ class FakeRuntimeContext extends RuntimeContext:
       stateProperties: ValueStateDescriptor[T]
   ): ValueState[T] =
     new ValueState[T] {
-      var v: T = null.asInstanceOf[T]
-      override def clear(): Unit = v = null.asInstanceOf[T]
+      var v: T                            = null.asInstanceOf[T]
+      override def clear(): Unit          = v = null.asInstanceOf[T]
       override def update(value: T): Unit = v = value
-      override def value(): T = v
+      override def value(): T             = v
     }

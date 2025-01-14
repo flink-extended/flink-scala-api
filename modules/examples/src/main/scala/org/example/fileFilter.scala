@@ -28,7 +28,7 @@ class MyDefaultFileFilter extends Predicate[Path]:
 
 @main def filterFiles =
   val currentDirectory = File(".").getCanonicalPath
-  val inputBasePath = Path(s"$currentDirectory/input-table")
+  val inputBasePath    = Path(s"$currentDirectory/input-table")
   val fileSourceBuilder =
     FileSource.forRecordStreamFormat(
       TextLineInputFormat(),
@@ -37,9 +37,7 @@ class MyDefaultFileFilter extends Predicate[Path]:
 
   val fileSource = fileSourceBuilder
     .monitorContinuously(Duration.ofSeconds(2))
-    .setFileEnumerator(() =>
-      NonSplittingRecursiveEnumerator(MyDefaultFileFilter())
-    )
+    .setFileEnumerator(() => NonSplittingRecursiveEnumerator(MyDefaultFileFilter()))
     .build()
   val env =
     StreamExecutionEnvironment.createLocalEnvironmentWithWebUI(Configuration())

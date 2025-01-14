@@ -336,7 +336,7 @@ class DataStream[T](stream: JavaStream[T]) {
     val keyType: TypeInformation[K] = implicitly[TypeInformation[K]]
 
     val keyExtractor = new KeySelector[T, K] with ResultTypeQueryable[K] {
-      def getKey(in: T): K = cleanFun(in)
+      def getKey(in: T): K                             = cleanFun(in)
       override def getProducedType: TypeInformation[K] = keyType
     }
     asScalaStream(new JavaKeyedStream(stream, keyExtractor, keyType))
@@ -382,7 +382,7 @@ class DataStream[T](stream: JavaStream[T]) {
     val cleanFun = clean(fun)
 
     val keyExtractor = new KeySelector[T, K] with ResultTypeQueryable[K] {
-      def getKey(in: T): K = cleanFun(in)
+      def getKey(in: T): K                             = cleanFun(in)
       override def getProducedType: TypeInformation[K] = keyType
     }
 
@@ -609,7 +609,7 @@ class DataStream[T](stream: JavaStream[T]) {
     }
     filter(filterFun)
   }
-  
+
   /** Creates a new DataStream that contains only the elements not satisfying the given filter predicate.
     */
   def filterNot(fun: T => Boolean): DataStream[T] = {
@@ -703,8 +703,9 @@ class DataStream[T](stream: JavaStream[T]) {
     * For cases where the timestamps are not monotonously increasing, use the more general methods
     * [[assignTimestampsAndWatermarks(AssignerWithPeriodicWatermarks)]] and
     * [[assignTimestampsAndWatermarks(AssignerWithPunctuatedWatermarks)]].
-    * 
-    * @deprecated Please use {@link #assignTimestampsAndWatermarks(WatermarkStrategy)} instead.
+    *
+    * @deprecated
+    *   Please use {@link #assignTimestampsAndWatermarks(WatermarkStrategy)} instead.
     */
   @Deprecated
   def assignAscendingTimestamps(extractor: T => Long): DataStream[T] = {
@@ -769,11 +770,11 @@ class DataStream[T](stream: JavaStream[T]) {
   def printToErr(sinkIdentifier: String): DataStreamSink[T] = stream.printToErr(sinkIdentifier)
 
   /** Writes a DataStream using the given [[OutputFormat]].
-   * 
-   * @deprecated Please use the {@link
-   *     org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink} explicitly
-   *     using the {@link #addSink(SinkFunction)} method.
-   */
+    *
+    * @deprecated
+    *   Please use the {@link org.apache.flink.streaming.api.functions.sink.filesystem.StreamingFileSink} explicitly
+    *   using the {@link #addSink(SinkFunction)} method.
+    */
   @Deprecated
   def writeUsingOutputFormat(format: OutputFormat[T]): DataStreamSink[T] = {
     stream.writeUsingOutputFormat(format)
@@ -809,10 +810,11 @@ class DataStream[T](stream: JavaStream[T]) {
 
   /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
     * StreamExecutionEnvironment.execute(...) method is called.
-    * 
-    * @deprecated Please use the sinkTo(sink: org.apache.flink.api.connector.sink2.Sink[T])
+    *
+    * @deprecated
+    *   Please use the sinkTo(sink: org.apache.flink.api.connector.sink2.Sink[T])
     */
-  @Deprecated  
+  @Deprecated
   def sinkTo(sink: org.apache.flink.api.connector.sink.Sink[T, _, _, _]): DataStreamSink[T] =
     stream.sinkTo(sink)
 

@@ -25,12 +25,11 @@ import org.apache.flink.configuration.ConfigConstants
 import org.apache.flink.configuration.RestOptions.BIND_PORT
 import scala.jdk.CollectionConverters.*
 
-/** This example shows an implementation of WordCount with data from a text
-  * socket. To run the example make sure that the service providing the text
-  * data is already up and running.
+/** This example shows an implementation of WordCount with data from a text socket. To run the example make sure that
+  * the service providing the text data is already up and running.
   *
-  * To start an example socket text stream on your local machine run netcat from
-  * a command line, where the parameter specifies the port number:
+  * To start an example socket text stream on your local machine run netcat from a command line, where the parameter
+  * specifies the port number:
   *
   * {{{
   *   nc -lk 9999

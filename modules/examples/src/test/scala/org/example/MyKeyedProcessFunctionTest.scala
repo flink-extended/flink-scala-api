@@ -11,8 +11,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.util.Collector
 
 @SerialVersionUID(1L)
-class MyKeyedProcessFunction
-    extends KeyedProcessFunction[Long, TestEvent, Long]:
+class MyKeyedProcessFunction extends KeyedProcessFunction[Long, TestEvent, Long]:
 
   @throws[Exception]
   override def processElement(

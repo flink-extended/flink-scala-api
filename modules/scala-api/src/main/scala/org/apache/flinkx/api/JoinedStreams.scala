@@ -49,7 +49,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
     val cleanFun = clean(keySelector)
     val keyType  = implicitly[TypeInformation[KEY]]
     val javaSelector = new KeySelector[T1, KEY] with ResultTypeQueryable[KEY] {
-      def getKey(in: T1): KEY = cleanFun(in)
+      def getKey(in: T1): KEY                            = cleanFun(in)
       override def getProducedType: TypeInformation[KEY] = keyType
     }
     new Where[KEY](javaSelector, keyType)
@@ -71,7 +71,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
       val cleanFun     = clean(keySelector)
       val localKeyType = keyType
       val javaSelector = new KeySelector[T2, KEY] with ResultTypeQueryable[KEY] {
-        def getKey(in: T2): KEY = cleanFun(in)
+        def getKey(in: T2): KEY                            = cleanFun(in)
         override def getProducedType: TypeInformation[KEY] = localKeyType
       }
       new EqualTo(javaSelector)

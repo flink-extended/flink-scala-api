@@ -76,8 +76,8 @@ object TransactionsSource:
   def iterator: FromIteratorFunction[Transaction] =
     FromIteratorFunction[Transaction](
       (new Iterator[Transaction] with Serializable:
-        var rows = data.iterator
-        var timestamp = Timestamp.valueOf("2019-01-01 00:00:00").getTime
+        var rows       = data.iterator
+        var timestamp  = Timestamp.valueOf("2019-01-01 00:00:00").getTime
         val sixMinutes = 6.minutes.toMillis
 
         override def hasNext: Boolean = rows.hasNext

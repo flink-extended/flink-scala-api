@@ -29,7 +29,7 @@ class MeasurementWindowProcessFunction
       out: Collector[WindowedMeasurements]
   ): Unit =
     val aggregate = elements.iterator.next
-    val window = context.window
+    val window    = context.window
     val res = aggregate.copy(
       windowStart = window.getStart,
       windowEnd = window.getEnd,

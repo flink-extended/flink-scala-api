@@ -4,7 +4,7 @@ import org.apache.flinkx.api.*
 import org.apache.flinkx.api.serializers.*
 
 @main def wordCountExample =
-  val env = StreamExecutionEnvironment.getExecutionEnvironment  
+  val env = StreamExecutionEnvironment.getExecutionEnvironment
   val text = env.fromElements(
     "To be, or not to be,--that is the question:--",
     "Whether 'tis nobler in the mind to suffer",
