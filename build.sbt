@@ -26,7 +26,7 @@ lazy val `scala-api` = (project in file("modules/scala-api"))
       "org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion % Provided,
       "org.apache.flink"  % "flink-test-utils"            % flinkVersion % Test,
       ("org.apache.flink" % "flink-streaming-java"        % flinkVersion % Test).classifier("tests"),
-      "org.typelevel"    %% "cats-core"                   % "2.12.0"     % Test,
+      "org.typelevel"    %% "cats-core"                   % "2.13.0"     % Test,
       "org.scalatest"    %% "scalatest"                   % "3.2.19"     % Test,
       "ch.qos.logback"    % "logback-classic"             % "1.5.16"     % Test
     ),
