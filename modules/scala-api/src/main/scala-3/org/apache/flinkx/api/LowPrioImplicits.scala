@@ -27,6 +27,7 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
       typeTag: TypeTag[T]
   ): Typeclass[T] =
     val cacheKey = typeName(ctx.typeInfo)
+    println(cacheKey)
     cache.get(cacheKey) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
@@ -55,6 +56,7 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
       typeTag: TypeTag[T]
   ): Typeclass[T] =
     val cacheKey = typeName(ctx.typeInfo)
+    println(cacheKey)
     cache.get(cacheKey) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
