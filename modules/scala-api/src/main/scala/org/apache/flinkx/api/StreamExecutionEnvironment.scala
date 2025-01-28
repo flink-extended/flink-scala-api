@@ -967,7 +967,8 @@ object StreamExecutionEnvironment {
   }
 
   private def configureFailFastOnScalaTypeResolutionWithClass(configuration: Configuration): Unit = {
-    if (!isFailFastOnScalaTypeResolutionWithClassDisabled) {
+    if (!isFailFastOnScalaTypeResolutionWithClassConfigured && !isFailFastOnScalaTypeResolutionWithClassDisabled) {
+      isFailFastOnScalaTypeResolutionWithClassConfigured = true
       val serializationOption = ConfigOptions.key("pipeline.serialization-config").stringType().asList().noDefaultValue()
       val serializationConfig = configuration.getOptional(serializationOption).orElse(new util.ArrayList[String])
       serializationConfig.add("scala.Product: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
@@ -978,6 +979,8 @@ object StreamExecutionEnvironment {
       configuration.set(serializationOption, serializationConfig)
     }
   }
+
+  private var isFailFastOnScalaTypeResolutionWithClassConfigured: Boolean = false
 
   private lazy val isFailFastOnScalaTypeResolutionWithClassDisabled: Boolean =
     sys.env
