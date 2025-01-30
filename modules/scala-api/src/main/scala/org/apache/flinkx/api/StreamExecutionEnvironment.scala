@@ -977,7 +977,7 @@ object StreamExecutionEnvironment {
       serializationConfig.add("scala.util.Either: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
       serializationConfig.add("scala.Array: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
       serializationConfig.add("scala.collection.Iterable: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
-      config.clone().set(serializationOption, serializationConfig)
+      new Configuration(config).set(serializationOption, serializationConfig)
     } else {
       config
     }
