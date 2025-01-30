@@ -32,7 +32,7 @@ import org.apache.flink.api.connector.source.{Source, SourceSplit}
 import org.apache.flink.api.java.tuple
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
 import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
-import org.apache.flink.configuration.{Configuration, ReadableConfig}
+import org.apache.flink.configuration.{ConfigOptions, Configuration, ReadableConfig}
 import org.apache.flink.core.execution.{JobClient, JobListener}
 import org.apache.flink.core.fs.Path
 import org.apache.flink.runtime.state.StateBackend
@@ -48,6 +48,7 @@ import java.net.URI
 import java.util
 import scala.jdk.CollectionConverters._
 import scala.language.implicitConversions
+import scala.util.Try
 
 @Public
 class StreamExecutionEnvironment(javaEnv: JavaEnv) {
@@ -826,7 +827,8 @@ object StreamExecutionEnvironment {
     * cluster.
     */
   def getExecutionEnvironment: StreamExecutionEnvironment = {
-    new StreamExecutionEnvironment(JavaEnv.getExecutionEnvironment)
+    val extraConfig = copyWithExtra(new Configuration)
+    new StreamExecutionEnvironment(JavaEnv.getExecutionEnvironment(extraConfig))
   }
 
   /** Creates an execution environment that represents the context in which the program is currently executed.
@@ -835,7 +837,8 @@ object StreamExecutionEnvironment {
     *   Pass a custom configuration into the cluster.
     */
   def getExecutionEnvironment(configuration: Configuration): StreamExecutionEnvironment = {
-    new StreamExecutionEnvironment(JavaEnv.getExecutionEnvironment(configuration))
+    val extraConfig = copyWithExtra(configuration)
+    new StreamExecutionEnvironment(JavaEnv.getExecutionEnvironment(extraConfig))
   }
 
   // --------------------------------------------------------------------------
@@ -849,7 +852,8 @@ object StreamExecutionEnvironment {
     * [[setDefaultLocalParallelism(Int)]].
     */
   def createLocalEnvironment(parallelism: Int = JavaEnv.getDefaultLocalParallelism): StreamExecutionEnvironment = {
-    new StreamExecutionEnvironment(JavaEnv.createLocalEnvironment(parallelism))
+    val extraConfig = copyWithExtra(new Configuration)
+    new StreamExecutionEnvironment(JavaEnv.createLocalEnvironment(parallelism, extraConfig))
   }
 
   /** Creates a local execution environment. The local execution environment will run the program in a multi-threaded
@@ -861,7 +865,8 @@ object StreamExecutionEnvironment {
     *   Pass a custom configuration into the cluster.
     */
   def createLocalEnvironment(parallelism: Int, configuration: Configuration): StreamExecutionEnvironment = {
-    new StreamExecutionEnvironment(JavaEnv.createLocalEnvironment(parallelism, configuration))
+    val extraConfig = copyWithExtra(configuration)
+    new StreamExecutionEnvironment(JavaEnv.createLocalEnvironment(parallelism, extraConfig))
   }
 
   /** Creates a [[StreamExecutionEnvironment]] for local program execution that also starts the web monitoring UI.
@@ -879,8 +884,8 @@ object StreamExecutionEnvironment {
     */
   @PublicEvolving
   def createLocalEnvironmentWithWebUI(config: Configuration = null): StreamExecutionEnvironment = {
-    val conf: Configuration = if (config == null) new Configuration() else config
-    new StreamExecutionEnvironment(JavaEnv.createLocalEnvironmentWithWebUI(conf))
+    val extraConfig = copyWithExtra(if (config == null) new Configuration() else config)
+    new StreamExecutionEnvironment(JavaEnv.createLocalEnvironmentWithWebUI(extraConfig))
   }
 
   // --------------------------------------------------------------------------
@@ -901,7 +906,8 @@ object StreamExecutionEnvironment {
     *   user-defined input formats, or any libraries, those must be provided in the JAR files.
     */
   def createRemoteEnvironment(host: String, port: Int, jarFiles: String*): StreamExecutionEnvironment = {
-    new StreamExecutionEnvironment(JavaEnv.createRemoteEnvironment(host, port, jarFiles: _*))
+    val extraConfig = copyWithExtra(new Configuration)
+    new StreamExecutionEnvironment(JavaEnv.createRemoteEnvironment(host, port, extraConfig, jarFiles: _*))
   }
 
   /** Creates a remote execution environment. The remote environment sends (parts of) the program to a cluster for
@@ -924,7 +930,8 @@ object StreamExecutionEnvironment {
       parallelism: Int,
       jarFiles: String*
   ): StreamExecutionEnvironment = {
-    val javaEnv = JavaEnv.createRemoteEnvironment(host, port, jarFiles: _*)
+    val extraConfig = copyWithExtra(new Configuration)
+    val javaEnv = JavaEnv.createRemoteEnvironment(host, port, extraConfig, jarFiles: _*)
     javaEnv.setParallelism(parallelism)
     new StreamExecutionEnvironment(javaEnv)
   }
@@ -937,7 +944,7 @@ object StreamExecutionEnvironment {
     *   The host name or address of the master (JobManager), where the program should be executed.
     * @param port
     *   The port of the master (JobManager), where the program should be executed.
-    * @param configuration
+    * @param config
     *   Pass a custom configuration into the cluster.
     * @param jarFiles
     *   The JAR files with code that needs to be shipped to the cluster. If the program uses user-defined functions,
@@ -949,7 +956,38 @@ object StreamExecutionEnvironment {
       config: Configuration,
       jarFiles: String*
   ): StreamExecutionEnvironment = {
-    val javaEnv = JavaEnv.createRemoteEnvironment(host, port, config, jarFiles: _*)
+    val extraConfig = copyWithExtra(config)
+    val javaEnv = JavaEnv.createRemoteEnvironment(host, port, extraConfig, jarFiles: _*)
     new StreamExecutionEnvironment(javaEnv)
   }
+
+  /**
+   * Copy input config and add extra configuration:
+   *  - register type info factories to fail-fast on Scala type resolution with Class
+   * @param config input configuration
+   * @return a copy of input config with extra configuration
+   */
+  private def copyWithExtra(config: Configuration): Configuration = {
+    if (!isFailFastOnScalaTypeResolutionWithClassConfigured && !isFailFastOnScalaTypeResolutionWithClassDisabled) {
+      isFailFastOnScalaTypeResolutionWithClassConfigured = true
+      val serializationOption = ConfigOptions.key("pipeline.serialization-config").stringType().asList().noDefaultValue()
+      val serializationConfig = config.getOptional(serializationOption).orElse(new util.ArrayList[String])
+      serializationConfig.add("scala.Product: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
+      serializationConfig.add("scala.Option: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
+      serializationConfig.add("scala.util.Either: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
+      serializationConfig.add("scala.Array: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
+      serializationConfig.add("scala.collection.Iterable: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
+      new Configuration(config).set(serializationOption, serializationConfig)
+    } else {
+      config
+    }
+  }
+
+  private var isFailFastOnScalaTypeResolutionWithClassConfigured: Boolean = false
+
+  private lazy val isFailFastOnScalaTypeResolutionWithClassDisabled: Boolean =
+    sys.env
+      .get("DISABLE_FAIL_FAST_ON_SCALA_TYPE_RESOLUTION_WITH_CLASS")
+      .exists(v => Try(v.toBoolean).getOrElse(false))
+
 }
