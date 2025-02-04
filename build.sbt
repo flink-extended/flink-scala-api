@@ -3,7 +3,7 @@ import sbtrelease.ReleaseStateTransformations.*
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
 
-lazy val rootScalaVersion = "3.3.4"
+lazy val rootScalaVersion = "3.3.5"
 lazy val crossVersions    = Seq("2.13.15", rootScalaVersion)
 lazy val flinkVersion     = System.getProperty("flinkVersion", "1.18.1")
 
