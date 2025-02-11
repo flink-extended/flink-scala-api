@@ -57,7 +57,7 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
   ): Typeclass[T] =
     val useCache = typeTag.isCachable
     val cacheKey = typeTag.toString
-    Option(useCache).filter(_ == true).flatMap(_ => cache.get(cacheKey)) match
+    (if useCache then cache.get(cacheKey) else None) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
 
