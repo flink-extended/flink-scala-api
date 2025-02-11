@@ -36,14 +36,15 @@ class GenericCaseClassScala2Test extends AnyFlatSpec with should.Matchers {
 
     if (classOf[Cat].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs catInfo
-      aBasketInfo should be theSameInstanceAs catBasketInfo
+      aBasketInfo should be theSameInstanceAs catBasketInfo // Type info of Basket[A] finds the cached type info of Basket[Cat]
     }
     if (classOf[Dog].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs dogInfo
-      aBasketInfo should be theSameInstanceAs dogBasketInfo
+      aBasketInfo should be theSameInstanceAs dogBasketInfo // Type info of Basket[A] finds the cached type info of Basket[Dog]
     }
     catBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs catInfo
     dogBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs dogInfo
+    // Type info of Basket[A] holds a type info of the good type (Cat or Dog) found in the cache
     aBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs aInfo
   }
 

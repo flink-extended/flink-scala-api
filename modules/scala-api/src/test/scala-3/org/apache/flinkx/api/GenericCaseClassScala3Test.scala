@@ -28,19 +28,20 @@ class GenericCaseClassScala3Test extends AnyFlatSpec with should.Matchers {
     val catBasketInfo: TypeInformation[Basket[Cat]] = implicitly[TypeInformation[Basket[Cat]]]
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[org.apache.flinkx.api.GenericCaseClassTest.Dog] => OK
     val dogBasketInfo: TypeInformation[Basket[Dog]] = implicitly[TypeInformation[Basket[Dog]]]
-    // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[A] => not cached
+    // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[A] => Basket[A] is not cachable
     val aBasketInfo: TypeInformation[Basket[A]]     = implicitly[TypeInformation[Basket[A]]]
 
     if (classOf[Cat].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs catInfo
-      // aBasketInfo should be theSameInstanceAs catBasketInfo // Fails => aBasketInfo is not cached
+      aBasketInfo shouldNot be theSameInstanceAs catBasketInfo // Basket[A] is not cachable
     }
     if (classOf[Dog].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs dogInfo
-      // aBasketInfo should be theSameInstanceAs dogBasketInfo // Fails => aBasketInfo is not cached
+      aBasketInfo shouldNot be theSameInstanceAs dogBasketInfo // Basket[A] is not cachable
     }
     catBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs catInfo
     dogBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs dogInfo
+    // Type info of Basket[A] is not cached, but it holds a type info of the good type (Cat or Dog) found in the cache
     aBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs aInfo
   }
 

@@ -12,6 +12,7 @@ object TypeTagMacro:
     val flagsA         = symA.flags
     val isModuleExpr   = Expr(flagsA.is(Flags.Module))
     val isCachableExpr = Expr(A match {
+      // this type is not cachable if one of its type args is abstract
       case a: AppliedType => !a.args.exists { t => t.typeSymbol.isAbstractType }
       case _              => true
     })
