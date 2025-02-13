@@ -6,6 +6,8 @@ import scala.quoted.*
 trait TypeTag[A]:
   // Is the type a module, i.e. is it a case object?
   def isModule: Boolean
+  def isCachable: Boolean
+  def toString: String
 
 object TypeTag:
   def apply[A: TypeTag]: TypeTag[A] = summon

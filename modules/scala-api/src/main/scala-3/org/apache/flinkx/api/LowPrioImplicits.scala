@@ -26,8 +26,9 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
   ): Typeclass[T] =
-    val cacheKey = typeName(ctx.typeInfo)
-    cache.get(cacheKey) match
+    val useCache = typeTag.isCachable
+    val cacheKey = typeTag.toString
+    (if useCache then cache.get(cacheKey) else None) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
 
@@ -47,15 +48,16 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
           fieldNames = ctx.params.map(_.label),
           ser = serializer
         ).asInstanceOf[TypeInformation[T]]
-        cache.put(cacheKey, ti)
+        if useCache then cache.put(cacheKey, ti)
         ti
 
   override def split[T](ctx: SealedTrait[Typeclass, T])(using
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
   ): Typeclass[T] =
-    val cacheKey = typeName(ctx.typeInfo)
-    cache.get(cacheKey) match
+    val useCache = typeTag.isCachable
+    val cacheKey = typeTag.toString
+    (if useCache then cache.get(cacheKey) else None) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
 
@@ -66,7 +68,7 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         )
         val clazz = classTag.runtimeClass.asInstanceOf[Class[T]]
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
-        cache.put(cacheKey, ti)
+        if useCache then cache.put(cacheKey, ti)
         ti
 
   final inline implicit def deriveTypeInformation[T](implicit
@@ -74,6 +76,3 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
   ): TypeInformation[T] = derived
-
-  private def typeName(ti: TypeInfo): String =
-    s"${ti.full}[${ti.typeParams.map(typeName).mkString(",")}]"
