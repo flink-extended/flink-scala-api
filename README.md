@@ -81,6 +81,19 @@ libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.2.0"
 
 Build for Scala 2.12 is no longer published.
 
+## Dependencies management
+When including the Scala API in a fat JAR or adding it to the __flink/lib__ folder, users should ensure that the appropriate Scala API dependencies are included
+into flink classpath.
+In the case of Scala versions, these dependencies should be:
+
+### For Scala 2.13
+
+- [scala-reflect](https://mvnrepository.com/artifact/org.scala-lang/scala-reflect)
+- [magnolia](https://mvnrepository.com/artifact/com.softwaremill.magnolia1_2/magnolia_2.13)
+
+### For Scala 3
+- [magnolia](https://mvnrepository.com/artifact/com.softwaremill.magnolia1_3/magnolia)
+
 ## SBT Project Template
 
 If you want to create new project easily check this __Giter8 template__ out: [novakov-alexey/flink-scala-api.g8](https://github.com/novakov-alexey/flink-scala-api.g8)
