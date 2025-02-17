@@ -931,7 +931,7 @@ object StreamExecutionEnvironment {
       jarFiles: String*
   ): StreamExecutionEnvironment = {
     val extraConfig = copyWithExtra(new Configuration)
-    val javaEnv = JavaEnv.createRemoteEnvironment(host, port, extraConfig, jarFiles: _*)
+    val javaEnv     = JavaEnv.createRemoteEnvironment(host, port, extraConfig, jarFiles: _*)
     javaEnv.setParallelism(parallelism)
     new StreamExecutionEnvironment(javaEnv)
   }
@@ -957,26 +957,38 @@ object StreamExecutionEnvironment {
       jarFiles: String*
   ): StreamExecutionEnvironment = {
     val extraConfig = copyWithExtra(config)
-    val javaEnv = JavaEnv.createRemoteEnvironment(host, port, extraConfig, jarFiles: _*)
+    val javaEnv     = JavaEnv.createRemoteEnvironment(host, port, extraConfig, jarFiles: _*)
     new StreamExecutionEnvironment(javaEnv)
   }
 
-  /**
-   * Copy input config and add extra configuration:
-   *  - register type info factories to fail-fast on Scala type resolution with Class
-   * @param config input configuration
-   * @return a copy of input config with extra configuration
-   */
+  /** Copy input config and add extra configuration:
+    *   - register type info factories to fail-fast on Scala type resolution with Class
+    * @param config
+    *   input configuration
+    * @return
+    *   a copy of input config with extra configuration
+    */
   private def copyWithExtra(config: Configuration): Configuration = {
     if (!isFailFastOnScalaTypeResolutionWithClassConfigured && !isFailFastOnScalaTypeResolutionWithClassDisabled) {
       isFailFastOnScalaTypeResolutionWithClassConfigured = true
-      val serializationOption = ConfigOptions.key("pipeline.serialization-config").stringType().asList().noDefaultValue()
+      val serializationOption =
+        ConfigOptions.key("pipeline.serialization-config").stringType().asList().noDefaultValue()
       val serializationConfig = config.getOptional(serializationOption).orElse(new util.ArrayList[String])
-      serializationConfig.add("scala.Product: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
-      serializationConfig.add("scala.Option: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
-      serializationConfig.add("scala.util.Either: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
-      serializationConfig.add("scala.Array: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
-      serializationConfig.add("scala.collection.Iterable: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}")
+      serializationConfig.add(
+        "scala.Product: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}"
+      )
+      serializationConfig.add(
+        "scala.Option: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}"
+      )
+      serializationConfig.add(
+        "scala.util.Either: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}"
+      )
+      serializationConfig.add(
+        "scala.Array: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}"
+      )
+      serializationConfig.add(
+        "scala.collection.Iterable: {type: typeinfo, class: org.apache.flinkx.api.typeinfo.FailFastTypeInfoFactory}"
+      )
       new Configuration(config).set(serializationOption, serializationConfig)
     } else {
       config

@@ -22,17 +22,17 @@ class GenericCaseClassScala2Test extends AnyFlatSpec with should.Matchers {
       aClass: Class[A]
   ): Unit = {
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Cat => OK
-    val catInfo: TypeInformation[Cat]               = implicitly[TypeInformation[Cat]]
+    val catInfo: TypeInformation[Cat] = implicitly[TypeInformation[Cat]]
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Dog => OK
-    val dogInfo: TypeInformation[Dog]               = implicitly[TypeInformation[Dog]]
+    val dogInfo: TypeInformation[Dog] = implicitly[TypeInformation[Dog]]
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Cat or Dog => OK
-    val aInfo: TypeInformation[A]                   = implicitly[TypeInformation[A]]
+    val aInfo: TypeInformation[A] = implicitly[TypeInformation[A]]
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[org.apache.flinkx.api.GenericCaseClassTest.Cat] => OK
     val catBasketInfo: TypeInformation[Basket[Cat]] = implicitly[TypeInformation[Basket[Cat]]]
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[org.apache.flinkx.api.GenericCaseClassTest.Dog] => OK
     val dogBasketInfo: TypeInformation[Basket[Dog]] = implicitly[TypeInformation[Basket[Dog]]]
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[org.apache.flinkx.api.GenericCaseClassTest.Cat] or Dog => OK
-    val aBasketInfo: TypeInformation[Basket[A]]     = implicitly[TypeInformation[Basket[A]]]
+    val aBasketInfo: TypeInformation[Basket[A]] = implicitly[TypeInformation[Basket[A]]]
 
     if (classOf[Cat].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs catInfo

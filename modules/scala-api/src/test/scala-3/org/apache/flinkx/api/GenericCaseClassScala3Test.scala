@@ -19,17 +19,17 @@ class GenericCaseClassScala3Test extends AnyFlatSpec with should.Matchers {
       aClass: Class[A]
   ): Unit = {
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Cat => OK
-    val catInfo: TypeInformation[Cat]               = deriveTypeInformation
+    val catInfo: TypeInformation[Cat] = deriveTypeInformation
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Dog => OK
-    val dogInfo: TypeInformation[Dog]               = deriveTypeInformation
+    val dogInfo: TypeInformation[Dog] = deriveTypeInformation
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Cat or Dog => OK
-    val aInfo: TypeInformation[A]                   = implicitly[TypeInformation[A]]
+    val aInfo: TypeInformation[A] = implicitly[TypeInformation[A]]
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[org.apache.flinkx.api.GenericCaseClassTest.Cat] => OK
     val catBasketInfo: TypeInformation[Basket[Cat]] = deriveTypeInformation
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[org.apache.flinkx.api.GenericCaseClassTest.Dog] => OK
     val dogBasketInfo: TypeInformation[Basket[Dog]] = deriveTypeInformation
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[A] => Basket[A] is not cachable
-    val aBasketInfo: TypeInformation[Basket[A]]     = deriveTypeInformation
+    val aBasketInfo: TypeInformation[Basket[A]] = deriveTypeInformation
 
     if (classOf[Cat].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs catInfo
