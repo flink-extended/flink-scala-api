@@ -140,7 +140,7 @@ lazy val `examples` = (project in file("modules/examples"))
     publish / skip := true,
     releaseProcess := Seq.empty[ReleaseStep], // Release for example is not needed
     libraryDependencies ++= Seq(
-      "org.flinkextended" %% "flink-scala-api"            % "1.20.0_1.2.1",
+      "org.flinkextended" %% "flink-scala-api"            % "1.20.0_1.2.3",
       "org.apache.flink"   % "flink-runtime-web"          % "1.20.0"     % Provided,
       "org.apache.flink"   % "flink-clients"              % "1.20.0"     % Provided,
       "org.apache.flink"   % "flink-state-processor-api"  % "1.20.0"     % Provided,
