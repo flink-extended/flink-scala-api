@@ -45,7 +45,7 @@ private[api] trait LowPrioImplicits {
     }
   }
 
-  def split[T: ClassTag : TypeTag](ctx: SealedTrait[TypeInformation, T]): TypeInformation[T] = {
+  def split[T: ClassTag: TypeTag](ctx: SealedTrait[TypeInformation, T]): TypeInformation[T] = {
     val cacheKey = typeName[T]
     cache.get(cacheKey) match {
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]

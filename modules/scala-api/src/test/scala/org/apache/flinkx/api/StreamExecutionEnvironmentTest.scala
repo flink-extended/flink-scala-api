@@ -38,11 +38,13 @@ class StreamExecutionEnvironmentTest extends AnyFlatSpec with Matchers with Inte
     Try(Class.forName("org.apache.flink.configuration.PipelineOptions").getField("SERIALIZATION_CONFIG")) match {
       case Failure(_) => // Before Flink 1.19: no fail-fast, exception happens at execution
         implicit val typeInfo: TypeInformation[Option[Int]] = TypeInformation.of(classOf[Option[Int]])
-        val stream = env.fromElements(Some(1), None, Some(100))
+        val stream                                          = env.fromElements(Some(1), None, Some(100))
         val exception = intercept[UnsupportedOperationException] {
           stream.executeAndCollect(3)
         }
-        exception.getMessage should startWith("Generic types have been disabled in the ExecutionConfig and type scala.Option is treated as a generic type.")
+        exception.getMessage should startWith(
+          "Generic types have been disabled in the ExecutionConfig and type scala.Option is treated as a generic type."
+        )
 
       case Success(_) => // From Flink 1.19: fail-fast at Scala type resolution
         val exception = intercept[FlinkRuntimeException] {
