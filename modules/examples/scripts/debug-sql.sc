@@ -1,4 +1,4 @@
-import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.2.3`
+import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.2.4`
 
 import $ivy.`org.apache.flink:flink-clients:1.18.1`
 
