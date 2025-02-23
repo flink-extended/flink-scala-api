@@ -974,7 +974,7 @@ object StreamExecutionEnvironment {
     if (!isFailFastOnScalaTypeResolutionWithClassConfigured && !isFailFastOnScalaTypeResolutionWithClassDisabled) {
       isFailFastOnScalaTypeResolutionWithClassConfigured = true
       try {
-        val typeExtractorClass = Class.forName("org.apache.flink.api.java.typeutils.TypeExtractor")
+        val typeExtractorClass    = Class.forName("org.apache.flink.api.java.typeutils.TypeExtractor")
         val registerFactoryMethod = typeExtractorClass.getMethod("registerFactory", classOf[Type], classOf[Class[_]])
         registerFactoryMethod.invoke(null, classOf[Product], classOf[FailFastTypeInfoFactory])
         registerFactoryMethod.invoke(null, classOf[Option[_]], classOf[FailFastTypeInfoFactory])
@@ -982,7 +982,9 @@ object StreamExecutionEnvironment {
         registerFactoryMethod.invoke(null, classOf[Iterable[_]], classOf[FailFastTypeInfoFactory])
       } catch {
         case t: Throwable =>
-          log.info(s"Unable to activate 'fail-fast on Scala type resolution with Class' feature: available from Flink 1.19: $t")
+          log.info(
+            s"Unable to activate 'fail-fast on Scala type resolution with Class' feature: available from Flink 1.19: $t"
+          )
       }
     }
   }
