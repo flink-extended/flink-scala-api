@@ -10,7 +10,7 @@ class UnitTypeInformation extends TypeInformation[Unit] {
   override def isKeyType: Boolean                                              = true
   override def getTotalFields: Int                                             = 0
   override def isTupleType: Boolean                                            = false
-  override def canEqual(obj: Any): Boolean                                     = obj.isInstanceOf[Unit]
+  override def canEqual(obj: Any): Boolean                                     = obj.isInstanceOf[UnitTypeInformation]
   override def getTypeClass: Class[Unit]                                       = classOf[Unit]
   override def getArity: Int                                                   = 0
   override def isBasicType: Boolean                                            = false
@@ -18,8 +18,8 @@ class UnitTypeInformation extends TypeInformation[Unit] {
   override def toString: String = "{}"
 
   override def equals(obj: Any): Boolean = obj match {
-    case _: Unit => true
-    case _       => false
+    case _: UnitTypeInformation => true
+    case _                      => false
   }
 
   override def hashCode(): Int = ().hashCode()
