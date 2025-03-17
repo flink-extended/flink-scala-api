@@ -148,7 +148,7 @@ lazy val `examples` = (project in file("modules/examples"))
       "org.apache.flink"   % "flink-connector-files"      % "1.20.0"     % Provided,
       "org.apache.flink"   % "flink-table-runtime"        % "1.20.0"     % Provided,
       "org.apache.flink"   % "flink-table-planner-loader" % "1.20.0"     % Provided,
-      "io.bullet"         %% "borer-core"                 % "1.15.0"     % Provided,
+      "io.bullet"         %% "borer-core"                 % "1.16.0"     % Provided,
       "ch.qos.logback"     % "logback-classic"            % "1.4.14"     % Provided,
       "org.apache.flink"   % "flink-test-utils"           % "1.20.0"     % Test,
       "org.apache.flink"   % "flink-streaming-java"       % "1.20.0"     % Test classifier "tests",
