@@ -19,7 +19,6 @@ import org.apache.flink.api.common.state.{
 }
 import org.apache.flink.metrics.groups.OperatorMetricGroup
 
-import java.util
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.JobInfo
 import org.apache.flink.api.common.TaskInfo
@@ -82,11 +81,11 @@ class FakeRuntimeContext extends RuntimeContext:
 
   override def getExternalResourceInfos(
       resourceName: String
-  ): util.Set[ExternalResourceInfo] = ???
+  ): ju.Set[ExternalResourceInfo] = ???
 
   override def hasBroadcastVariable(name: String): Boolean = ???
 
-  override def getBroadcastVariable[RT](name: String): util.List[RT] = ???
+  override def getBroadcastVariable[RT](name: String): ju.List[RT] = ???
 
   override def getBroadcastVariableWithInitializer[T, C](
       name: String,

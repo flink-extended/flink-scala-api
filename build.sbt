@@ -3,18 +3,19 @@ import sbtrelease.ReleaseStateTransformations.*
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe)
 
-lazy val rootScalaVersion = "3.3.5"
-lazy val crossVersions    = Seq("2.13.16", rootScalaVersion)
-lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.18.1")
-lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0-preview1")
+lazy val rootScalaVersion    = "3.3.5"
+lazy val crossVersions       = Seq("2.13.16", rootScalaVersion)
+lazy val flinkVersion1       = System.getProperty("flinkVersion1", "1.20.0")
+lazy val flinkVersion1MajMin = flinkVersion1.split("\\.").toList.take(2).mkString(".")
+lazy val flinkVersion2       = System.getProperty("flinkVersion2", "2.0-preview1")
 
 lazy val root = (project in file("."))
-  .aggregate(`scala-api-common`,`scala-api-1`, `scala-api-2`, `examples`)
+  .aggregate(`scala-api-common`, `flink-1-api`, `flink-2-api`, `examples`)
   .settings(commonSettings)
   .settings(
-    scalaVersion   := rootScalaVersion,
+    scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
-    publish / skip := true
+    publish / skip     := true
   )
 
 lazy val commonSettings = Seq(
@@ -106,30 +107,23 @@ lazy val commonSettings = Seq(
                       else Seq.empty[ReleaseStep])
 )
 
-lazy val `scala-api-common` = (project in file("modules/scala-api-common"))
+lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
   .settings(commonSettings)
   .settings(
-    name := "flink-scala-api-common",
+    name               := "flink-scala-api-common",
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
-      "org.apache.flink"  % "flink-streaming-java"        % flinkVersion2 % Provided,
-      // "org.apache.flink"  % "flink-java"                  % flinkVersion1 % Provided,
-      //"org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion1 % Provided,
-      "org.apache.flink"  % "flink-test-utils"            % flinkVersion2 % Test,
-      ("org.apache.flink" % "flink-streaming-java"        % flinkVersion2 % Test).classifier("tests"),
-      "org.typelevel"    %% "cats-core"                   % "2.13.0"      % Test,
-      "org.scalatest"    %% "scalatest"                   % "3.2.19"      % Test,
-      "ch.qos.logback"    % "logback-classic"             % "1.5.17"      % Test
+      "org.apache.flink" % "flink-streaming-java" % flinkVersion2 % Provided
     )
   )
 
-lazy val `scala-api-1` = (project in file("modules/scala-api-1"))
+lazy val `flink-1-api` = (project in file("modules/flink-1-api"))
   .dependsOn(`scala-api-common`)
   .settings(commonSettings)
   .settings(ReleaseProcess.releaseSettings(flinkVersion1) *)
   .settings(
-    name := "flink-scala-api-1",
+    name               := "flink-scala-api-1",
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
@@ -138,44 +132,30 @@ lazy val `scala-api-1` = (project in file("modules/scala-api-1"))
       "org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion1 % Provided,
       "org.apache.flink"  % "flink-test-utils"            % flinkVersion1 % Test,
       ("org.apache.flink" % "flink-streaming-java"        % flinkVersion1 % Test).classifier("tests"),
-      // "org.typelevel"    %% "cats-core"                   % "2.13.0"      % Test,
-      // "org.scalatest"    %% "scalatest"                   % "3.2.19"      % Test,
-      // "ch.qos.logback"    % "logback-classic"             % "1.5.17"      % Test
+      "org.typelevel"    %% "cats-core"                   % "2.13.0"      % Test,
+      "org.scalatest"    %% "scalatest"                   % "3.2.19"      % Test,
+      "ch.qos.logback"    % "logback-classic"             % "1.5.17"      % Test
     )
-    // libraryDependencies ++= {
-    //   if (scalaBinaryVersion.value.startsWith("2")) {
-    //     Seq(
-    //       "com.softwaremill.magnolia1_2" %% "magnolia"      % "1.1.10",
-    //       "org.scala-lang"                % "scala-reflect" % scalaVersion.value % Provided
-    //     )
-    //   } else {
-    //     Seq(
-    //       "com.softwaremill.magnolia1_3" %% "magnolia"        % "1.3.16",
-    //       "org.scala-lang"               %% "scala3-compiler" % scalaVersion.value % Provided
-    //     )
-    //   }
-    // },
-
   )
 
-lazy val `scala-api-2` = (project in file("modules/scala-api-2"))
+lazy val `flink-2-api` = (project in file("modules/flink-2-api"))
   .dependsOn(`scala-api-common`)
   .settings(commonSettings)
   .settings(ReleaseProcess.releaseSettings(flinkVersion2) *)
   .settings(
-    name := "flink-scala-api-2",
+    name               := "flink-scala-api-2",
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.apache.flink"  % "flink-streaming-java"        % flinkVersion2 % Provided,
-      // "org.apache.flink"  % "flink-java"                  % flinkVersion2 % Provided,
       "org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion2 % Provided,
       "org.apache.flink"  % "flink-test-utils"            % flinkVersion2 % Test,
       ("org.apache.flink" % "flink-streaming-java"        % flinkVersion2 % Test).classifier("tests"),
       "org.typelevel"    %% "cats-core"                   % "2.13.0"      % Test,
       "org.scalatest"    %% "scalatest"                   % "3.2.19"      % Test,
       "ch.qos.logback"    % "logback-classic"             % "1.5.17"      % Test
-    ))
+    )
+  )
 
 lazy val docs = project // new documentation project
   .in(file("modules/docs")) // important: it must not be docs/
@@ -188,33 +168,32 @@ lazy val docs = project // new documentation project
       "org.apache.flink" % "flink-streaming-java" % flinkVersion1
     )
   )
-  .dependsOn(`scala-api-1`)
+  .dependsOn(`flink-1-api`)
   .enablePlugins(MdocPlugin)
 
 val flinkMajorAndMinorVersion =
   flinkVersion1.split("\\.").toList.take(2).mkString(".")
 
 lazy val `examples` = (project in file("modules/examples"))
-  .dependsOn(`scala-api-1`, `scala-api-common`)
+  .dependsOn(`flink-1-api`, `scala-api-common`)
   .settings(
     scalaVersion   := rootScalaVersion,
     Test / fork    := true,
     publish / skip := true,
     releaseProcess := Seq.empty[ReleaseStep], // Release for example is not needed
     libraryDependencies ++= Seq(
-      // "org.flinkextended" %% "flink-scala-api"            % "1.20.0_1.2.4",
-      "org.apache.flink"   % "flink-runtime-web"          % "1.20.0"     % Provided,
-      "org.apache.flink"   % "flink-clients"              % "1.20.0"     % Provided,
-      "org.apache.flink"   % "flink-state-processor-api"  % "1.20.0"     % Provided,
-      "org.apache.flink"   % "flink-connector-kafka"      % "3.0.2-1.18" % Provided,
-      "org.apache.flink"   % "flink-connector-files"      % "1.20.0"     % Provided,
-      "org.apache.flink"   % "flink-table-runtime"        % "1.20.0"     % Provided,
-      "org.apache.flink"   % "flink-table-planner-loader" % "1.20.0"     % Provided,
-      "io.bullet"         %% "borer-core"                 % "1.15.0"     % Provided,
-      "ch.qos.logback"     % "logback-classic"            % "1.4.14"     % Provided,
-      "org.apache.flink"   % "flink-test-utils"           % "1.20.0"     % Test,
-      "org.apache.flink"   % "flink-streaming-java"       % "1.20.0"     % Test classifier "tests",
-      "org.scalatest"     %% "scalatest"                  % "3.2.15"     % Test
+      "org.apache.flink" % "flink-runtime-web"          % flinkVersion1                 % Provided,
+      "org.apache.flink" % "flink-clients"              % flinkVersion1                 % Provided,
+      "org.apache.flink" % "flink-state-processor-api"  % flinkVersion1                 % Provided,
+      "org.apache.flink" % "flink-connector-kafka"      % s"3.4.0-$flinkVersion1MajMin" % Provided,
+      "org.apache.flink" % "flink-connector-files"      % flinkVersion1                 % Provided,
+      "org.apache.flink" % "flink-table-runtime"        % flinkVersion1                 % Provided,
+      "org.apache.flink" % "flink-table-planner-loader" % flinkVersion1                 % Provided,
+      "io.bullet"       %% "borer-core"                 % "1.15.0"                      % Provided,
+      "ch.qos.logback"   % "logback-classic"            % "1.4.14"                      % Provided,
+      "org.apache.flink" % "flink-test-utils"           % flinkVersion1                 % Test,
+      "org.apache.flink" % "flink-streaming-java"       % flinkVersion1                 % Test classifier "tests",
+      "org.scalatest"   %% "scalatest"                  % "3.2.15"                      % Test
     ),
     Compile / run := Defaults
       .runTask(
