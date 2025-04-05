@@ -114,7 +114,7 @@ lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
-      "org.apache.flink" % "flink-streaming-java" % flinkVersion2 % Provided
+      "org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Provided
     )
   )
 
@@ -178,6 +178,7 @@ lazy val `examples` = (project in file("modules/examples"))
   .dependsOn(`flink-1-api`, `scala-api-common`)
   .settings(
     scalaVersion   := rootScalaVersion,
+    crossScalaVersions := Seq(rootScalaVersion),
     Test / fork    := true,
     publish / skip := true,
     releaseProcess := Seq.empty[ReleaseStep], // Release for example is not needed

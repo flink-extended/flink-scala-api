@@ -11,7 +11,7 @@ import scala.language.experimental.macros
 import scala.reflect._
 import scala.reflect.runtime.universe.{Try => _, _}
 
-private[api] trait LowPrioImplicits extends LowPrioImplicitsBase {
+private[api] trait LowPrioImplicits {
   type Typeclass[T] = TypeInformation[T]
 
   protected def config: SerializerConfig

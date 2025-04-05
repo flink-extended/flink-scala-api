@@ -33,5 +33,8 @@ jobs:
           cache: sbt
       - name: Compile Docs
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} docs/mdoc"
-      - name: Run tests
-        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=${{ matrix.flink }} "++ ${{ matrix.scala }} test"
+      - name: Run tests on examples
+        # always running on Scala 3.x version by default
+        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=${{ matrix.flink }} "project examples; test"
+      - name: Run tests on API
+        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=${{ matrix.flink }} "++ ${{ matrix.scala }} project flink-1-api; test"
