@@ -36,5 +36,7 @@ jobs:
       - name: Run tests on examples
         # always running on Scala 3.x version by default
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=${{ matrix.flink }} "project examples; test"
-      - name: Run tests on API
+      - name: Run tests on Flink API 1.x
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion=${{ matrix.flink }} "++ ${{ matrix.scala }}; project flink-1-api; test"
+      - name: Run tests on Flink API 2.x
+        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }}; project flink-2-api; test"
