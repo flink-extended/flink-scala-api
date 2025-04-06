@@ -22,11 +22,11 @@ jobs:
           - scala: 3.3.5
             java: 17
             flink: 1.20.0
-            sbt-module: ['flink-1-api']
+            sbt-module: 'flink-1-api'
           - scala: 3.3.5
             java: 17
             flink: 2.0.0          
-            sbt-module: ['flink-2-api']  
+            sbt-module: 'flink-2-api'  
     steps:
       - uses: actions/checkout@v3
         with:
@@ -41,7 +41,7 @@ jobs:
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} docs/mdoc"
       - name: Run tests on examples
         # always running on Scala 3.x version by default
-        if: ${{ matrix.flink < 2 }}
+        if: ${{ startsWith(matrix.flink, '1.') }}
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion1=${{ matrix.flink }} "project examples; test"
       - name: Run tests on Flink API
         run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion1=${{ matrix.flink }} -DflinkVersion2=${{ matrix.flink }} "++ ${{ matrix.scala }}; project ${{ matrix.sbt-module }}; test"
