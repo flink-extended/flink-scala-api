@@ -1,13 +1,13 @@
 import sbtrelease.ReleaseStateTransformations.*
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
-Global / excludeLintKeys      := Set(git.useGitDescribe)
+Global / excludeLintKeys      := Set(git.useGitDescribe, crossScalaVersions)
 
 lazy val rootScalaVersion    = "3.3.5"
 lazy val crossVersions       = Seq("2.13.16", rootScalaVersion)
 lazy val flinkVersion1       = System.getProperty("flinkVersion1", "1.20.0")
 lazy val flinkVersion1MajMin = flinkVersion1.split("\\.").toList.take(2).mkString(".")
-lazy val flinkVersion2       = System.getProperty("flinkVersion2", "2.0-preview1")
+lazy val flinkVersion2       = System.getProperty("flinkVersion2", "2.0.0")
 
 lazy val root = (project in file("."))
   .aggregate(`scala-api-common`, `flink-1-api`, `flink-2-api`, `examples`)
@@ -118,46 +118,39 @@ lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
     )
   )
 
+def flinkDependencies(flinkVersion: String) =
+  Seq(
+    "org.apache.flink"  % "flink-streaming-java"        % flinkVersion  % Provided,
+    "org.apache.flink"  % "flink-java"                  % flinkVersion1 % Provided,
+    "org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion  % Provided,
+    "org.apache.flink"  % "flink-test-utils"            % flinkVersion  % Test,
+    ("org.apache.flink" % "flink-streaming-java"        % flinkVersion  % Test).classifier("tests"),
+    "org.typelevel"    %% "cats-core"                   % "2.13.0"      % Test,
+    "org.scalatest"    %% "scalatest"                   % "3.2.19"      % Test,
+    "ch.qos.logback"    % "logback-classic"             % "1.5.17"      % Test
+  )
+
 lazy val `flink-1-api` = (project in file("modules/flink-1-api"))
   .dependsOn(`scala-api-common`)
   .settings(commonSettings)
-  .settings(ReleaseProcess.releaseSettings(flinkVersion1) *)
   .settings(
     name               := "flink-scala-api-1",
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
-    libraryDependencies ++= Seq(
-      "org.apache.flink"  % "flink-streaming-java"        % flinkVersion1 % Provided,
-      "org.apache.flink"  % "flink-java"                  % flinkVersion1 % Provided,
-      "org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion1 % Provided,
-      "org.apache.flink"  % "flink-test-utils"            % flinkVersion1 % Test,
-      ("org.apache.flink" % "flink-streaming-java"        % flinkVersion1 % Test).classifier("tests"),
-      "org.typelevel"    %% "cats-core"                   % "2.13.0"      % Test,
-      "org.scalatest"    %% "scalatest"                   % "3.2.19"      % Test,
-      "ch.qos.logback"    % "logback-classic"             % "1.5.17"      % Test
-    )
+    libraryDependencies ++= flinkDependencies(flinkVersion1)
   )
 
 lazy val `flink-2-api` = (project in file("modules/flink-2-api"))
   .dependsOn(`scala-api-common`)
   .settings(commonSettings)
-  .settings(ReleaseProcess.releaseSettings(flinkVersion2) *)
   .settings(
     name               := "flink-scala-api-2",
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
-    libraryDependencies ++= Seq(
-      "org.apache.flink"  % "flink-streaming-java"        % flinkVersion2 % Provided,
-      "org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion2 % Provided,
-      "org.apache.flink"  % "flink-test-utils"            % flinkVersion2 % Test,
-      ("org.apache.flink" % "flink-streaming-java"        % flinkVersion2 % Test).classifier("tests"),
-      "org.typelevel"    %% "cats-core"                   % "2.13.0"      % Test,
-      "org.scalatest"    %% "scalatest"                   % "3.2.19"      % Test,
-      "ch.qos.logback"    % "logback-classic"             % "1.5.17"      % Test
-    )
+    libraryDependencies ++= flinkDependencies(flinkVersion2)
   )
 
-lazy val docs = project // new documentation project
+lazy val docs = project
   .in(file("modules/docs")) // important: it must not be docs/
   .settings(
     scalaVersion       := rootScalaVersion,
@@ -177,11 +170,12 @@ val flinkMajorAndMinorVersion =
 lazy val `examples` = (project in file("modules/examples"))
   .dependsOn(`flink-1-api`, `scala-api-common`)
   .settings(
-    scalaVersion   := rootScalaVersion,
+    scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq(rootScalaVersion),
-    Test / fork    := true,
-    publish / skip := true,
-    releaseProcess := Seq.empty[ReleaseStep], // Release for example is not needed
+    Test / fork        := true,
+    publish / skip     := true,
+    // Release process for the `examples` is not needed
+    releaseProcess := Seq.empty[ReleaseStep],
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-runtime-web"          % flinkVersion1                 % Provided,
       "org.apache.flink" % "flink-clients"              % flinkVersion1                 % Provided,
