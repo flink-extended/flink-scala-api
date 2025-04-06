@@ -26,7 +26,9 @@ jobs:
           - scala: 3.3.5
             java: 17
             flink: 2.0.0          
-            sbt-module: 'flink-2-api'  
+            sbt-module: 'flink-2-api' 
+    env:
+      JAVA_OPTIONS: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" 
     steps:
       - uses: actions/checkout@v3
         with:
@@ -38,10 +40,14 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: sbt
       - name: Compile Docs
-        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt "++ ${{ matrix.scala }} docs/mdoc"
+        run: $JAVA_OPTIONS sbt "++ ${{ matrix.scala }} docs/mdoc"
       - name: Run tests on examples
         # always running on Scala 3.x version by default
         if: ${{ startsWith(matrix.flink, '1.') }}
-        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion1=${{ matrix.flink }} "project examples; test"
-      - name: Run tests on Flink API
-        run: JAVA_OPTS="--add-opens java.base/java.lang=ALL-UNNAMED" sbt -DflinkVersion1=${{ matrix.flink }} -DflinkVersion2=${{ matrix.flink }} "++ ${{ matrix.scala }}; project ${{ matrix.sbt-module }}; test"
+        run: $JAVA_OPTIONS sbt -DflinkVersion1=${{ matrix.flink }} "project examples; test"
+      - name: Run tests on Flink API 1.x
+        if: ${{ startsWith(matrix.flink, '1.') }}
+        run: $JAVA_OPTIONS sbt -DflinkVersion1=${{ matrix.flink }} "++ ${{ matrix.scala }}; project ${{ matrix.sbt-module }}; test"
+      - name: Run tests on Flink API 2.x
+        if: ${{ startsWith(matrix.flink, '2.') }}
+        run: $JAVA_OPTIONS sbt -DflinkVersion2=${{ matrix.flink }} "++ ${{ matrix.scala }}; project ${{ matrix.sbt-module }}; test"
