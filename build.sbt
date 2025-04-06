@@ -5,7 +5,7 @@ Global / excludeLintKeys      := Set(git.useGitDescribe, crossScalaVersions)
 
 lazy val rootScalaVersion    = "3.3.5"
 lazy val crossVersions       = Seq("2.13.16", rootScalaVersion)
-lazy val flinkVersion1       = System.getProperty("flinkVersion1", "1.20.0")
+lazy val flinkVersion1       = System.getProperty("flinkVersion1", "1.20.1")
 lazy val flinkVersion1MajMin = flinkVersion1.split("\\.").toList.take(2).mkString(".")
 lazy val flinkVersion2       = System.getProperty("flinkVersion2", "2.0.0")
 
