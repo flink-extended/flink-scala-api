@@ -36,7 +36,9 @@ object ScalaCaseObjectSerializer {
     }
 
     override def getCurrentVersion: Int = 1
-    override def resolveSchemaCompatibility(newSerializer: TypeSerializerSnapshot[T]): TypeSerializerSchemaCompatibility[T] =
+    override def resolveSchemaCompatibility(
+        newSerializer: TypeSerializerSnapshot[T]
+    ): TypeSerializerSchemaCompatibility[T] =
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 
     override def restoreSerializer(): TypeSerializer[T] =

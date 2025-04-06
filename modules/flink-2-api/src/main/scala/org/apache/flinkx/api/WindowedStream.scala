@@ -416,7 +416,7 @@ class WindowedStream[T, K, W <: Window](javaStream: JavaWStream[T, K, W]) {
     val applyFunction   = new ScalaWindowFunction[T, R, K, W](cleanedFunction)
 
     asScalaStream(javaStream.apply(applyFunction, implicitly[TypeInformation[R]]))
-  }  
+  }
 
   // ------------------------------------------------------------------------
   //  Aggregations on the keyed windows

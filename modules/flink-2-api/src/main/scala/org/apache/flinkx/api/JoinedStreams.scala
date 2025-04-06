@@ -11,10 +11,10 @@ import org.apache.flink.streaming.api.datastream.{
 }
 import org.apache.flink.streaming.api.windowing.assigners.WindowAssigner
 import org.apache.flink.streaming.api.windowing.evictors.Evictor
-//import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.triggers.Trigger
 import org.apache.flink.streaming.api.windowing.windows.Window
 import org.apache.flink.util.Collector
+import org.apache.flink.util.TaggedUnion
 import ScalaStreamOps._
 
 import java.time.Duration;
@@ -89,7 +89,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
         */
       @PublicEvolving
       def window[W <: Window](
-          assigner: WindowAssigner[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], W]
+          assigner: WindowAssigner[_ >: TaggedUnion[T1, T2], W]
       ): WithWindow[W] = {
         if (keySelector1 == null || keySelector2 == null) {
           throw new UnsupportedOperationException(
@@ -106,16 +106,16 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
         *   Type of {@@linkWindow} on which the join operation works.
         */
       class WithWindow[W <: Window](
-          windowAssigner: WindowAssigner[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], W],
-          trigger: Trigger[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W],
-          evictor: Evictor[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W],
+          windowAssigner: WindowAssigner[_ >: TaggedUnion[T1, T2], W],
+          trigger: Trigger[_ >: TaggedUnion[T1, T2], _ >: W],
+          evictor: Evictor[_ >: TaggedUnion[T1, T2], _ >: W],
           val allowedLateness: Duration
       ) {
 
         /** Sets the [[Trigger]] that should be used to trigger window emission.
           */
         @PublicEvolving
-        def trigger(newTrigger: Trigger[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
+        def trigger(newTrigger: Trigger[_ >: TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
           new WithWindow[W](windowAssigner, newTrigger, evictor, allowedLateness)
         }
 
@@ -125,7 +125,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
           * results cannot be used.
           */
         @PublicEvolving
-        def evictor(newEvictor: Evictor[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
+        def evictor(newEvictor: Evictor[_ >: TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
           new WithWindow[W](windowAssigner, trigger, newEvictor, allowedLateness)
         }
 

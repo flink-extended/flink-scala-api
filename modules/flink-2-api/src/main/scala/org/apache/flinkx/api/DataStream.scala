@@ -76,7 +76,7 @@ class DataStream[T](stream: JavaStream[T]) {
     */
   def executionConfig: ExecutionConfig = stream.getExecutionConfig
 
-  def serializerConfig: SerializerConfig = 
+  def serializerConfig: SerializerConfig =
     stream.getExecutionEnvironment().getConfig().getSerializerConfig()
 
   /** Returns the [[StreamExecutionEnvironment]] associated with this data stream
@@ -315,7 +315,7 @@ class DataStream[T](stream: JavaStream[T]) {
     */
   @PublicEvolving
   def connect[R](broadcastStream: BroadcastStream[R]): BroadcastConnectedStream[T, R] =
-    asScalaStream(stream.connect(broadcastStream))  
+    asScalaStream(stream.connect(broadcastStream))
 
   /** Groups the elements of a DataStream by the given K key to be used with grouped operators like grouped reduce or
     * grouped aggregations.
@@ -724,10 +724,9 @@ class DataStream[T](stream: JavaStream[T]) {
 
   /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
     * StreamExecutionEnvironment.execute(...) method is called.
-    *    
-    */  
+    */
   def sinkTo(sink: org.apache.flink.api.connector.sink2.Sink[T]): DataStreamSink[T] =
-    stream.sinkTo(sink)  
+    stream.sinkTo(sink)
 
   /** Triggers the distributed execution of the streaming dataflow and returns an iterator over the elements of the
     * given DataStream.

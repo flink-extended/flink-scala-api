@@ -57,7 +57,9 @@ object MappedSerializer {
       ser = InstantiationUtil.instantiate(serClazz)
     }
 
-    override def resolveSchemaCompatibility(newSerializer: TypeSerializerSnapshot[A]): TypeSerializerSchemaCompatibility[A] =
+    override def resolveSchemaCompatibility(
+        newSerializer: TypeSerializerSnapshot[A]
+    ): TypeSerializerSchemaCompatibility[A] =
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 
     override def writeSnapshot(out: DataOutputView): Unit = {

@@ -414,7 +414,8 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S]     = stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
+    val serializer: TypeSerializer[S] =
+      stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
 
     val filterFun = new RichFilterFunction[T] with StatefulFunction[T, Boolean, S] {
 
@@ -440,7 +441,8 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S]     = stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
+    val serializer: TypeSerializer[S] =
+      stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
 
     val mapper = new RichMapFunction[T, R] with StatefulFunction[T, R, S] {
 
@@ -469,7 +471,8 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S]     = stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
+    val serializer: TypeSerializer[S] =
+      stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
 
     val flatMapper = new RichFlatMapFunction[T, R] with StatefulFunction[T, IterableOnce[R], S] {
 

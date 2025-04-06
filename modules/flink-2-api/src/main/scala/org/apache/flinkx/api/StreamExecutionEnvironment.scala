@@ -292,8 +292,8 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
     *   #setDefaultSavepointDirectory(Path)
     */
   @PublicEvolving
-  def getDefaultSavepointDirectory: Path = javaEnv.getDefaultSavepointDirectory  
-    
+  def getDefaultSavepointDirectory: Path = javaEnv.getDefaultSavepointDirectory
+
   /** Sets all relevant options contained in the [[ReadableConfig]] such as e.g.
     * [[org.apache.flink.streaming.api.environment.StreamPipelineOptions#TIME_CHARACTERISTIC]]. It will reconfigure
     * [[StreamExecutionEnvironment]], [[org.apache.flink.api.common.ExecutionConfig]] and
@@ -453,7 +453,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
       asScalaStream(javaEnv.createInput(inputFormat))
     } else {
       asScalaStream(javaEnv.createInput(inputFormat, implicitly[TypeInformation[T]]))
-    }  
+    }
 
   /** Create a DataStream using a [[Source]]. */
   @Experimental

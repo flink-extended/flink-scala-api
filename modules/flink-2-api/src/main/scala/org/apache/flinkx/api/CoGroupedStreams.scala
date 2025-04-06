@@ -11,6 +11,7 @@ import org.apache.flink.streaming.api.windowing.evictors.Evictor
 import org.apache.flink.streaming.api.windowing.triggers.Trigger
 import org.apache.flink.streaming.api.windowing.windows.Window
 import org.apache.flink.util.Collector
+import org.apache.flink.util.TaggedUnion
 import ScalaStreamOps._
 import scala.jdk.CollectionConverters._
 
@@ -84,7 +85,7 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
         */
       @PublicEvolving
       def window[W <: Window](
-          assigner: WindowAssigner[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], W]
+          assigner: WindowAssigner[_ >: TaggedUnion[T1, T2], W]
       ): WithWindow[W] = {
         if (keySelector1 == null || keySelector2 == null) {
           throw new UnsupportedOperationException(
@@ -101,15 +102,15 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
         */
       @PublicEvolving
       class WithWindow[W <: Window](
-          windowAssigner: WindowAssigner[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], W],
-          trigger: Trigger[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W],
-          evictor: Evictor[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W]          
+          windowAssigner: WindowAssigner[_ >: TaggedUnion[T1, T2], W],
+          trigger: Trigger[_ >: TaggedUnion[T1, T2], _ >: W],
+          evictor: Evictor[_ >: TaggedUnion[T1, T2], _ >: W]
       ) {
 
         /** Sets the [[Trigger]] that should be used to trigger window emission.
           */
         @PublicEvolving
-        def trigger(newTrigger: Trigger[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
+        def trigger(newTrigger: Trigger[_ >: TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
           new WithWindow[W](windowAssigner, newTrigger, evictor)
         }
 
@@ -119,9 +120,9 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
           * results cannot be used.
           */
         @PublicEvolving
-        def evictor(newEvictor: Evictor[_ >: JavaCoGroupedStreams.TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
+        def evictor(newEvictor: Evictor[_ >: TaggedUnion[T1, T2], _ >: W]): WithWindow[W] = {
           new WithWindow[W](windowAssigner, trigger, newEvictor)
-        }        
+        }
 
         /** Completes the co-group operation with the user function that is executed for windowed groups.
           */
@@ -171,7 +172,7 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
               .equalTo(keySelector2)
               .window(windowAssigner)
               .trigger(trigger)
-              .evictor(evictor)              
+              .evictor(evictor)
               .apply(clean(function), implicitly[TypeInformation[T]])
           )
         }
