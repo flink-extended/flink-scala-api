@@ -28,7 +28,7 @@ jobs:
             flink: 2.0.0          
             sbt-module: 'flink-2-api' 
     env:
-      JAVA_OPTIONS: JAVA_OPTS='--add-opens java.base/java.lang=ALL-UNNAMED'
+      JAVA_OPTIONS: 'JAVA_OPTS=\"--add-opens java.base/java.lang=ALL-UNNAMED\"'
     steps:
       - uses: actions/checkout@v3
         with:
