@@ -112,6 +112,7 @@ lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
     name               := "flink-scala-api-common",
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
+    publish / skip     := true,
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Provided
     )
@@ -180,6 +181,7 @@ lazy val `examples` = (project in file("modules/examples"))
       "org.apache.flink" % "flink-runtime-web"          % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-clients"              % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-state-processor-api"  % flinkVersion1 % Provided,
+      // Kafka Connector version is weird and to be set here manually
       "org.apache.flink" % "flink-connector-kafka"      % s"3.4.0-1.20" % Provided,
       "org.apache.flink" % "flink-connector-files"      % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-table-runtime"        % flinkVersion1 % Provided,
