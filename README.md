@@ -56,15 +56,15 @@ val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
 
 `flink-scala-api` is released to Maven-central for 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
-libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.18.1_1.2.1"
+libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.2.5"
 ```
 
 ## For Ammonite
 
 ```scala
-import $ivy.`org.flinkextended::flink-scala-api:1.18.1_1.2.1`
+import $ivy.`org.flinkextended::flink-scala-api:1.2.5`
 // you might need flink-client too in order to run in the REPL
-import $ivy.`org.apache.flink:flink-clients:1.18.1`
+import $ivy.`org.apache.flink:flink-clients:1.20.1`
 ```
 
 ## For Scala 2.12
@@ -100,10 +100,8 @@ If you want to create new project easily check this __Giter8 template__ out: [no
 
 ## Supported Flink versions
 
-- `flink-scala-api` version consists of Flink version plus Scala API version, for example 1.18.1_1.1.6
-- First three numbers correspond to the Flink Version, for example 1.18.1
-- Three more numbers is this project version, for example 1.1.6. You should just use the latest available Scala API project version in your project dependency configuration. 
-- Three major Flink versions are supported. See supported version in the local [release.sh](release.sh) file.
+Three latest Flink 1.x and one Flink 2.y versions are supported. 
+See supported version in the local [ci.yml](.github/workflows/ci.yml) file.
 
 We suggest to remove the official `flink-scala` and `flink-streaming-scala` deprecated dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. `flink-scala` dependency is embedding Scala version 2.12.7:
 - If you keep them, in order to use the Scala version of your choice, remove `scala` package from `classloader.parent-first-patterns.default` Flink's configuration property:
@@ -159,7 +157,7 @@ classes the compile times are quite high.
 ### Using a POJO-only Flink serialization framework
 
 If you don't want to use built-in Scala serializers for some reasons, you can always fall back to the Flink
-[POJO serializer](https://nightlies.apache.org/flink/flink-docs-release-1.15/docs/dev/datastream/fault-tolerance/serialization/types_serialization/#rules-for-pojo-types),
+[POJO serializer](https://nightlies.apache.org/flink/flink-docs-release-1.19/docs/dev/datastream/fault-tolerance/serialization/types_serialization/#rules-for-pojo-types),
 explicitly calling it:
 ```scala mdoc:reset-object
 import org.apache.flink.api.common.typeinfo.TypeInformation
@@ -461,7 +459,7 @@ sh release.sh
 Increment to next SNAPSHOT version and push to Git server:
 
 ```bash
-RELEASE_PUBLISH=true sbt "; project scala-api; release with-defaults"
+RELEASE_PUBLISH=true sbt "; release with-defaults"
 ```
 
 ## License
