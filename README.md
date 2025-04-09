@@ -62,7 +62,7 @@ libraryDependencies += "org.flinkextended" %% "flink-scala-api" % "1.2.5"
 ## For Ammonite
 
 ```scala
-import $ivy.`org.flinkextended::flink-scala-api:1.2.5`
+import $ivy.`org.flinkextended::flink-scala-api-1:1.2.5`
 // you might need flink-client too in order to run in the REPL
 import $ivy.`org.apache.flink:flink-clients:1.20.1`
 ```
