@@ -1,9 +1,9 @@
-//> using dep "org.flinkextended::flink-scala-api:1.18.1_1.2.4"
-//> using dep "org.apache.flink:flink-clients:1.18.1"
-//> using dep "org.apache.flink:flink-csv:1.18.1"
-//> using dep "org.apache.flink:flink-connector-files:1.18.1"
-//> using dep "org.apache.flink:flink-table-runtime:1.18.1"
-//> using dep "org.apache.flink:flink-table-planner-loader:1.18.1"
+//> using dep "org.flinkextended::flink-scala-api-1:1.2.6"
+//> using dep "org.apache.flink:flink-clients:1.20.1"
+//> using dep "org.apache.flink:flink-csv:1.20.1"
+//> using dep "org.apache.flink:flink-connector-files:1.20.1"
+//> using dep "org.apache.flink:flink-table-runtime:1.20.1"
+//> using dep "org.apache.flink:flink-table-planner-loader:1.20.1"
 
 import org.apache.flink.table.api._
 import org.apache.flink.connector.datagen.table.DataGenConnectorOptions
