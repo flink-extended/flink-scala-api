@@ -100,8 +100,8 @@ If you want to create new project easily check this __Giter8 template__ out: [no
 
 ## Supported Flink versions
 
-Three latest Flink 1.x and one Flink 2.y versions are supported. 
-See supported version in the local [ci.yml](.github/workflows/ci.yml) file.
+Three latest of Apache Flink 1.x and one Flink 2.y versions are supported. 
+See excact supported versions in the local [ci.yml](.github/workflows/ci.yml#L16) file.
 
 We suggest to remove the official `flink-scala` and `flink-streaming-scala` deprecated dependencies altogether to simplify the migration and do not to mix two flavors of API in the same project. `flink-scala` dependency is embedding Scala version 2.12.7:
 - If you keep them, in order to use the Scala version of your choice, remove `scala` package from `classloader.parent-first-patterns.default` Flink's configuration property:
