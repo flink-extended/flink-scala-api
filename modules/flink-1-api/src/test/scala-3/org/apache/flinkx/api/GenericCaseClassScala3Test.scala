@@ -1,8 +1,9 @@
 package org.apache.flinkx.api
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flinkx.api.serializer.{CoproductSerializer, ListCCSerializer, ScalaCaseClassSerializer}
 import org.apache.flinkx.api.serializers.*
-import org.apache.flinkx.api.typeinfo.ProductTypeInformation
+import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -45,6 +46,58 @@ class GenericCaseClassScala3Test extends AnyFlatSpec with should.Matchers {
     aBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs aInfo
   }
 
+  "Nested generics" should "be resolved correctly" in {
+    println("int")
+    val intTypeInfo: TypeInformation[Option[Option[Int]]] = generateTypeInfo[Int]
+    println("string")
+    val stringTypeInfo: TypeInformation[Option[Option[String]]] = generateTypeInfo[String]
+
+    val intSerializer = intTypeInfo
+      .asInstanceOf[CoproductTypeInformation[Option[Option[Int]]]]
+      .ser
+      .asInstanceOf[CoproductSerializer[Option[Int]]]
+      .sers(1)
+      .asInstanceOf[ScalaCaseClassSerializer[Option[Int]]]
+
+    val stringSerializer = stringTypeInfo
+      .asInstanceOf[CoproductTypeInformation[Option[Option[String]]]]
+      .ser
+      .asInstanceOf[CoproductSerializer[Option[String]]]
+      .sers(1)
+      .asInstanceOf[ScalaCaseClassSerializer[Option[String]]]
+
+    stringSerializer shouldNot be theSameInstanceAs intSerializer
+  }
+
+  it should "work with multiple type parameters" in {
+    val intTypeInfo  = generateEitherTypeInfo[Int]
+    val boolTypeInfo = generateEitherTypeInfo[Boolean]
+
+    val intSerializer = intTypeInfo
+      .asInstanceOf[CoproductTypeInformation[Either[Option[Int], Int]]]
+      .ser
+      .asInstanceOf[CoproductSerializer[Option[Int]]]
+      .sers(1)
+      .asInstanceOf[ScalaCaseClassSerializer[Option[Int]]]
+
+    val boolSerializer = boolTypeInfo
+      .asInstanceOf[CoproductTypeInformation[Either[Option[Boolean], Int]]]
+      .ser
+      .asInstanceOf[CoproductSerializer[Option[Boolean]]]
+      .sers(1)
+      .asInstanceOf[ScalaCaseClassSerializer[Option[Boolean]]]
+
+    boolSerializer shouldNot be theSameInstanceAs intSerializer
+
+  }
+
+  def generateTypeInfo[A: TypeInformation]: TypeInformation[Option[Option[A]]] = {
+    deriveTypeInformation
+  }
+
+  def generateEitherTypeInfo[A: TypeInformation]: TypeInformation[Either[Option[A], Int]] = {
+    deriveTypeInformation
+  }
 }
 
 object GenericCaseClassScala3Test {
