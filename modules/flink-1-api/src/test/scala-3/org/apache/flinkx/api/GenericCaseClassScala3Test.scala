@@ -1,8 +1,9 @@
 package org.apache.flinkx.api
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flinkx.api.serializer.{CoproductSerializer, ListCCSerializer, ScalaCaseClassSerializer}
 import org.apache.flinkx.api.serializers.*
-import org.apache.flinkx.api.typeinfo.ProductTypeInformation
+import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
@@ -45,6 +46,28 @@ class GenericCaseClassScala3Test extends AnyFlatSpec with should.Matchers {
     aBasketInfo.asInstanceOf[ProductTypeInformation[A]].getFieldTypes()(0) should be theSameInstanceAs aInfo
   }
 
+  "Nested generics" should "be resolved correctly" in {
+    val intTypeInfo: TypeInformation[Option[Option[Int]]] = generateTypeInfo[Int]
+    val stringTypeInfo: TypeInformation[Option[Option[String]]] = generateTypeInfo[String]
+
+    intTypeInfo shouldNot be theSameInstanceAs stringTypeInfo
+  }
+
+  it should "work with multiple type parameters" in {
+    val intTypeInfo  = generateEitherTypeInfo[Int]
+    val boolTypeInfo = generateEitherTypeInfo[Boolean]
+
+    intTypeInfo shouldNot be theSameInstanceAs boolTypeInfo
+
+  }
+
+  def generateTypeInfo[A: TypeInformation]: TypeInformation[Option[Option[A]]] = {
+    deriveTypeInformation
+  }
+
+  def generateEitherTypeInfo[A: TypeInformation]: TypeInformation[Either[Option[A], Int]] = {
+    deriveTypeInformation
+  }
 }
 
 object GenericCaseClassScala3Test {
