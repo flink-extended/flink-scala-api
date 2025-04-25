@@ -1,33 +1,23 @@
 package org.apache.flinkx.api
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import org.apache.flinkx.api.SerializerSnapshotTest.{
-  ADT2,
-  OuterTrait,
-  SimpleClass1,
-  SimpleClassArray,
-  SimpleClassList,
-  SimpleClassMap1,
-  SimpleClassMap2,
-  TraitMap
-}
-import org.apache.flink.api.common.typeutils.TypeSerializer
-import org.apache.flink.api.common.ExecutionConfig
+import org.apache.flink.api.common.serialization.SerializerConfigImpl
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
+import org.apache.flink.util.ChildFirstClassLoader
+import org.apache.flinkx.api.SerializerSnapshotTest.*
+import org.apache.flinkx.api.serializers.*
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flinkx.api.serializers._
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.common.ExecutionConfig
-import org.apache.flink.util.ChildFirstClassLoader
-import org.scalatest.Assertion
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.net.URLClassLoader
 
 class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
-  def createSerializer[T: TypeInformation] =
-    implicitly[TypeInformation[T]].createSerializer(new ExecutionConfig())
+  def createSerializer[T: TypeInformation]: TypeSerializer[T] =
+    implicitly[TypeInformation[T]].createSerializer(new SerializerConfigImpl())
 
   it should "roundtrip product serializer snapshot" in {
     val ser = createSerializer[SimpleClass1]
@@ -90,11 +80,11 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val snap   = ser.snapshotConfiguration()
     val buffer = new ByteArrayOutputStream()
     val output = new DataOutputViewStreamWrapper(buffer)
-    snap.writeSnapshot(output)
+    TypeSerializerSnapshot.writeVersionedSnapshot(output, snap)
     output.close()
     val input = new DataInputViewStreamWrapper(new ByteArrayInputStream(buffer.toByteArray))
-    snap.readSnapshot(ser.snapshotConfiguration().getCurrentVersion, input, cl)
-    snap.restoreSerializer()
+    val deserSnap = TypeSerializerSnapshot.readVersionedSnapshot[T](input, cl)
+    deserSnap.restoreSerializer()
   }
 
   def assertRoundtripSerializer[T](ser: TypeSerializer[T]): Assertion = {

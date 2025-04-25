@@ -1,10 +1,10 @@
 package org.apache.flinkx.api.serializer
 
-import org.apache.flinkx.api.serializer.ScalaCaseObjectSerializer.ScalaCaseObjectSerializerSnapshot
-import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.api.common.typeutils.base.TypeSerializerSingleton
+import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
+import org.apache.flinkx.api.serializer.ScalaCaseObjectSerializer.ScalaCaseObjectSerializerSnapshot
 
 class ScalaCaseObjectSerializer[T](clazz: Class[T]) extends TypeSerializerSingleton[T] {
   override def isImmutableType: Boolean                                  = true
@@ -37,7 +37,7 @@ object ScalaCaseObjectSerializer {
 
     override def getCurrentVersion: Int = 1
     override def resolveSchemaCompatibility(
-        newSerializer: TypeSerializerSnapshot[T]
+        oldSerializerSnapshot: TypeSerializerSnapshot[T]
     ): TypeSerializerSchemaCompatibility[T] =
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 
