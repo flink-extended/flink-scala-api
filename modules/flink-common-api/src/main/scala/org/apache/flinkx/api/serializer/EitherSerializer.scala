@@ -28,7 +28,7 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 class EitherSerializer[A, B](
     val leftSerializer: TypeSerializer[A],
     val rightSerializer: TypeSerializer[B]
-) extends TypeSerializer[Either[A, B]] {
+) extends MutableSerializer[Either[A, B]] {
 
   override def duplicate: EitherSerializer[A, B] = {
     val leftDup  = leftSerializer.duplicate()
@@ -53,11 +53,10 @@ class EitherSerializer[A, B](
   override def getLength: Int = -1
 
   override def copy(from: Either[A, B]): Either[A, B] = from match {
-    case Left(a)  => Left(leftSerializer.copy(a))
-    case Right(b) => Right(rightSerializer.copy(b))
+    case Left(a)  => if (leftSerializer.isImmutableType) from else Left(leftSerializer.copy(a))
+    case Right(b) => if (rightSerializer.isImmutableType) from else Right(rightSerializer.copy(b))
+    case null => from
   }
-
-  override def copy(from: Either[A, B], reuse: Either[A, B]): Either[A, B] = copy(from)
 
   override def copy(source: DataInputView, target: DataOutputView): Unit = {
     val isLeft = source.readBoolean()
@@ -79,15 +78,6 @@ class EitherSerializer[A, B](
   }
 
   override def deserialize(source: DataInputView): Either[A, B] = {
-    val isLeft = source.readBoolean()
-    if (isLeft) {
-      Left(leftSerializer.deserialize(source))
-    } else {
-      Right(rightSerializer.deserialize(source))
-    }
-  }
-
-  override def deserialize(reuse: Either[A, B], source: DataInputView): Either[A, B] = {
     val isLeft = source.readBoolean()
     if (isLeft) {
       Left(leftSerializer.deserialize(source))

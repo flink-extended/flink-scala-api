@@ -5,7 +5,18 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.serializer.MappedSerializer.{MappedSerializerSnapshot, TypeMapper}
 
-case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[B]) extends SimpleSerializer[A] {
+case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[B]) extends MutableSerializer[A] {
+
+  override val isImmutableType: Boolean = ser.isImmutableType
+
+  override def copy(from: A): A = {
+    if (from == null || isImmutableType) {
+      from
+    } else {
+      mapper.contramap(ser.copy(mapper.map(from)))
+    }
+  }
+
   override def equals(obj: Any): Boolean = ser.equals(obj)
 
   override def toString: String = ser.toString

@@ -11,6 +11,8 @@ import scala.language.experimental.macros
 import scala.reflect._
 import scala.reflect.runtime.universe.{Try => _, _}
 
+import java.lang.reflect.Modifier
+
 private[api] trait LowPrioImplicits {
   type Typeclass[T] = TypeInformation[T]
 
@@ -31,7 +33,9 @@ private[api] trait LowPrioImplicits {
         } else {
           new ScalaCaseClassSerializer[T](
             clazz = clazz,
-            scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray
+            scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray,
+            isCaseClassImmutable =
+              ctx.params.forall(p => Modifier.isFinal(clazz.getDeclaredField(p.label).getModifiers))
           )
         }
         val ti = new ProductTypeInformation[T](

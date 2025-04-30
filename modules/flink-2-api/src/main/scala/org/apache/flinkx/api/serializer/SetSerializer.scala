@@ -3,7 +3,18 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
-class SetSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends SimpleSerializer[Set[T]] {
+class SetSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends MutableSerializer[Set[T]] {
+
+  override val isImmutableType: Boolean = child.isImmutableType
+
+  override def copy(from: Set[T]): Set[T] = {
+    if (from == null || isImmutableType) {
+      from
+    } else {
+      from.map(child.copy)
+    }
+  }
+
   override def createInstance(): Set[T] = Set.empty[T]
   override def getLength: Int           = -1
   override def deserialize(source: DataInputView): Set[T] = {

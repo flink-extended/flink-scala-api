@@ -34,13 +34,14 @@ import scala.util.{Failure, Success, Try}
 @SerialVersionUID(7341356073446263475L)
 abstract class CaseClassSerializer[T <: Product](
     clazz: Class[T],
-    scalaFieldSerializers: Array[TypeSerializer[_]]
+    scalaFieldSerializers: Array[TypeSerializer[_]],
+    val isCaseClassImmutable: Boolean
 ) extends TupleSerializerBase[T](clazz, scalaFieldSerializers)
     with Cloneable {
 
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
-  override def isImmutableType: Boolean =
+  override val isImmutableType: Boolean = isCaseClassImmutable &&
     scalaFieldSerializers.forall(s => Option(s).exists(_.isImmutableType))
 
   override def duplicate: CaseClassSerializer[T] =
@@ -71,8 +72,8 @@ abstract class CaseClassSerializer[T <: Product](
     copy(from)
 
   def copy(from: T): T =
-    if (from == null) {
-      null.asInstanceOf[T]
+    if (from == null || isImmutableType) {
+      from
     } else {
       val fields = (0 until arity).map(i => fieldSerializers(i).copy(from.productElement(i).asInstanceOf[AnyRef]))
       createInstance(fields.toArray)

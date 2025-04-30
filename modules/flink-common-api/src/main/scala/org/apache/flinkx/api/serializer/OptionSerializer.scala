@@ -25,7 +25,7 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
   */
 @Internal
 @SerialVersionUID(-8635243274072627338L)
-class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends TypeSerializer[Option[A]] {
+class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends MutableSerializer[Option[A]] {
 
   override def duplicate: OptionSerializer[A] = {
     val duplicatedElemSerializer = elemSerializer.duplicate()
@@ -39,16 +39,14 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends TypeSer
 
   override def createInstance: Option[A] = None
 
-  override def isImmutableType: Boolean = elemSerializer == null || elemSerializer.isImmutableType
+  override val isImmutableType: Boolean = elemSerializer == null || elemSerializer.isImmutableType
 
   override def getLength: Int = -1
 
   override def copy(from: Option[A]): Option[A] = from match {
-    case Some(a) => Some(elemSerializer.copy(a))
-    case None    => from
+    case Some(a) => if (isImmutableType) from else Some(elemSerializer.copy(a))
+    case _       => from
   }
-
-  override def copy(from: Option[A], reuse: Option[A]): Option[A] = copy(from)
 
   override def copy(source: DataInputView, target: DataOutputView): Unit = {
     val isSome = source.readBoolean()
@@ -74,8 +72,6 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends TypeSer
       None
     }
   }
-
-  override def deserialize(reuse: Option[A], source: DataInputView): Option[A] = deserialize(source)
 
   override def equals(obj: Any): Boolean = {
     obj match {

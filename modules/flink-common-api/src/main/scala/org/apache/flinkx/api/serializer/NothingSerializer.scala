@@ -27,15 +27,13 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
   * OptionTypeInfo when None is used, or for Either when one of the type parameters is Nothing.
   */
 @Internal
-class NothingSerializer extends TypeSerializer[Any] {
+class NothingSerializer extends ImmutableSerializer[Any] {
 
   override def duplicate: NothingSerializer = this
 
   override def createInstance: Any = {
     Integer.valueOf(-1)
   }
-
-  override def isImmutableType: Boolean = true
 
   override def getLength: Int = -1
 
@@ -44,16 +42,10 @@ class NothingSerializer extends TypeSerializer[Any] {
 
   override def copy(from: Any, reuse: Any): Any = copy(from)
 
-  override def copy(source: DataInputView, target: DataOutputView): Unit =
-    throw new RuntimeException("This must not be used. You encountered a bug.")
-
   override def serialize(any: Any, target: DataOutputView): Unit =
     throw new RuntimeException("This must not be used. You encountered a bug.")
 
   override def deserialize(source: DataInputView): Any =
-    throw new RuntimeException("This must not be used. You encountered a bug.")
-
-  override def deserialize(reuse: Any, source: DataInputView): Any =
     throw new RuntimeException("This must not be used. You encountered a bug.")
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[Any] =

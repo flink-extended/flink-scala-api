@@ -6,7 +6,7 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
 import java.util.function.Supplier
 
-class UnitSerializer extends SimpleSerializer[Unit] {
+class UnitSerializer extends ImmutableSerializer[Unit] {
   override def getLength: Int = 0
 
   override def serialize(record: Unit, target: DataOutputView): Unit = {}

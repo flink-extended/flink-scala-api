@@ -37,9 +37,10 @@ import static org.apache.flink.util.Preconditions.checkState;
 public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
         extends CompositeTypeSerializerSnapshot<T, ScalaCaseClassSerializer<T>> {
 
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
 
     private Class<T> type;
+    private boolean isCaseClassImmutable;
 
     /** Used via reflection. */
     @SuppressWarnings("unused")
@@ -51,6 +52,7 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
     public ScalaCaseClassSerializerSnapshot(ScalaCaseClassSerializer<T> serializerInstance) {
         super(serializerInstance);
         this.type = checkNotNull(serializerInstance.getTupleClass(), "tuple class can not be NULL");
+        this.isCaseClassImmutable = serializerInstance.isCaseClassImmutable();
     }
 
     @Override
@@ -68,13 +70,14 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
     protected ScalaCaseClassSerializer<T> createOuterSerializerWithNestedSerializers(
             TypeSerializer<?>[] nestedSerializers) {
         checkState(type != null, "type can not be NULL");
-        return new ScalaCaseClassSerializer<>(type, nestedSerializers);
+        return new ScalaCaseClassSerializer<>(type, nestedSerializers, isCaseClassImmutable);
     }
 
     @Override
     protected void writeOuterSnapshot(DataOutputView out) throws IOException {
         checkState(type != null, "type can not be NULL");
         out.writeUTF(type.getName());
+        out.writeBoolean(isCaseClassImmutable);
     }
 
     @Override
@@ -82,6 +85,8 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
             int readOuterSnapshotVersion, DataInputView in, ClassLoader userCodeClassLoader)
             throws IOException {
         this.type = InstantiationUtil.resolveClassByName(in, userCodeClassLoader);
+        // If reading a version of 2 or below, don't read the boolean and set isCaseClassImmutable to false
+        this.isCaseClassImmutable = readOuterSnapshotVersion > 2 && in.readBoolean();
     }
 
     @Override

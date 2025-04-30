@@ -28,8 +28,9 @@ import java.io.ObjectInputStream
 @SerialVersionUID(1L)
 class ScalaCaseClassSerializer[T <: Product](
     clazz: Class[T],
-    scalaFieldSerializers: Array[TypeSerializer[_]]
-) extends CaseClassSerializer[T](clazz, scalaFieldSerializers)
+    scalaFieldSerializers: Array[TypeSerializer[_]],
+    isCaseClassImmutable: Boolean
+) extends CaseClassSerializer[T](clazz, scalaFieldSerializers, isCaseClassImmutable)
     with ConstructorCompat {
   private[this] val numFields = scalaFieldSerializers.length
 
