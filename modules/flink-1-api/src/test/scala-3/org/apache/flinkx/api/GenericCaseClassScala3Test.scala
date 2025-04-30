@@ -47,7 +47,7 @@ class GenericCaseClassScala3Test extends AnyFlatSpec with should.Matchers {
   }
 
   "Nested generics" should "be resolved correctly" in {
-    val intTypeInfo: TypeInformation[Option[Option[Int]]] = generateTypeInfo[Int]
+    val intTypeInfo: TypeInformation[Option[Option[Int]]]       = generateTypeInfo[Int]
     val stringTypeInfo: TypeInformation[Option[Option[String]]] = generateTypeInfo[String]
 
     intTypeInfo shouldNot be theSameInstanceAs stringTypeInfo
