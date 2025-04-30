@@ -12,7 +12,7 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
     if (from == null || isImmutableType) {
       from
     } else {
-      from.map((k, v) => (ks.copy(k), vs.copy(v)))
+      from.map(element => (ks.copy(element._1), vs.copy(element._2)))
     }
   }
 
