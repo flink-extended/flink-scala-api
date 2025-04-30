@@ -2,7 +2,7 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flinkx.api.serializer.CoproductSerializerTest.{Immutable, Immutable2, Immutable3, Mutable, Mutable1}
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.serializers._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
