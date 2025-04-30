@@ -5,8 +5,8 @@ Global / excludeLintKeys      := Set(git.useGitDescribe, crossScalaVersions)
 
 lazy val rootScalaVersion = "3.3.5"
 lazy val crossVersions    = Seq("2.13.16", rootScalaVersion)
-lazy val flinkVersion1 = System.getProperty("flinkVersion1", "1.20.1")
-lazy val flinkVersion2 = System.getProperty("flinkVersion2", "2.0.0")
+lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.1")
+lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
 
 lazy val root = (project in file("."))
   .aggregate(`scala-api-common`, `flink-1-api`, `flink-2-api`, `examples`)
@@ -111,7 +111,7 @@ lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
   .settings(
     name               := "flink-scala-api-common",
     scalaVersion       := rootScalaVersion,
-    crossScalaVersions := crossVersions, 
+    crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Provided
     )
@@ -177,15 +177,15 @@ lazy val `examples` = (project in file("modules/examples"))
     // Release process for the `examples` is not needed
     releaseProcess := Seq.empty[ReleaseStep],
     libraryDependencies ++= Seq(
-      "org.apache.flink" % "flink-runtime-web"          % flinkVersion1 % Provided,
-      "org.apache.flink" % "flink-clients"              % flinkVersion1 % Provided,
-      "org.apache.flink" % "flink-state-processor-api"  % flinkVersion1 % Provided,
+      "org.apache.flink" % "flink-runtime-web"         % flinkVersion1 % Provided,
+      "org.apache.flink" % "flink-clients"             % flinkVersion1 % Provided,
+      "org.apache.flink" % "flink-state-processor-api" % flinkVersion1 % Provided,
       // Kafka Connector version is weird and to be set here manually
       "org.apache.flink" % "flink-connector-kafka"      % s"3.4.0-1.20" % Provided,
       "org.apache.flink" % "flink-connector-files"      % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-table-runtime"        % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-table-planner-loader" % flinkVersion1 % Provided,
-      "io.bullet"       %% "borer-core"                 % "1.16.0"      % Provided,
+      "io.bullet"       %% "borer-core"                 % "1.16.1"      % Provided,
       "ch.qos.logback"   % "logback-classic"            % "1.4.14"      % Provided,
       "org.apache.flink" % "flink-test-utils"           % flinkVersion1 % Test,
       "org.apache.flink" % "flink-streaming-java"       % flinkVersion1 % Test classifier "tests",
