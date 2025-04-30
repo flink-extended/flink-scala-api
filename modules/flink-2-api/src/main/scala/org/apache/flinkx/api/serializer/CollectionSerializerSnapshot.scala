@@ -4,27 +4,36 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSche
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
 
-class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]] extends TypeSerializerSnapshot[F[T]] {
-  def this(ser: TypeSerializer[T], serClass: Class[S], valueClass: Class[T]) = {
-    this()
-    nestedSerializer = ser
-    clazz = serClass
-    vclazz = valueClass
-  }
+/** Generic serializer snapshot for collection.
+  *
+  * @param nestedSerializer
+  *   the serializer of `T`
+  * @param clazz
+  *   the class of `S`
+  * @param vclazz
+  *   the class of `T`
+  * @tparam F
+  *   the type of the serialized collection
+  * @tparam T
+  *   the type of the collection's elements
+  * @tparam S
+  *   the type of the collection serializer
+  */
+class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
+    var nestedSerializer: TypeSerializer[T],
+    var clazz: Class[S],
+    var vclazz: Class[T]
+) extends TypeSerializerSnapshot[F[T]] {
 
-  var nestedSerializer: TypeSerializer[T] = _
-  var clazz: Class[S]                     = _
-  var vclazz: Class[T]                    = _
+  // Empty constructor is required to instantiate this class during deserialization.
+  def this() = this(null, null, null)
 
-  override def getCurrentVersion: Int = 1
+  override def getCurrentVersion: Int = 2
 
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
     clazz = InstantiationUtil.resolveClassByName[S](in, userCodeClassLoader)
     vclazz = InstantiationUtil.resolveClassByName[T](in, userCodeClassLoader)
-    val snapClass      = InstantiationUtil.resolveClassByName[TypeSerializerSnapshot[T]](in, userCodeClassLoader)
-    val nestedSnapshot = InstantiationUtil.instantiate(snapClass)
-    nestedSnapshot.readSnapshot(nestedSnapshot.getCurrentVersion, in, userCodeClassLoader)
-    nestedSerializer = nestedSnapshot.restoreSerializer()
+    nestedSerializer = TypeSerializerSnapshot.readVersionedSnapshot[T](in, userCodeClassLoader).restoreSerializer()
   }
 
   override def writeSnapshot(out: DataOutputView): Unit = {
@@ -40,17 +49,16 @@ class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]] extends T
       case "boolean" => out.writeUTF("java.lang.Boolean")
       case other     => out.writeUTF(other)
     }
-
-    out.writeUTF(nestedSerializer.snapshotConfiguration().getClass.getName)
-    nestedSerializer.snapshotConfiguration().writeSnapshot(out)
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, nestedSerializer.snapshotConfiguration())
   }
 
   override def resolveSchemaCompatibility(
-      newSerializer: TypeSerializerSnapshot[F[T]]
+      oldSerializerSnapshot: TypeSerializerSnapshot[F[T]]
   ): TypeSerializerSchemaCompatibility[F[T]] = TypeSerializerSchemaCompatibility.compatibleAsIs()
 
   override def restoreSerializer(): TypeSerializer[F[T]] = {
     val constructor = clazz.getConstructors()(0)
     constructor.newInstance(nestedSerializer, vclazz).asInstanceOf[TypeSerializer[F[T]]]
   }
+
 }

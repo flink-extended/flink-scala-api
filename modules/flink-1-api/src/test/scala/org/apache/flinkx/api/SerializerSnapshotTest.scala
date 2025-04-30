@@ -11,8 +11,7 @@ import org.apache.flinkx.api.SerializerSnapshotTest.{
   SimpleClassMap2,
   TraitMap
 }
-import org.apache.flink.api.common.typeutils.TypeSerializer
-import org.apache.flink.api.common.ExecutionConfig
+import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -90,11 +89,11 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val snap   = ser.snapshotConfiguration()
     val buffer = new ByteArrayOutputStream()
     val output = new DataOutputViewStreamWrapper(buffer)
-    snap.writeSnapshot(output)
+    TypeSerializerSnapshot.writeVersionedSnapshot(output, snap)
     output.close()
     val input = new DataInputViewStreamWrapper(new ByteArrayInputStream(buffer.toByteArray))
-    snap.readSnapshot(ser.snapshotConfiguration().getCurrentVersion, input, cl)
-    snap.restoreSerializer()
+    val deserSnap = TypeSerializerSnapshot.readVersionedSnapshot[T](input, cl)
+    deserSnap.restoreSerializer()
   }
 
   def assertRoundtripSerializer[T](ser: TypeSerializer[T]): Assertion = {

@@ -1,17 +1,9 @@
 package org.apache.flinkx.api.serializer
 
-import org.apache.flinkx.api.serializer.MappedSerializer.{MappedSerializerSnapshot, TypeMapper}
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.common.typeutils.{
-  CompositeTypeSerializerSnapshot,
-  GenericTypeSerializerSnapshot,
-  SimpleTypeSerializerSnapshot,
-  TypeSerializer,
-  TypeSerializerSchemaCompatibility,
-  TypeSerializerSnapshot
-}
+import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
+import org.apache.flinkx.api.serializer.MappedSerializer.{MappedSerializerSnapshot, TypeMapper}
 
 case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[B]) extends SimpleSerializer[A] {
   override def equals(obj: Any): Boolean = ser.equals(obj)
@@ -41,34 +33,35 @@ object MappedSerializer {
     def map(a: A): B
     def contramap(b: B): A
   }
-  class MappedSerializerSnapshot[A, B]() extends TypeSerializerSnapshot[A] {
-    var mapper: TypeMapper[A, B] = _
-    var ser: TypeSerializer[B]   = _
-    def this(xmapper: TypeMapper[A, B], xser: TypeSerializer[B]) = {
-      this()
-      mapper = xmapper
-      ser = xser
-    }
+
+  class MappedSerializerSnapshot[A, B](
+      var mapper: TypeMapper[A, B],
+      var ser: TypeSerializer[B]
+  ) extends TypeSerializerSnapshot[A] {
+
+    // Empty constructor is required to instantiate this class during deserialization.
+    def this() = this(null, null)
 
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
       val mapperClazz = InstantiationUtil.resolveClassByName[TypeMapper[A, B]](in, userCodeClassLoader)
       mapper = InstantiationUtil.instantiate(mapperClazz)
       val serClazz = InstantiationUtil.resolveClassByName[TypeSerializer[B]](in, userCodeClassLoader)
-      ser = InstantiationUtil.instantiate(serClazz)
+      ser = TypeSerializerSnapshot.readVersionedSnapshot[B](in, userCodeClassLoader).restoreSerializer()
     }
 
     override def resolveSchemaCompatibility(
-        newSerializer: TypeSerializerSnapshot[A]
+        oldSerializerSnapshot: TypeSerializerSnapshot[A]
     ): TypeSerializerSchemaCompatibility[A] =
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 
     override def writeSnapshot(out: DataOutputView): Unit = {
       out.writeUTF(mapper.getClass.getName)
-      out.writeUTF(ser.getClass.getName)
+      TypeSerializerSnapshot.writeVersionedSnapshot(out, ser.snapshotConfiguration())
     }
 
     override def restoreSerializer(): TypeSerializer[A] = new MappedSerializer[A, B](mapper, ser)
 
-    override def getCurrentVersion: Int = 1
+    override def getCurrentVersion: Int = 2
   }
+
 }

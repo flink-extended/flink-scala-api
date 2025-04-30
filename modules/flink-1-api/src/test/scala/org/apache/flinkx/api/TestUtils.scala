@@ -1,7 +1,7 @@
 package org.apache.flinkx.api
 
 import org.apache.flinkx.api.serializer.ScalaCaseClassSerializer
-import org.apache.flink.api.common.typeutils.TypeSerializer
+import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 import org.scalatest.{Assertion, Inspectors}
@@ -14,14 +14,10 @@ trait TestUtils extends Matchers with Inspectors {
     val out = new ByteArrayOutputStream()
     ser.serialize(in, new DataOutputViewStreamWrapper(out))
     val snapBytes = new ByteArrayOutputStream()
-    ser.snapshotConfiguration().writeSnapshot(new DataOutputViewStreamWrapper(snapBytes))
-    val restoredSnapshot = ser.snapshotConfiguration()
-    restoredSnapshot
-      .readSnapshot(
-        restoredSnapshot.getCurrentVersion,
-        new DataInputViewStreamWrapper(new ByteArrayInputStream(snapBytes.toByteArray)),
-        ser.getClass.getClassLoader
-      )
+    TypeSerializerSnapshot.writeVersionedSnapshot(new DataOutputViewStreamWrapper(snapBytes), ser.snapshotConfiguration())
+    val restoredSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[T](
+      new DataInputViewStreamWrapper(new ByteArrayInputStream(snapBytes.toByteArray)),
+      ser.getClass.getClassLoader)
     val restoredSerializer = restoredSnapshot.restoreSerializer()
     val copy = restoredSerializer.deserialize(new DataInputViewStreamWrapper(new ByteArrayInputStream(out.toByteArray)))
     in shouldBe copy
