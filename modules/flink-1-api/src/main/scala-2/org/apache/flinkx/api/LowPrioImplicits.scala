@@ -3,7 +3,7 @@ package org.apache.flinkx.api
 import magnolia1.{CaseClass, Magnolia, SealedTrait}
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.serializer.{CoproductSerializer, ScalaCaseClassSerializer, ScalaCaseObjectSerializer}
+import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 
 import scala.collection.mutable
@@ -31,7 +31,7 @@ private[api] trait LowPrioImplicits {
         val serializer = if (typeOf[T].typeSymbol.isModuleClass) {
           new ScalaCaseObjectSerializer[T](clazz)
         } else {
-          new ScalaCaseClassSerializer[T](
+          new CaseClassSerializer[T](
             clazz = clazz,
             scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray,
             isCaseClassImmutable =

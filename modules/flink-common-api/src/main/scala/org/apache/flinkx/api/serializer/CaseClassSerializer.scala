@@ -18,31 +18,44 @@
 package org.apache.flinkx.api.serializer
 
 import org.apache.flink.annotation.Internal
-import org.apache.flink.api.common.typeutils.TypeSerializer
+import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
 import org.apache.flinkx.api.serializer.CaseClassSerializer.isClassArityUsageDisabled
 import org.slf4j.{Logger, LoggerFactory}
 
+import java.io.ObjectInputStream
 import scala.util.{Failure, Success, Try}
 
 /** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
-  * differently. Copied from Flink 1.14.
+  * differently. Copied from Flink 1.14 and merged with ScalaCaseClassSerializer.
   */
 @Internal
 @SerialVersionUID(7341356073446263475L)
-abstract class CaseClassSerializer[T <: Product](
+class CaseClassSerializer[T <: Product](
     clazz: Class[T],
     scalaFieldSerializers: Array[TypeSerializer[_]],
     val isCaseClassImmutable: Boolean
 ) extends TupleSerializerBase[T](clazz, scalaFieldSerializers)
-    with Cloneable {
+    with Cloneable
+    with ConstructorCompat {
+
+  private val numFields = scalaFieldSerializers.length
 
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override val isImmutableType: Boolean = isCaseClassImmutable &&
     scalaFieldSerializers.forall(s => Option(s).exists(_.isImmutableType))
+
+  // In Flink, serializers & serializer snapshotters have strict ser/de requirements.
+  // Both need to be capable of creating one another.
+  // Anything passed to a serializer therefore needs to be ser/de compatible.
+  // The easiest method is to serialize class names during the snapshotting phase.
+  // During restoration, those class names are deserialized and instantiated via a class loader.
+  // The underlying implementation is major version-specific (Scala 2 vs. Scala 3).
+  @transient
+  private var constructor = lookupConstructor(clazz, numFields)
 
   override def duplicate: CaseClassSerializer[T] =
     clone().asInstanceOf[CaseClassSerializer[T]]
@@ -117,6 +130,21 @@ abstract class CaseClassSerializer[T <: Product](
     }
     createInstance(fields.filter(_ != null))
   }
+
+  override def createInstance(fields: Array[AnyRef]): T = {
+    constructor(fields)
+  }
+
+  override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
+    new ScalaCaseClassSerializerSnapshot[T](this)
+
+  // Do NOT delete this method, it is used by ser/de even though it is private.
+  // This should be removed once we make sure that serializer is no longer java serialized.
+  private def readObject(in: ObjectInputStream): Unit = {
+    in.defaultReadObject()
+    constructor = lookupConstructor(clazz, numFields)
+  }
+
 }
 
 object CaseClassSerializer {

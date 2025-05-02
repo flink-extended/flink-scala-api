@@ -2,7 +2,7 @@ package org.apache.flinkx.api
 
 import org.apache.flinkx.api.SchemaEvolutionTest.{Click, ClickEvent, Event, NoArityTest}
 import org.apache.flinkx.api.serializers._
-import org.apache.flinkx.api.serializer.ScalaCaseClassSerializer
+import org.apache.flinkx.api.serializer.CaseClassSerializer
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
 import org.apache.flink.api.common.ExecutionConfig
@@ -44,8 +44,8 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
   it should "decode class without arity info" in {
     val buffer = this.getClass.getResourceAsStream("/without-arity-test.dat")
     val serializer = createSerializer[NoArityTest] match {
-      case s: ScalaCaseClassSerializer[_] => s
-      case s                              => fail(s"Derived serializer must be of CaseClassSerializer type, but was $s")
+      case s: CaseClassSerializer[_] => s
+      case s                         => fail(s"Derived serializer must be of CaseClassSerializer type, but was $s")
     }
     val decoded =
       serializer.deserializeFromSource(new DataInputViewStreamWrapper(buffer), classArityUsageDisabled = true)

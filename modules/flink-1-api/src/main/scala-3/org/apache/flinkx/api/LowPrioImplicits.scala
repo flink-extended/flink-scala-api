@@ -8,7 +8,7 @@ import magnolia1.{CaseClass, SealedTrait}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.ExecutionConfig
-import org.apache.flinkx.api.serializer.{CoproductSerializer, ScalaCaseClassSerializer, ScalaCaseObjectSerializer}
+import org.apache.flinkx.api.serializer.{CaseClassSerializer, CoproductSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 
 import java.lang.reflect.Modifier
@@ -37,7 +37,7 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         val serializer =
           if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
           else
-            new ScalaCaseClassSerializer[T & Product](
+            new CaseClassSerializer[T & Product](
               clazz = clazz,
               scalaFieldSerializers =
                 IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray,

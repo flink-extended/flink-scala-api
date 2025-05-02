@@ -1,9 +1,8 @@
 package org.apache.flinkx.api
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.serializer.{CoproductSerializer, ListCCSerializer, ScalaCaseClassSerializer}
 import org.apache.flinkx.api.serializers.*
-import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
+import org.apache.flinkx.api.typeinfo.ProductTypeInformation
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 

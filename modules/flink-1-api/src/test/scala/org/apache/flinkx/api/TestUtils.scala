@@ -1,6 +1,6 @@
 package org.apache.flinkx.api
 
-import org.apache.flinkx.api.serializer.ScalaCaseClassSerializer
+import org.apache.flinkx.api.serializer.CaseClassSerializer
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
@@ -25,7 +25,7 @@ trait TestUtils extends Matchers with Inspectors {
 
   def noKryo[T](ser: TypeSerializer[T]): Unit =
     ser match {
-      case p: ScalaCaseClassSerializer[_] =>
+      case p: CaseClassSerializer[_] =>
         forAll(p.getFieldSerializers) { param =>
           noKryo(param)
         }
