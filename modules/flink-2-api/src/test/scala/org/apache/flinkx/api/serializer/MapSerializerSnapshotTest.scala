@@ -78,7 +78,7 @@ object MapSerializerSnapshotTest {
   case class OldClass(a: Int)  extends OuterTrait
   case class NewClass(a: Long) extends OuterTrait
 
-  class OldOuterTraitSerializer extends SimpleSerializer[OuterTrait] {
+  class OldOuterTraitSerializer extends ImmutableSerializer[OuterTrait] {
 
     private val intSer = implicitly[TypeSerializer[Int]]
 
@@ -100,7 +100,7 @@ object MapSerializerSnapshotTest {
 
   }
 
-  class ReconfiguredOuterTraitSerializer extends SimpleSerializer[OuterTrait] {
+  class ReconfiguredOuterTraitSerializer extends ImmutableSerializer[OuterTrait] {
 
     private val intSer  = implicitly[TypeSerializer[Int]]
     private val longSer = implicitly[TypeSerializer[Long]]
@@ -123,7 +123,7 @@ object MapSerializerSnapshotTest {
 
   }
 
-  class NewOuterTraitSerializer extends SimpleSerializer[OuterTrait] {
+  class NewOuterTraitSerializer extends ImmutableSerializer[OuterTrait] {
 
     private val longSer = implicitly[TypeSerializer[Long]]
 
