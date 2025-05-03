@@ -330,7 +330,7 @@ implicit val mapper2: TypeMapper[WrappedString, String] = new TypeMapper[Wrapped
 ### Schema evolution
 
 #### ADT
-For the child case classes being part of ADT, the serializers use a Flink's `ScalaCaseClassSerializer`, so all the compatibility rules
+For the child case classes being part of ADT, the serializers use a Flink's `CaseClassSerializer`, so all the compatibility rules
 are the same as for normal case classes.
 
 For the sealed trait membership itself, this library uses own serialization format with the following rules:

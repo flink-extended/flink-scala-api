@@ -5,13 +5,15 @@ import scala.compiletime.summonInline
 import scala.deriving.Mirror
 import scala.reflect.ClassTag
 
-import magnolia1.{CaseClass, SealedTrait, TypeInfo}
+import magnolia1.{CaseClass, SealedTrait}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.serialization.SerializerConfig
 
-import org.apache.flinkx.api.serializer.{CoproductSerializer, ScalaCaseClassSerializer, ScalaCaseObjectSerializer}
+import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
+
+import java.lang.reflect.Modifier
 
 private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
   type Typeclass[T] = TypeInformation[T]
@@ -37,10 +39,12 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         val serializer =
           if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
           else
-            new ScalaCaseClassSerializer[T & Product](
+            new CaseClassSerializer[T & Product](
               clazz = clazz,
               scalaFieldSerializers =
-                IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray
+                IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray,
+              isCaseClassImmutable =
+                ctx.params.forall(p => Modifier.isFinal(clazz.getDeclaredField(p.label).getModifiers))
             )
         val ti = new ProductTypeInformation[T & Product](
           c = clazz,

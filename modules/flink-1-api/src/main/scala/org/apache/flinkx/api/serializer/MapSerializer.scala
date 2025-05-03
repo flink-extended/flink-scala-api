@@ -5,7 +5,18 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.serializer.MapSerializer._
 
-class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends SimpleSerializer[Map[K, V]] {
+class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends MutableSerializer[Map[K, V]] {
+
+  override val isImmutableType: Boolean = ks.isImmutableType && vs.isImmutableType
+
+  override def copy(from: Map[K, V]): Map[K, V] = {
+    if (from == null || isImmutableType) {
+      from
+    } else {
+      from.map(element => (ks.copy(element._1), vs.copy(element._2)))
+    }
+  }
+
   override def createInstance(): Map[K, V] = Map.empty[K, V]
   override def getLength: Int              = -1
   override def deserialize(source: DataInputView): Map[K, V] = {

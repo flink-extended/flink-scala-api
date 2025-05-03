@@ -7,15 +7,25 @@ import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerSnapshot
 
 class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers: Array[TypeSerializer[_]])
-    extends TypeSerializerSingleton[T] {
-  override def isImmutableType: Boolean                                  = true
-  override def copy(from: T): T                                          = from
-  override def copy(from: T, reuse: T): T                                = from
-  override def copy(source: DataInputView, target: DataOutputView): Unit = serialize(deserialize(source), target)
+    extends MutableSerializer[T] {
+
+  override val isImmutableType: Boolean = subtypeSerializers.forall(_.isImmutableType)
+
+  override def copy(from: T): T = {
+    if (from == null || isImmutableType) {
+      from
+    } else {
+      val i = subtypeClasses.indexWhere(_.isInstance(from))
+      subtypeSerializers(i).asInstanceOf[TypeSerializer[T]].copy(from)
+    }
+  }
+
   override def createInstance(): T =
     // this one may be used for later reuse, but we never reuse coproducts due to their unclear concrete type
     subtypeSerializers.head.createInstance().asInstanceOf[T]
+
   override def getLength: Int = -1
+
   override def serialize(record: T, target: DataOutputView): Unit = {
     var subtypeIndex = 0
     var found        = false
@@ -39,7 +49,7 @@ class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers
     val subtype = subtypeSerializers(index.toInt)
     subtype.asInstanceOf[TypeSerializer[T]].deserialize(source)
   }
-  override def deserialize(reuse: T, source: DataInputView): T = deserialize(source)
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
     new CoproductSerializerSnapshot(subtypeClasses, subtypeSerializers)
 }

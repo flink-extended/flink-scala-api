@@ -32,25 +32,27 @@ import java.util.Optional;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
-/** {@link TypeSerializerSnapshot} for {@link ScalaCaseClassSerializer}. */
+/** {@link TypeSerializerSnapshot} for {@link CaseClassSerializer}. */
 @Internal
 public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
-        extends CompositeTypeSerializerSnapshot<T, ScalaCaseClassSerializer<T>> {
+        extends CompositeTypeSerializerSnapshot<T, CaseClassSerializer<T>> {
 
-    private static final int VERSION = 2;
+    private static final int VERSION = 3;
 
     private Class<T> type;
+    private boolean isCaseClassImmutable;
 
     /** Used via reflection. */
     @SuppressWarnings("unused")
     public ScalaCaseClassSerializerSnapshot() {
-        super(ScalaCaseClassSerializer.class);
+        super(CaseClassSerializer.class);
     }
 
     /** Used for the snapshot path. */
-    public ScalaCaseClassSerializerSnapshot(ScalaCaseClassSerializer<T> serializerInstance) {
+    public ScalaCaseClassSerializerSnapshot(CaseClassSerializer<T> serializerInstance) {
         super(serializerInstance);
         this.type = checkNotNull(serializerInstance.getTupleClass(), "tuple class can not be NULL");
+        this.isCaseClassImmutable = serializerInstance.isCaseClassImmutable();
     }
 
     @Override
@@ -60,21 +62,22 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
 
     @Override
     protected TypeSerializer<?>[] getNestedSerializers(
-            ScalaCaseClassSerializer<T> outerSerializer) {
+            CaseClassSerializer<T> outerSerializer) {
         return outerSerializer.getFieldSerializers();
     }
 
     @Override
-    protected ScalaCaseClassSerializer<T> createOuterSerializerWithNestedSerializers(
+    protected CaseClassSerializer<T> createOuterSerializerWithNestedSerializers(
             TypeSerializer<?>[] nestedSerializers) {
         checkState(type != null, "type can not be NULL");
-        return new ScalaCaseClassSerializer<>(type, nestedSerializers);
+        return new CaseClassSerializer<>(type, nestedSerializers, isCaseClassImmutable);
     }
 
     @Override
     protected void writeOuterSnapshot(DataOutputView out) throws IOException {
         checkState(type != null, "type can not be NULL");
         out.writeUTF(type.getName());
+        out.writeBoolean(isCaseClassImmutable);
     }
 
     @Override
@@ -82,11 +85,13 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
             int readOuterSnapshotVersion, DataInputView in, ClassLoader userCodeClassLoader)
             throws IOException {
         this.type = InstantiationUtil.resolveClassByName(in, userCodeClassLoader);
+        // If reading a version of 2 or below, don't read the boolean and set isCaseClassImmutable to false
+        this.isCaseClassImmutable = readOuterSnapshotVersion > 2 && in.readBoolean();
     }
 
     @Override
     protected CompositeTypeSerializerSnapshot.OuterSchemaCompatibility
-    resolveOuterSchemaCompatibility(ScalaCaseClassSerializer<T> newSerializer) {
+    resolveOuterSchemaCompatibility(CaseClassSerializer<T> newSerializer) {
         var currentTypeName = Optional.ofNullable(type).map(Class::getName);
         var newTypeName = Optional.ofNullable(newSerializer.getTupleClass()).map(Class::getName);
         if (currentTypeName.equals(newTypeName)) {

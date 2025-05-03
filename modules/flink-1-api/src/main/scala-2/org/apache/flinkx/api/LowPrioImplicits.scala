@@ -3,13 +3,15 @@ package org.apache.flinkx.api
 import magnolia1.{CaseClass, Magnolia, SealedTrait}
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.serializer.{CoproductSerializer, ScalaCaseClassSerializer, ScalaCaseObjectSerializer}
+import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 
 import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.reflect._
 import scala.reflect.runtime.universe.{Try => _, _}
+
+import java.lang.reflect.Modifier
 
 private[api] trait LowPrioImplicits {
   type Typeclass[T] = TypeInformation[T]
@@ -29,9 +31,11 @@ private[api] trait LowPrioImplicits {
         val serializer = if (typeOf[T].typeSymbol.isModuleClass) {
           new ScalaCaseObjectSerializer[T](clazz)
         } else {
-          new ScalaCaseClassSerializer[T](
+          new CaseClassSerializer[T](
             clazz = clazz,
-            scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray
+            scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray,
+            isCaseClassImmutable =
+              ctx.parameters.forall(p => Modifier.isFinal(clazz.getDeclaredField(p.label).getModifiers))
           )
         }
         val ti = new ProductTypeInformation[T](

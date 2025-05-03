@@ -113,7 +113,9 @@ lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
-      "org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Provided
+      "org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Provided,
+      "org.scalatest"    %% "scalatest"                   % "3.2.19"     % Test,
+      "ch.qos.logback"    % "logback-classic"             % "1.5.17"     % Test
     )
   )
 
