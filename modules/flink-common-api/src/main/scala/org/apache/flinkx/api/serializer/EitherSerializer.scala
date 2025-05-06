@@ -55,7 +55,7 @@ class EitherSerializer[A, B](
   override def copy(from: Either[A, B]): Either[A, B] = from match {
     case Left(a)  => if (leftSerializer.isImmutableType) from else Left(leftSerializer.copy(a))
     case Right(b) => if (rightSerializer.isImmutableType) from else Right(rightSerializer.copy(b))
-    case null => from
+    case null     => from
   }
 
   override def copy(source: DataInputView, target: DataOutputView): Unit = {

@@ -14,10 +14,14 @@ trait TestUtils extends Matchers with Inspectors {
     val out = new ByteArrayOutputStream()
     ser.serialize(in, new DataOutputViewStreamWrapper(out))
     val snapBytes = new ByteArrayOutputStream()
-    TypeSerializerSnapshot.writeVersionedSnapshot(new DataOutputViewStreamWrapper(snapBytes), ser.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(
+      new DataOutputViewStreamWrapper(snapBytes),
+      ser.snapshotConfiguration()
+    )
     val restoredSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[T](
       new DataInputViewStreamWrapper(new ByteArrayInputStream(snapBytes.toByteArray)),
-      ser.getClass.getClassLoader)
+      ser.getClass.getClassLoader
+    )
     val restoredSerializer = restoredSnapshot.restoreSerializer()
     val copy = restoredSerializer.deserialize(new DataInputViewStreamWrapper(new ByteArrayInputStream(out.toByteArray)))
     in shouldBe copy

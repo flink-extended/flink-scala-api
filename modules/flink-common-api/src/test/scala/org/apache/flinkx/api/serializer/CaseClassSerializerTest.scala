@@ -49,7 +49,7 @@ class CaseClassSerializerTest extends AnyFlatSpec with Matchers {
 
   it should "copy the case class when mutable" in {
     val mutableSerializer = new CaseClassSerializer[Mutable](classOf[Mutable], Array(StringSerializer.INSTANCE), false)
-    val expectedData = Mutable("a")
+    val expectedData      = Mutable("a")
 
     val resultData = mutableSerializer.copy(expectedData)
 
