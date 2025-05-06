@@ -91,7 +91,7 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val output = new DataOutputViewStreamWrapper(buffer)
     TypeSerializerSnapshot.writeVersionedSnapshot(output, snap)
     output.close()
-    val input = new DataInputViewStreamWrapper(new ByteArrayInputStream(buffer.toByteArray))
+    val input     = new DataInputViewStreamWrapper(new ByteArrayInputStream(buffer.toByteArray))
     val deserSnap = TypeSerializerSnapshot.readVersionedSnapshot[T](input, cl)
     deserSnap.restoreSerializer()
   }

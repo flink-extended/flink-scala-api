@@ -28,7 +28,7 @@ class CoproductSerializerTest extends AnyFlatSpec with Matchers {
 
   it should "return the same instance when immutable" in {
     val immutableSerializer = implicitly[TypeSerializer[Immutable]]
-    val expectedData = Immutable2("a")
+    val expectedData        = Immutable2("a")
 
     val resultData = immutableSerializer.copy(expectedData)
 
@@ -37,7 +37,7 @@ class CoproductSerializerTest extends AnyFlatSpec with Matchers {
 
   it should "copy the instance when mutable" in {
     val mutableSerializer = implicitly[TypeSerializer[Mutable]]
-    val expectedData = Mutable1("a")
+    val expectedData      = Mutable1("a")
 
     val resultData = mutableSerializer.copy(expectedData)
 
@@ -47,7 +47,7 @@ class CoproductSerializerTest extends AnyFlatSpec with Matchers {
 
   it should "return the same instance when immutable even if some other subtypes of the sealed trait are mutable" in {
     val mutableSerializer = implicitly[TypeSerializer[Mutable]]
-    val expectedData = Immutable3("a")
+    val expectedData      = Immutable3("a")
 
     val resultData = mutableSerializer.copy(expectedData)
 
