@@ -1,11 +1,9 @@
 package org.apache.flinkx.api.serializer
 
-import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerSnapshot
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
-
-import scala.annotation.nowarn
+import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerSnapshot
 
 class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers: Array[TypeSerializer[_]])
     extends MutableSerializer[T] {
@@ -60,9 +58,13 @@ object CoproductSerializer {
       var subtypeClasses: Array[Class[_]],
       var subtypeSerializers: Array[TypeSerializer[_]]
   ) extends TypeSerializerSnapshot[T] {
+
+    // Empty constructor is required to instantiate this class during deserialization.
     def this() = this(Array.empty[Class[_]], Array.empty[TypeSerializer[_]])
 
-    @nowarn("msg=dead code")
+    private var currentVersionCalled = false
+    private var writeSnapshotCalled  = false
+
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
       val len = in.readInt()
 
@@ -71,22 +73,32 @@ object CoproductSerializer {
         .toArray
 
       subtypeSerializers = (0 until len).map { _ =>
-        val clazz      = InstantiationUtil.resolveClassByName(in, userCodeClassLoader)
-        val serializer = InstantiationUtil.instantiate(clazz).asInstanceOf[TypeSerializerSnapshot[_]]
-        serializer.readSnapshot(serializer.getCurrentVersion, in, userCodeClassLoader)
-        serializer.restoreSerializer()
+        if (
+          (!currentVersionCalled || writeSnapshotCalled) &&
+          // readVersion is trustable
+          readVersion == 2
+        ) {
+          TypeSerializerSnapshot.readVersionedSnapshot(in, userCodeClassLoader).restoreSerializer()
+        } else {
+          val clazz      = InstantiationUtil.resolveClassByName(in, userCodeClassLoader)
+          val serializer = InstantiationUtil.instantiate(clazz).asInstanceOf[TypeSerializerSnapshot[_]]
+          serializer.readSnapshot(serializer.getCurrentVersion, in, userCodeClassLoader)
+          serializer.restoreSerializer()
+        }
       }.toArray
     }
 
-    override def getCurrentVersion: Int = 1
+    override def getCurrentVersion: Int = {
+      currentVersionCalled = true
+      2
+    }
 
     override def writeSnapshot(out: DataOutputView): Unit = {
+      writeSnapshotCalled = true
       out.writeInt(subtypeClasses.length)
       subtypeClasses.foreach(c => out.writeUTF(c.getName))
       subtypeSerializers.foreach(s => {
-        val snap = s.snapshotConfiguration()
-        out.writeUTF(snap.getClass.getName)
-        snap.writeSnapshot(out)
+        TypeSerializerSnapshot.writeVersionedSnapshot(out, s.snapshotConfiguration())
       })
     }
 
@@ -96,4 +108,5 @@ object CoproductSerializer {
     override def restoreSerializer(): TypeSerializer[T] =
       new CoproductSerializer[T](subtypeClasses, subtypeSerializers)
   }
+
 }

@@ -2,17 +2,21 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputDeserializer, DataOutputSerializer}
+import org.apache.flinkx.api.mapper.BigDecMapper
 import org.apache.flinkx.api.serializers.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class CollectionSerializerSnapshotTest extends AnyFlatSpec with Matchers {
+import java.math.BigDecimal as JBigDecimal
+
+class MappedSerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
   it should "serialize then deserialize" in {
     // Create SerializerSnapshot
-    val tSerializer = implicitly[TypeSerializer[String]]
-    val serializerSnapshot: CollectionSerializerSnapshot[Set, String, SetSerializer[String]] =
-      new CollectionSerializerSnapshot(tSerializer, classOf[SetSerializer[String]], classOf[String])
+    val mapper = new BigDecMapper()
+    val tSerializer = implicitly[TypeSerializer[JBigDecimal]]
+    val serializerSnapshot: MappedSerializer.MappedSerializerSnapshot[scala.BigDecimal, JBigDecimal] =
+      new MappedSerializer.MappedSerializerSnapshot(mapper, tSerializer)
 
     val expectedSerializer = serializerSnapshot.restoreSerializer()
 
@@ -24,10 +28,10 @@ class CollectionSerializerSnapshotTest extends AnyFlatSpec with Matchers {
     // Deserialize SerializerSnapshot
     val deserializedSnapshot = TypeSerializerSnapshot
       .readVersionedSnapshot[SetSerializer[String]](snapshotInput, getClass.getClassLoader)
+      .asInstanceOf[MappedSerializer.MappedSerializerSnapshot[scala.BigDecimal, JBigDecimal]]
 
-    val deserializedSerializer = deserializedSnapshot.restoreSerializer()
-    deserializedSerializer shouldNot be theSameInstanceAs expectedSerializer
-    deserializedSerializer should be(expectedSerializer)
+    deserializedSnapshot.restoreSerializer() shouldNot be theSameInstanceAs expectedSerializer
+    deserializedSnapshot.ser should be(serializerSnapshot.ser)
   }
 
 }

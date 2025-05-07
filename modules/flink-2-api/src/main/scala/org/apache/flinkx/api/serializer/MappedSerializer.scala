@@ -17,11 +17,17 @@ case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[
     }
   }
 
-  override def equals(obj: Any): Boolean = ser.equals(obj)
+  override def equals(other: Any): Boolean = other match {
+    case that: MappedSerializer[_, _] =>
+        mapper == that.mapper &&
+        ser == that.ser
+    case _ => false
+  }
 
-  override def toString: String = ser.toString
+  override def toString = s"MappedSerializer($mapper, $ser)"
 
-  override def hashCode(): Int = ser.hashCode()
+  override def hashCode(): Int = 31 * mapper.hashCode + ser.hashCode
+
   override def getLength: Int  = ser.getLength
 
   override def serialize(record: A, target: DataOutputView): Unit = {
@@ -56,7 +62,6 @@ object MappedSerializer {
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
       val mapperClazz = InstantiationUtil.resolveClassByName[TypeMapper[A, B]](in, userCodeClassLoader)
       mapper = InstantiationUtil.instantiate(mapperClazz)
-      val serClazz = InstantiationUtil.resolveClassByName[TypeSerializer[B]](in, userCodeClassLoader)
       ser = TypeSerializerSnapshot.readVersionedSnapshot[B](in, userCodeClassLoader).restoreSerializer()
     }
 

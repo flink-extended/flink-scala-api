@@ -2,17 +2,22 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputDeserializer, DataOutputSerializer}
+import org.apache.flinkx.api.serializer.CoproductSerializerSnapshotTest.{ADT, Bar, Foo}
 import org.apache.flinkx.api.serializers.*
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-class CollectionSerializerSnapshotTest extends AnyFlatSpec with Matchers {
+class CoproductSerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
   it should "serialize then deserialize" in {
     // Create SerializerSnapshot
-    val tSerializer = implicitly[TypeSerializer[String]]
-    val serializerSnapshot: CollectionSerializerSnapshot[Set, String, SetSerializer[String]] =
-      new CollectionSerializerSnapshot(tSerializer, classOf[SetSerializer[String]], classOf[String])
+    val subtypeClasses: Array[Class[?]] = Array(classOf[Foo], classOf[Bar])
+    val subtypeSerializers: Array[TypeSerializer[?]] = Array(
+      implicitly[TypeSerializer[Foo]],
+      implicitly[TypeSerializer[Bar]]
+    )
+    val serializerSnapshot: CoproductSerializer.CoproductSerializerSnapshot[ADT] =
+      new CoproductSerializer.CoproductSerializerSnapshot(subtypeClasses, subtypeSerializers)
 
     val expectedSerializer = serializerSnapshot.restoreSerializer()
 
@@ -30,4 +35,10 @@ class CollectionSerializerSnapshotTest extends AnyFlatSpec with Matchers {
     deserializedSerializer should be(expectedSerializer)
   }
 
+}
+
+object CoproductSerializerSnapshotTest {
+  sealed trait ADT
+  case class Foo(a: String) extends ADT
+  case class Bar(b: Int)    extends ADT
 }
