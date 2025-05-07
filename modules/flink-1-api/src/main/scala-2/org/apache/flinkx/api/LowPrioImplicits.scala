@@ -6,12 +6,11 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 
+import java.lang.reflect.{Field, Modifier}
 import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.reflect._
 import scala.reflect.runtime.universe.{Try => _, _}
-
-import java.lang.reflect.Modifier
 
 private[api] trait LowPrioImplicits {
   type Typeclass[T] = TypeInformation[T]
@@ -31,11 +30,11 @@ private[api] trait LowPrioImplicits {
         val serializer = if (typeOf[T].typeSymbol.isModuleClass) {
           new ScalaCaseObjectSerializer[T](clazz)
         } else {
+          val fields = clazz.getDeclaredFields
           new CaseClassSerializer[T](
             clazz = clazz,
             scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray,
-            isCaseClassImmutable =
-              ctx.parameters.forall(p => Modifier.isFinal(clazz.getDeclaredField(p.label).getModifiers))
+            isCaseClassImmutable = ctx.parameters.forall(p => isFieldFinal(fields, clazz.getName, p.label))
           )
         }
         val ti = new ProductTypeInformation[T](
@@ -66,6 +65,15 @@ private[api] trait LowPrioImplicits {
   }
 
   private def typeName[T: TypeTag]: String = typeOf[T].toString
+
+  private def isFieldFinal(fields: Array[Field], className: String, fieldName: String): Boolean =
+    Modifier.isFinal(
+      fields
+        .find(f => f.getName == fieldName)
+        .orElse(fields.find(f => f.getName == s"${className.replace('.', '$')}$$$$$fieldName"))
+        .getOrElse(throw new NoSuchFieldException(fieldName)) // Same as Class.getDeclaredField
+        .getModifiers
+    )
 
   implicit def deriveTypeInformation[T]: TypeInformation[T] = macro Magnolia.gen[T]
 }

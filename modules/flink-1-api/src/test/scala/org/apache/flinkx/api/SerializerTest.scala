@@ -3,31 +3,7 @@ package org.apache.flinkx.api
 import cats.data.NonEmptyList
 import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
-import org.apache.flinkx.api.SerializerTest.{
-  ADT,
-  ADT2,
-  Ann,
-  Annotated,
-  Bar,
-  Bar2,
-  BoundADT,
-  Foo,
-  Foo2,
-  Generic,
-  JavaTime,
-  ListADT,
-  Nested,
-  P2,
-  Param,
-  Simple,
-  SimpleEither,
-  SimpleJava,
-  SimpleList,
-  SimpleOption,
-  SimpleSeq,
-  SimpleSeqSeq,
-  WrappedADT
-}
+import org.apache.flinkx.api.SerializerTest._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.ExecutionConfig
 import org.scalatest.Inspectors
@@ -217,6 +193,12 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     val ser = implicitly[TypeInformation[UUID]].createSerializer(ec)
     roundtrip(ser, UUID.randomUUID())
   }
+
+  it should "serialize case class with private field" in {
+    val ser = implicitly[TypeInformation[PrivateField]].createSerializer(ec)
+    roundtrip(ser, PrivateField("abc"))
+  }
+
 }
 
 object SerializerTest {
@@ -282,4 +264,7 @@ object SerializerTest {
       case class NestedBottom(a: Option[String], b: Option[String])
     }
   }
+
+  case class PrivateField(private val a: String)
+
 }

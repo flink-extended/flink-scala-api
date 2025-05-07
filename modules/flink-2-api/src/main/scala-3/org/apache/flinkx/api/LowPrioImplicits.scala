@@ -1,5 +1,6 @@
 package org.apache.flinkx.api
 
+import java.lang.reflect.{Field, Modifier}
 import scala.collection.mutable
 import scala.compiletime.summonInline
 import scala.deriving.Mirror
@@ -12,8 +13,6 @@ import org.apache.flink.api.common.serialization.SerializerConfig
 
 import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
-
-import java.lang.reflect.Modifier
 
 private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
   type Typeclass[T] = TypeInformation[T]
@@ -39,12 +38,12 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         val serializer =
           if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
           else
+            val fields = clazz.getDeclaredFields
             new CaseClassSerializer[T & Product](
               clazz = clazz,
               scalaFieldSerializers =
                 IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray,
-              isCaseClassImmutable =
-                ctx.params.forall(p => Modifier.isFinal(clazz.getDeclaredField(p.label).getModifiers))
+              isCaseClassImmutable = ctx.params.forall(p => isFieldFinal(fields, clazz.getName, p.label))
             )
         val ti = new ProductTypeInformation[T & Product](
           c = clazz,
@@ -74,6 +73,15 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
         if useCache then cache.put(cacheKey, ti)
         ti
+
+  private def isFieldFinal(fields: Array[Field], className: String, fieldName: String): Boolean =
+    Modifier.isFinal(
+      fields
+        .find(f => f.getName == fieldName)
+        .orElse(fields.find(f => f.getName == s"${className.replace('.', '$')}$$$$$fieldName"))
+        .getOrElse(throw new NoSuchFieldException(fieldName)) // Same as Class.getDeclaredField
+        .getModifiers
+    )
 
   final inline implicit def deriveTypeInformation[T](implicit
       m: Mirror.Of[T],
