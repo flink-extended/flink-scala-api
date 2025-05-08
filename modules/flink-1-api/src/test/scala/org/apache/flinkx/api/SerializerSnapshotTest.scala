@@ -98,7 +98,7 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val expectedData = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
 
     // Deserialize the old serialization
-    val buffer = Files.readAllBytes(Paths.get("modules/flink-1-api/src/test/resources/old-serializer-snapshot.dat"))
+    val buffer = getClass.getResourceAsStream("/old-serializer-snapshot.dat").readAllBytes()
     val in     = new DataInputDeserializer(buffer)
     val deserializedSnapshot = TypeSerializerSnapshot
       .readVersionedSnapshot[OuterClass](in, getClass.getClassLoader) // Flink always calls this
@@ -110,10 +110,10 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
   }
 
   it should "serialize and deserialize with the new snapshot" in {
-    val uuid = UUID.randomUUID()
-    val expectedData = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
+    val uuid                 = UUID.randomUUID()
+    val expectedData         = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
     val outerClassSerializer = implicitly[TypeSerializer[OuterClass]]
-    val oldSnapshot = outerClassSerializer.snapshotConfiguration()
+    val oldSnapshot          = outerClassSerializer.snapshotConfiguration()
 
     // Serialize the new snapshot
     val oldOutput = new DataOutputSerializer(1024 * 1024)
