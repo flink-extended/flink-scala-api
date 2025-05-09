@@ -15,15 +15,15 @@ jobs:
     strategy:
       matrix:
         java: [11]
-        scala: [2.13.16, 3.3.5]
+        scala: [2.13.16, 3.3.6]
         flink: [1.18.1, 1.19.1]
         sbt-module: ['flink-1-api']
         include:
-          - scala: 3.3.5
+          - scala: 3.3.6
             java: 17
             flink: 1.20.0
             sbt-module: 'flink-1-api'
-          - scala: 3.3.5
+          - scala: 3.3.6
             java: 17
             flink: 2.0.0          
             sbt-module: 'flink-2-api' 
