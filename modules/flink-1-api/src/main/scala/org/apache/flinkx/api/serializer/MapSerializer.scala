@@ -43,12 +43,35 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
 object MapSerializer {
   case class MapSerializerSnapshot[K, V](var keySerializer: TypeSerializer[K], var valueSerializer: TypeSerializer[V])
       extends TypeSerializerSnapshot[Map[K, V]] {
+
     def this() = this(null, null)
-    override def getCurrentVersion: Int = 1
+
+    private var currentVersionCalled = false
+    private var writeSnapshotCalled  = false
+
+    override def getCurrentVersion: Int = {
+      currentVersionCalled = true
+      2
+    }
 
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-      keySerializer = readSerializer[K](in, userCodeClassLoader)
-      valueSerializer = readSerializer[V](in, userCodeClassLoader)
+      if (
+      /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
+           If only getCurrentVersion() is called, we know we must deserialize with old behavior.
+         - The new code calls getCurrentVersion() only before calling writeSnapshot().
+           getCurrentVersion() is not called before calling readSnapshot()
+           or both getCurrentVersion() and writeSnapshot() are called,
+           so in these cases we know the readVersion parameter is trustable to determine which behavior to apply. */
+        (!currentVersionCalled || writeSnapshotCalled) &&
+        // readVersion is trustable
+        readVersion == 2
+      ) {
+        keySerializer = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader).restoreSerializer()
+        valueSerializer = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader).restoreSerializer()
+      } else {
+        keySerializer = readSerializer[K](in, userCodeClassLoader)
+        valueSerializer = readSerializer[V](in, userCodeClassLoader)
+      }
     }
 
     def readSerializer[T](in: DataInputView, userCodeClassLoader: ClassLoader): TypeSerializer[T] = {
@@ -59,13 +82,9 @@ object MapSerializer {
     }
 
     override def writeSnapshot(out: DataOutputView): Unit = {
-      writeSerializer[K](keySerializer, out)
-      writeSerializer[V](valueSerializer, out)
-    }
-
-    def writeSerializer[T](nestedSerializer: TypeSerializer[T], out: DataOutputView) = {
-      out.writeUTF(nestedSerializer.snapshotConfiguration().getClass.getName)
-      nestedSerializer.snapshotConfiguration().writeSnapshot(out)
+      writeSnapshotCalled = true
+      TypeSerializerSnapshot.writeVersionedSnapshot(out, keySerializer.snapshotConfiguration())
+      TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSerializer.snapshotConfiguration())
     }
 
     override def resolveSchemaCompatibility(

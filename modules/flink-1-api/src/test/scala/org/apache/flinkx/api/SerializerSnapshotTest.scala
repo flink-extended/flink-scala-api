@@ -1,27 +1,20 @@
 package org.apache.flinkx.api
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
-import org.apache.flinkx.api.SerializerSnapshotTest.{
-  ADT2,
-  OuterTrait,
-  SimpleClass1,
-  SimpleClassArray,
-  SimpleClassList,
-  SimpleClassMap1,
-  SimpleClassMap2,
-  TraitMap
-}
+import org.apache.flink.api.common.ExecutionConfig
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
-import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
+import org.apache.flink.core.memory._
+import org.apache.flink.util.ChildFirstClassLoader
+import org.apache.flinkx.api.SerializerSnapshotTest._
+import org.apache.flinkx.api.serializers._
+import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flinkx.api.serializers._
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.common.ExecutionConfig
-import org.apache.flink.util.ChildFirstClassLoader
-import org.scalatest.Assertion
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.net.URLClassLoader
+import java.nio.file.{Files, Paths}
+import java.util.UUID
 
 class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
@@ -85,6 +78,61 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  ignore should "serialize old serialization with the old serializer snapshot" in {
+    val uuid                 = UUID.fromString("4daf2791-abbe-420f-9594-f57ded1fee8c")
+    val expectedData         = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
+    val outerClassSerializer = implicitly[TypeSerializer[OuterClass]]
+    val oldSnapshot          = outerClassSerializer.snapshotConfiguration()
+
+    // Serialize the old snapshot
+    val out = new DataOutputSerializer(1483)
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, oldSnapshot) // Flink always calls this
+
+    // Serialize the data
+    outerClassSerializer.serialize(expectedData, out)
+    Files.write(Paths.get("modules/flink-1-api/src/test/resources/old-serializer-snapshot.dat"), out.getSharedBuffer)
+  }
+
+  it should "deserialize old serialization with the new serializer snapshot" in {
+    val uuid         = UUID.fromString("4daf2791-abbe-420f-9594-f57ded1fee8c")
+    val expectedData = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
+
+    // Deserialize the old serialization
+    val buffer = getClass.getResourceAsStream("/old-serializer-snapshot.dat").readAllBytes()
+    val in     = new DataInputDeserializer(buffer)
+    val deserializedSnapshot = TypeSerializerSnapshot
+      .readVersionedSnapshot[OuterClass](in, getClass.getClassLoader) // Flink always calls this
+    val deserializedSerializer = deserializedSnapshot.restoreSerializer()
+
+    // Deserialize the data
+    val deserializedData = deserializedSerializer.deserialize(in)
+    deserializedData should be(expectedData)
+  }
+
+  it should "serialize and deserialize with the new snapshot" in {
+    val uuid                 = UUID.randomUUID()
+    val expectedData         = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
+    val outerClassSerializer = implicitly[TypeSerializer[OuterClass]]
+    val oldSnapshot          = outerClassSerializer.snapshotConfiguration()
+
+    // Serialize the new snapshot
+    val oldOutput = new DataOutputSerializer(1024 * 1024)
+    TypeSerializerSnapshot.writeVersionedSnapshot(oldOutput, oldSnapshot) // Flink always calls this
+
+    // Serialize the data
+    outerClassSerializer.serialize(expectedData, oldOutput)
+
+    // Deserialize the new snapshot
+    val oldInput = new DataInputDeserializer(oldOutput.getSharedBuffer)
+    val deserializedOldSnapshot = TypeSerializerSnapshot
+      .readVersionedSnapshot[OuterClass](oldInput, getClass.getClassLoader) // Flink always calls this
+    val deserializedSerializer = deserializedOldSnapshot.restoreSerializer()
+
+    // Deserialize the data
+    val deserializedData = deserializedSerializer.deserialize(oldInput)
+    deserializedData should be(expectedData)
+  }
+
   def roundtripSerializer[T](ser: TypeSerializer[T], cl: ClassLoader = getClass.getClassLoader): TypeSerializer[T] = {
     val snap   = ser.snapshotConfiguration()
     val buffer = new ByteArrayOutputStream()
@@ -123,5 +171,7 @@ object SerializerSnapshotTest {
   sealed trait ADT2
   case object Foo2 extends ADT2
   case object Bar2 extends ADT2
+
+  case class OuterClass(map: Map[UUID, List[OuterTrait]])
 
 }
