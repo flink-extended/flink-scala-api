@@ -40,6 +40,12 @@ class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
     clazz = InstantiationUtil.resolveClassByName[S](in, userCodeClassLoader)
     vclazz = InstantiationUtil.resolveClassByName[T](in, userCodeClassLoader)
     if (
+      /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
+           If only getCurrentVersion() is called, we know we must deserialize with old behavior.
+         - The new code calls getCurrentVersion() only before calling writeSnapshot().
+           getCurrentVersion() is not called before calling readSnapshot()
+           or both getCurrentVersion() and writeSnapshot() are called,
+           so in these cases we know the readVersion parameter is trustable to determine which behavior to apply. */
       (!currentVersionCalled || writeSnapshotCalled) &&
       // readVersion is trustable
       readVersion == 2

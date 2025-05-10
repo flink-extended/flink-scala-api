@@ -60,6 +60,12 @@ object MappedSerializer {
       val mapperClazz = InstantiationUtil.resolveClassByName[TypeMapper[A, B]](in, userCodeClassLoader)
       mapper = InstantiationUtil.instantiate(mapperClazz)
       if (
+      /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
+           If only getCurrentVersion() is called, we know we must deserialize with old behavior.
+         - The new code calls getCurrentVersion() only before calling writeSnapshot().
+           getCurrentVersion() is not called before calling readSnapshot()
+           or both getCurrentVersion() and writeSnapshot() are called,
+           so in these cases we know the readVersion parameter is trustable to determine which behavior to apply. */
         (!currentVersionCalled || writeSnapshotCalled) &&
           // readVersion is trustable
           readVersion == 2
