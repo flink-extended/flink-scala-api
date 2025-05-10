@@ -1,6 +1,5 @@
 package org.apache.flinkx.api
 
-import java.lang.reflect.{Field, Modifier}
 import scala.collection.mutable
 import scala.compiletime.summonInline
 import scala.deriving.Mirror
@@ -10,9 +9,9 @@ import magnolia1.{CaseClass, SealedTrait}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.serialization.SerializerConfig
-
 import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
+import org.apache.flinkx.api.util.ClassUtil.isFieldFinal
 
 private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
   type Typeclass[T] = TypeInformation[T]
@@ -73,15 +72,6 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
         if useCache then cache.put(cacheKey, ti)
         ti
-
-  private def isFieldFinal(fields: Array[Field], className: String, fieldName: String): Boolean =
-    Modifier.isFinal(
-      fields
-        .find(f => f.getName == fieldName)
-        .orElse(fields.find(f => f.getName == s"${className.replace('.', '$')}$$$$$fieldName"))
-        .getOrElse(throw new NoSuchFieldException(fieldName)) // Same as Class.getDeclaredField
-        .getModifiers
-    )
 
   final inline implicit def deriveTypeInformation[T](implicit
       m: Mirror.Of[T],

@@ -5,8 +5,8 @@ import org.apache.flink.api.common.serialization.SerializerConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
+import org.apache.flinkx.api.util.ClassUtil.isFieldFinal
 
-import java.lang.reflect.{Field, Modifier}
 import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.reflect._
@@ -65,15 +65,6 @@ private[api] trait LowPrioImplicits {
   }
 
   private def typeName[T: TypeTag]: String = typeOf[T].toString
-
-  private def isFieldFinal(fields: Array[Field], className: String, fieldName: String): Boolean =
-    Modifier.isFinal(
-      fields
-        .find(f => f.getName == fieldName)
-        .orElse(fields.find(f => f.getName == s"${className.replace('.', '$')}$$$$$fieldName"))
-        .getOrElse(throw new NoSuchFieldException(fieldName)) // Same as Class.getDeclaredField
-        .getModifiers
-    )
 
   implicit def deriveTypeInformation[T]: TypeInformation[T] = macro Magnolia.gen[T]
 }
