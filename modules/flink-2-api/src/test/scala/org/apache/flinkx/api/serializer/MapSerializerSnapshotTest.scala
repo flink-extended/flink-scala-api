@@ -12,6 +12,7 @@ class MapSerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
   it should "serialize the old data and deserialize them to the new data" in {
     // Old data of the type Map[String, OldClass]
+    MapSerializerSnapshotTest.VersionOfTheCode = 0
     val oldData = Map("1" -> OldClass(1))
 
     val keySerializer      = implicitly[TypeSerializer[String]]
