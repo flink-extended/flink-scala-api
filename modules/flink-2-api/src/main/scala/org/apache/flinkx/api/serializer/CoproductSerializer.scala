@@ -1,6 +1,5 @@
 package org.apache.flinkx.api.serializer
 
-import org.apache.flink.api.common.typeutils.base.TypeSerializerSingleton
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
@@ -9,7 +8,8 @@ import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerS
 class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers: Array[TypeSerializer[_]])
     extends MutableSerializer[T] {
 
-  override val isImmutableType: Boolean = subtypeSerializers.forall(_.isImmutableType)
+  override val isImmutableType: Boolean = subtypeSerializers.forall(Option(_).exists(_.isImmutableType))
+  val isImmutableSerializer: Boolean    = subtypeSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
 
   override def copy(from: T): T = {
     if (from == null || isImmutableType) {
@@ -17,6 +17,14 @@ class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers
     } else {
       val i = subtypeClasses.indexWhere(_.isInstance(from))
       subtypeSerializers(i).asInstanceOf[TypeSerializer[T]].copy(from)
+    }
+  }
+
+  override def duplicate(): CoproductSerializer[T] = {
+    if (isImmutableSerializer) {
+      this
+    } else {
+      new CoproductSerializer[T](subtypeClasses, subtypeSerializers.map(_.duplicate()))
     }
   }
 

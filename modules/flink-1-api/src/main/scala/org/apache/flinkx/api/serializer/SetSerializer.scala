@@ -15,6 +15,15 @@ class SetSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutabl
     }
   }
 
+  override def duplicate(): SetSerializer[T] = {
+    val duplicatedChild = child.duplicate()
+    if (duplicatedChild.eq(child)) {
+      this
+    } else {
+      new SetSerializer[T](duplicatedChild, clazz)
+    }
+  }
+
   override def createInstance(): Set[T] = Set.empty[T]
   override def getLength: Int           = -1
   override def deserialize(source: DataInputView): Set[T] = {
