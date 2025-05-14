@@ -9,8 +9,7 @@ import scala.reflect.{classTag, ClassTag}
 abstract class SimpleTypeInformation[T: ClassTag: TypeSerializer] extends TypeInformation[T] {
   override def createSerializer(config: ExecutionConfig): TypeSerializer[T] = {
     val ser = implicitly[TypeSerializer[T]]
-    if (ser.isImmutableType) ser
-    else ser.duplicate()
+    ser.duplicate()
   }
   override def isBasicType: Boolean   = false
   override def isTupleType: Boolean   = false

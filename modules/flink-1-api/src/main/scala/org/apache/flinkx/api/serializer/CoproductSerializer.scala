@@ -8,7 +8,8 @@ import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerS
 class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers: Array[TypeSerializer[_]])
     extends MutableSerializer[T] {
 
-  override val isImmutableType: Boolean = subtypeSerializers.forall(_.isImmutableType)
+  override val isImmutableType: Boolean = subtypeSerializers.forall(Option(_).exists(_.isImmutableType))
+  val isImmutableSerializer: Boolean    = subtypeSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
 
   override def copy(from: T): T = {
     if (from == null || isImmutableType) {
@@ -16,6 +17,14 @@ class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers
     } else {
       val i = subtypeClasses.indexWhere(_.isInstance(from))
       subtypeSerializers(i).asInstanceOf[TypeSerializer[T]].copy(from)
+    }
+  }
+
+  override def duplicate(): CoproductSerializer[T] = {
+    if (isImmutableSerializer) {
+      this
+    } else {
+      new CoproductSerializer[T](subtypeClasses, subtypeSerializers.map(_.duplicate()))
     }
   }
 
@@ -74,7 +83,7 @@ object CoproductSerializer {
 
       subtypeSerializers = (0 until len).map { _ =>
         if (
-        /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
+          /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
              If only getCurrentVersion() is called, we know we must deserialize with old behavior.
            - The new code calls getCurrentVersion() only before calling writeSnapshot().
              getCurrentVersion() is not called before calling readSnapshot()

@@ -15,6 +15,15 @@ class ListSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutab
     }
   }
 
+  override def duplicate(): ListSerializer[T] = {
+    val duplicatedChild = child.duplicate()
+    if (duplicatedChild.eq(child)) {
+      this
+    } else {
+      new ListSerializer[T](duplicatedChild, clazz)
+    }
+  }
+
   override def createInstance(): List[T] = List.empty[T]
   override def getLength: Int            = -1
   override def deserialize(source: DataInputView): List[T] = {

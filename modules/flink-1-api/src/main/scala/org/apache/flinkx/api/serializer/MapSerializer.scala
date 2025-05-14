@@ -17,6 +17,16 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
     }
   }
 
+  override def duplicate(): MapSerializer[K, V] = {
+    val duplicatedKS = ks.duplicate()
+    val duplicatedVS = vs.duplicate()
+    if (duplicatedKS.eq(ks) && duplicatedVS.eq(vs)) {
+      this
+    } else {
+      new MapSerializer[K, V](duplicatedKS, duplicatedVS)
+    }
+  }
+
   override def createInstance(): Map[K, V] = Map.empty[K, V]
   override def getLength: Int              = -1
   override def deserialize(source: DataInputView): Map[K, V] = {
@@ -56,7 +66,7 @@ object MapSerializer {
 
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
       if (
-      /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
+        /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
            If only getCurrentVersion() is called, we know we must deserialize with old behavior.
          - The new code calls getCurrentVersion() only before calling writeSnapshot().
            getCurrentVersion() is not called before calling readSnapshot()

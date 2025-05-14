@@ -17,6 +17,16 @@ case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[
     }
   }
 
+  override def duplicate(): MappedSerializer[A, B] = {
+    val duplicatedSer = ser.duplicate()
+    if (duplicatedSer.eq(ser)) {
+      this
+    } else {
+      MappedSerializer[A, B](mapper, duplicatedSer)
+    }
+  }
+
+
   override def equals(other: Any): Boolean = other match {
     case that: MappedSerializer[_, _] =>
         mapper == that.mapper &&

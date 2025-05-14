@@ -2,7 +2,7 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
-import org.apache.flinkx.api.serializer.MapSerializer.*
+import org.apache.flinkx.api.serializer.MapSerializer._
 
 class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends MutableSerializer[Map[K, V]] {
 
@@ -13,6 +13,16 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
       from
     } else {
       from.map(element => (ks.copy(element._1), vs.copy(element._2)))
+    }
+  }
+
+  override def duplicate(): MapSerializer[K, V] = {
+    val duplicatedKS = ks.duplicate()
+    val duplicatedVS = vs.duplicate()
+    if (duplicatedKS.eq(ks) && duplicatedVS.eq(vs)) {
+      this
+    } else {
+      new MapSerializer[K, V](duplicatedKS, duplicatedVS)
     }
   }
 

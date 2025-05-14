@@ -15,6 +15,15 @@ class VectorSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
     }
   }
 
+  override def duplicate(): VectorSerializer[T] = {
+    val duplicatedChild = child.duplicate()
+    if (duplicatedChild.eq(child)) {
+      this
+    } else {
+      new VectorSerializer[T](duplicatedChild, clazz)
+    }
+  }
+
   override def createInstance(): Vector[T] = Vector.empty[T]
   override def getLength: Int              = -1
   override def deserialize(source: DataInputView): Vector[T] = {

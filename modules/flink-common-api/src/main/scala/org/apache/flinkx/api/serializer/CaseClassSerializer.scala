@@ -46,7 +46,9 @@ class CaseClassSerializer[T <: Product](
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override val isImmutableType: Boolean = isCaseClassImmutable &&
-    scalaFieldSerializers.forall(s => Option(s).exists(_.isImmutableType))
+    scalaFieldSerializers.forall(Option(_).exists(_.isImmutableType))
+  val isImmutableSerializer: Boolean =
+    scalaFieldSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
 
   // In Flink, serializers & serializer snapshotters have strict ser/de requirements.
   // Both need to be capable of creating one another.
@@ -57,8 +59,13 @@ class CaseClassSerializer[T <: Product](
   @transient
   private var constructor = lookupConstructor(clazz, numFields)
 
-  override def duplicate: CaseClassSerializer[T] =
-    clone().asInstanceOf[CaseClassSerializer[T]]
+  override def duplicate(): CaseClassSerializer[T] = {
+    if (isImmutableSerializer) {
+      this
+    } else {
+      clone().asInstanceOf[CaseClassSerializer[T]]
+    }
+  }
 
   @throws[CloneNotSupportedException]
   override protected def clone(): Object = {
