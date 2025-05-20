@@ -1,5 +1,7 @@
 package org.apache.flinkx.api.serializer
 
+import org.apache.flink.api.java.typeutils.runtime.RowSerializer
+import org.apache.flink.types.Row
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -24,6 +26,22 @@ class ArraySerializerTest extends AnyFlatSpec with Matchers {
     resultData(0) shouldNot be theSameInstanceAs expectedData(0)
     resultData(1) shouldNot be theSameInstanceAs expectedData(1)
     resultData shouldEqual expectedData
+  }
+
+  it should "return itself when duplicate an immutable serializer" in {
+    val intArraySerializer = new ArraySerializer[Int](org.apache.flinkx.api.serializers.intSerializer, classOf[Int])
+
+    val duplicatedIntArraySerializer = intArraySerializer.duplicate()
+    duplicatedIntArraySerializer should be theSameInstanceAs intArraySerializer
+  }
+
+  it should "duplicate itself when the serializer is mutable" in {
+    val rowArraySerializer = new ArraySerializer[Row](new RowSerializer(Array.empty), classOf[Row])
+
+    val duplicatedIntArraySerializer = rowArraySerializer.duplicate()
+
+    duplicatedIntArraySerializer shouldNot be theSameInstanceAs rowArraySerializer
+    duplicatedIntArraySerializer should be (rowArraySerializer)
   }
 
 }

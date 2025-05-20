@@ -15,6 +15,15 @@ class SeqSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutabl
     }
   }
 
+  override def duplicate(): SeqSerializer[T] = {
+    val duplicatedChild = child.duplicate()
+    if (duplicatedChild.eq(child)) {
+      this
+    } else {
+      new SeqSerializer[T](duplicatedChild, clazz)
+    }
+  }
+
   override def createInstance(): Seq[T] = Seq.empty[T]
   override def getLength: Int           = -1
   override def deserialize(source: DataInputView): Seq[T] = {
