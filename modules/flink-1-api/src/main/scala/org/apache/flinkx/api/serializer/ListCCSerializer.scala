@@ -16,6 +16,15 @@ class ListCCSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
     }
   }
 
+  override def duplicate(): ListCCSerializer[T] = {
+    val duplicatedChild = child.duplicate()
+    if (duplicatedChild.eq(child)) {
+      this
+    } else {
+      new ListCCSerializer[T](duplicatedChild, clazz)
+    }
+  }
+
   override def createInstance(): ::[T] = throw new IllegalArgumentException("cannot create instance of non-empty list")
   override def getLength: Int          = -1
   override def deserialize(source: DataInputView): ::[T] = {

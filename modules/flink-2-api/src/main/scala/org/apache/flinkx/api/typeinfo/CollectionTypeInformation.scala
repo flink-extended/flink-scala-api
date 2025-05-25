@@ -9,8 +9,7 @@ import scala.reflect.{ClassTag, classTag}
 case class CollectionTypeInformation[T: ClassTag](serializer: TypeSerializer[T]) extends TypeInformation[T] {
   val clazz = classTag[T].runtimeClass.asInstanceOf[Class[T]]
   override def createSerializer(config: SerializerConfig): TypeSerializer[T] =
-    if (serializer.isImmutableType) serializer
-    else serializer.duplicate()
+    serializer.duplicate()
   override def isBasicType: Boolean   = false
   override def isTupleType: Boolean   = false
   override def isKeyType: Boolean     = false
