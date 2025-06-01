@@ -39,7 +39,7 @@ class StreamExecutionEnvironmentTest extends AnyFlatSpec with Matchers with Inte
       case Failure(_) => // Before Flink 1.19: no fail-fast, exception happens at execution
         implicit val typeInfo: TypeInformation[Option[Int]] = TypeInformation.of(classOf[Option[Int]])
         val stream                                          = env.fromElements(Some(1), None, Some(100))
-        val exception = intercept[UnsupportedOperationException] {
+        val exception                                       = intercept[UnsupportedOperationException] {
           stream.executeAndCollect(3)
         }
         exception.getMessage should startWith(

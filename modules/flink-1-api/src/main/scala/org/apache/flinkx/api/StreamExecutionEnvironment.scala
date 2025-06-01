@@ -606,7 +606,7 @@ class StreamExecutionEnvironment(javaEnv: JavaEnv) {
   def addSource[T: TypeInformation](function: SourceContext[T] => Unit): DataStream[T] = {
     require(function != null, "Function must not be null.")
     val sourceFunction = new SourceFunction[T] {
-      val cleanFun = scalaClean(function)
+      val cleanFun                                  = scalaClean(function)
       override def run(ctx: SourceContext[T]): Unit = {
         cleanFun(ctx)
       }

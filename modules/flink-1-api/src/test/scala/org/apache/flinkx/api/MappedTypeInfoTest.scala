@@ -32,7 +32,7 @@ object MappedTypeInfoTest {
       case s: WrappedString => s.get == internal
       case _                => false
     }
-    def get: String = internal
+    def get: String        = internal
     def put(value: String) = {
       internal = value
     }

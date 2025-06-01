@@ -32,7 +32,7 @@ object ScalaCaseObjectSerializer {
       out.writeUTF(clazz.getName)
     }
 
-    override def getCurrentVersion: Int = 1
+    override def getCurrentVersion: Int                                                                             = 1
     override def resolveSchemaCompatibility(newSerializer: TypeSerializer[T]): TypeSerializerSchemaCompatibility[T] =
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 

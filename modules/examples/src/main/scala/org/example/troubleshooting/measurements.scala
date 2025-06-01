@@ -30,7 +30,7 @@ class MeasurementWindowProcessFunction
   ): Unit =
     val aggregate = elements.iterator.next
     val window    = context.window
-    val res = aggregate.copy(
+    val res       = aggregate.copy(
       windowStart = window.getStart,
       windowEnd = window.getEnd,
       location = key

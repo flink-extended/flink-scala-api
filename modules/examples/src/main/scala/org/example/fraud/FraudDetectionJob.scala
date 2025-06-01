@@ -92,7 +92,7 @@ import Givens.given
   env.execute("Fraud Detection")
 
 @main def fraudDetectionState() =
-  val env = StreamExecutionEnvironment.getExecutionEnvironment
+  val env       = StreamExecutionEnvironment.getExecutionEnvironment
   val savepoint =
     SavepointReader.read(env.getJavaEnv, "///tmp/savepoints/savepoint-827976-a94a8feb6c07", HashMapStateBackend())
   val keyedState =

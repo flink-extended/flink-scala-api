@@ -22,7 +22,7 @@ class ConnectedStreamsTest extends AnyFlatSpec with Matchers:
     env.setParallelism(1)
 
     val commands = Seq(TestCommand(1), TestCommand(2), TestCommand(3))
-    val events = Seq(
+    val events   = Seq(
       TestEvent(2L, 1, 0),
       TestEvent(2L, 2, 0),
       TestEvent(2L, 3, 0)

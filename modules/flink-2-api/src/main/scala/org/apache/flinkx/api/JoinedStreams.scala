@@ -48,8 +48,8 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
   /** Specifies a [[KeySelector]] for elements from the first input.
     */
   def where[KEY: TypeInformation](keySelector: T1 => KEY): Where[KEY] = {
-    val cleanFun = clean(keySelector)
-    val keyType  = implicitly[TypeInformation[KEY]]
+    val cleanFun     = clean(keySelector)
+    val keyType      = implicitly[TypeInformation[KEY]]
     val javaSelector = new KeySelector[T1, KEY] with ResultTypeQueryable[KEY] {
       def getKey(in: T1): KEY                            = cleanFun(in)
       override def getProducedType: TypeInformation[KEY] = keyType
@@ -143,7 +143,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
           require(fun != null, "Join function must not be null.")
 
           val joiner = new FlatJoinFunction[T1, T2, O] {
-            val cleanFun = clean(fun)
+            val cleanFun                                     = clean(fun)
             def join(left: T1, right: T2, out: Collector[O]) = {
               out.collect(cleanFun(left, right))
             }
@@ -157,7 +157,7 @@ class JoinedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
           require(fun != null, "Join function must not be null.")
 
           val joiner = new FlatJoinFunction[T1, T2, O] {
-            val cleanFun = clean(fun)
+            val cleanFun                                     = clean(fun)
             def join(left: T1, right: T2, out: Collector[O]) = {
               cleanFun(left, right, out)
             }

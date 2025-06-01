@@ -232,8 +232,8 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
   it should "set parallelism" in {
     val parallelism = env.getParallelism
 
-    val src = env.fromElements(new Tuple2[Long, Long](0L, 0L))
-    val map = src.map(x => (0L, 0L))
+    val src                                = env.fromElements(new Tuple2[Long, Long](0L, 0L))
+    val map                                = src.map(x => (0L, 0L))
     val windowed: DataStream[(Long, Long)] = map
       .windowAll(GlobalWindows.create())
       .trigger(PurgingTrigger.of(CountTrigger.of[GlobalWindow](10)))
@@ -551,8 +551,8 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
   it should "assign partitioner" in {
     val src = env.fromSequence(0, 0)
 
-    val broadcast     = src.broadcast
-    val broadcastSink = broadcast.print()
+    val broadcast            = src.broadcast
+    val broadcastSink        = broadcast.print()
     val broadcastPartitioner = getStreamGraph(env)
       .getStreamEdges(src.getId, broadcastSink.getTransformation.getId)
       .get(0)
@@ -561,7 +561,7 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
 
     val shuffle: DataStream[Long] = src.shuffle
     val shuffleSink               = shuffle.print()
-    val shufflePartitioner = getStreamGraph(env)
+    val shufflePartitioner        = getStreamGraph(env)
       .getStreamEdges(src.getId, shuffleSink.getTransformation.getId)
       .get(0)
       .getPartitioner
@@ -569,7 +569,7 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
 
     val forward: DataStream[Long] = src.forward
     val forwardSink               = forward.print()
-    val forwardPartitioner = getStreamGraph(env)
+    val forwardPartitioner        = getStreamGraph(env)
       .getStreamEdges(src.getId, forwardSink.getTransformation.getId)
       .get(0)
       .getPartitioner
@@ -577,7 +577,7 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
 
     val rebalance: DataStream[Long] = src.rebalance
     val rebalanceSink               = rebalance.print()
-    val rebalancePartitioner = getStreamGraph(env)
+    val rebalancePartitioner        = getStreamGraph(env)
       .getStreamEdges(src.getId, rebalanceSink.getTransformation.getId)
       .get(0)
       .getPartitioner
@@ -585,7 +585,7 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
 
     val global: DataStream[Long] = src.global
     val globalSink               = global.print()
-    val globalPartitioner = getStreamGraph(env)
+    val globalPartitioner        = getStreamGraph(env)
       .getStreamEdges(src.getId, globalSink.getTransformation.getId)
       .get(0)
       .getPartitioner

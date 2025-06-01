@@ -263,7 +263,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
       throw new NullPointerException("Reduce function must not be null.")
     }
     val cleanFun = clean(fun)
-    val reducer = new ReduceFunction[T] {
+    val reducer  = new ReduceFunction[T] {
       def reduce(v1: T, v2: T): T = { cleanFun(v1, v2) }
     }
     reduce(reducer)

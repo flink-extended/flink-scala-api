@@ -90,7 +90,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def setParallelism(parallelism: Int): DataStream[T] = {
     stream match {
       case ds: SingleOutputStreamOperator[T] => ds.setParallelism(parallelism)
-      case _ =>
+      case _                                 =>
         throw new UnsupportedOperationException("Operator " + stream + " cannot set the parallelism.")
     }
     this
@@ -99,7 +99,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def setMaxParallelism(maxParallelism: Int): DataStream[T] = {
     stream match {
       case ds: SingleOutputStreamOperator[T] => ds.setMaxParallelism(maxParallelism)
-      case _ =>
+      case _                                 =>
         throw new UnsupportedOperationException(
           "Operator " + stream + " cannot set the maximum" +
             "paralllelism"
@@ -138,7 +138,7 @@ class DataStream[T](stream: JavaStream[T]) {
     */
   def name(name: String): DataStream[T] = stream match {
     case stream: SingleOutputStreamOperator[T] => asScalaStream(stream.name(name))
-    case _ =>
+    case _                                     =>
       throw new UnsupportedOperationException("Only supported for operators.")
       this
   }
@@ -159,7 +159,7 @@ class DataStream[T](stream: JavaStream[T]) {
   @PublicEvolving
   def uid(uid: String): DataStream[T] = javaStream match {
     case stream: SingleOutputStreamOperator[T] => asScalaStream(stream.uid(uid))
-    case _ =>
+    case _                                     =>
       throw new UnsupportedOperationException("Only supported for operators.")
       this
   }
@@ -199,7 +199,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def disableChaining(): DataStream[T] = {
     stream match {
       case ds: SingleOutputStreamOperator[T] => ds.disableChaining()
-      case _ =>
+      case _                                 =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
     this
@@ -212,7 +212,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def startNewChain(): DataStream[T] = {
     stream match {
       case ds: SingleOutputStreamOperator[T] => ds.startNewChain()
-      case _ =>
+      case _                                 =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
     this
@@ -234,7 +234,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def slotSharingGroup(slotSharingGroup: String): DataStream[T] = {
     stream match {
       case ds: SingleOutputStreamOperator[T] => ds.slotSharingGroup(slotSharingGroup)
-      case _ =>
+      case _                                 =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
     this
@@ -256,7 +256,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def slotSharingGroup(slotSharingGroup: SlotSharingGroup): DataStream[T] = {
     stream match {
       case ds: SingleOutputStreamOperator[T] => ds.slotSharingGroup(slotSharingGroup)
-      case _ =>
+      case _                                 =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
     this
@@ -273,7 +273,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def setBufferTimeout(timeoutMillis: Long): DataStream[T] = {
     stream match {
       case ds: SingleOutputStreamOperator[T] => ds.setBufferTimeout(timeoutMillis)
-      case _ =>
+      case _                                 =>
         throw new UnsupportedOperationException("Only supported for operators.")
     }
     this
@@ -516,7 +516,7 @@ class DataStream[T](stream: JavaStream[T]) {
       throw new NullPointerException("Map function must not be null.")
     }
     val cleanFun = clean(fun)
-    val mapper = new MapFunction[T, R] {
+    val mapper   = new MapFunction[T, R] {
       def map(in: T): R = cleanFun(in)
     }
 
@@ -551,7 +551,7 @@ class DataStream[T](stream: JavaStream[T]) {
     if (fun == null) {
       throw new NullPointerException("FlatMap function must not be null.")
     }
-    val cleanFun = clean(fun)
+    val cleanFun   = clean(fun)
     val flatMapper = new FlatMapFunction[T, R] {
       def flatMap(in: T, out: Collector[R]): Unit = { cleanFun(in, out) }
     }
@@ -564,7 +564,7 @@ class DataStream[T](stream: JavaStream[T]) {
     if (fun == null) {
       throw new NullPointerException("FlatMap function must not be null.")
     }
-    val cleanFun = clean(fun)
+    val cleanFun   = clean(fun)
     val flatMapper = new FlatMapFunction[T, R] {
       def flatMap(in: T, out: Collector[R]): Unit = { cleanFun(in).iterator.foreach(out.collect) }
     }
@@ -603,7 +603,7 @@ class DataStream[T](stream: JavaStream[T]) {
     if (fun == null) {
       throw new NullPointerException("Filter function must not be null.")
     }
-    val cleanFun = clean(fun)
+    val cleanFun  = clean(fun)
     val filterFun = new FilterFunction[T] {
       def filter(in: T): Boolean = cleanFun(in)
     }
@@ -616,7 +616,7 @@ class DataStream[T](stream: JavaStream[T]) {
     if (fun == null) {
       throw new NullPointerException("FilteNot function must not be null.")
     }
-    val cleanFun = clean(fun)
+    val cleanFun  = clean(fun)
     val filterFun = new FilterFunction[T] {
       def filter(in: T): Boolean = !cleanFun(in)
     }
@@ -709,7 +709,7 @@ class DataStream[T](stream: JavaStream[T]) {
     */
   @Deprecated
   def assignAscendingTimestamps(extractor: T => Long): DataStream[T] = {
-    val cleanExtractor = clean(extractor)
+    val cleanExtractor    = clean(extractor)
     val extractorFunction = new AscendingTimestampExtractor[T] {
       def extractAscendingTimestamp(element: T): Long = {
         cleanExtractor(element)
@@ -801,7 +801,7 @@ class DataStream[T](stream: JavaStream[T]) {
     if (fun == null) {
       throw new NullPointerException("Sink function must not be null.")
     }
-    val cleanFun = clean(fun)
+    val cleanFun     = clean(fun)
     val sinkFunction = new SinkFunction[T] {
       override def invoke(in: T) = cleanFun(in)
     }
@@ -897,7 +897,7 @@ class DataStream[T](stream: JavaStream[T]) {
   @PublicEvolving
   def setDescription(description: String): DataStream[T] = stream match {
     case stream: SingleOutputStreamOperator[T] => asScalaStream(stream.setDescription(description))
-    case _ =>
+    case _                                     =>
       throw new UnsupportedOperationException("Only supported for operators.")
       this
   }

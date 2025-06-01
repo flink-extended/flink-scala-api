@@ -44,8 +44,8 @@ class CoGroupedStreams[T1, T2](input1: DataStream[T1], input2: DataStream[T2]) {
   /** Specifies a [[KeySelector]] for elements from the first input.
     */
   def where[KEY: TypeInformation](keySelector: T1 => KEY): Where[KEY] = {
-    val cleanFun = clean(keySelector)
-    val keyType  = implicitly[TypeInformation[KEY]]
+    val cleanFun     = clean(keySelector)
+    val keyType      = implicitly[TypeInformation[KEY]]
     val javaSelector = new KeySelector[T1, KEY] with ResultTypeQueryable[KEY] {
       def getKey(in: T1)                                 = cleanFun(in)
       override def getProducedType: TypeInformation[KEY] = keyType

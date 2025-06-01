@@ -83,7 +83,7 @@ def windowAction(
     out: Collector[TestEvent]
 ): Unit =
   val reduced = input.reduce(reduceEvents)
-  val output =
+  val output  =
     reduced.copy(
       windowStart = window.getStart,
       runningCount = if reduced.runningCount > 0 then reduced.runningCount else 1
@@ -109,8 +109,8 @@ def reduceEvents(a: TestEvent, b: TestEvent) =
 @main def runningWindowedSum =
   val env = StreamExecutionEnvironment.getExecutionEnvironment
 
-  val windowSize  = Time.of(10, TimeUnit.SECONDS)
-  val windowSlide = Time.of(2, TimeUnit.SECONDS)
+  val windowSize        = Time.of(10, TimeUnit.SECONDS)
+  val windowSlide       = Time.of(2, TimeUnit.SECONDS)
   val watermarkStrategy = WatermarkStrategy
     .forBoundedOutOfOrderness[TestEvent](Duration.ofSeconds(1000))
     .withTimestampAssigner((event: TestEvent, streamRecordTimestamp: Long) => event.timestamp)
@@ -131,9 +131,9 @@ def reduceEvents(a: TestEvent, b: TestEvent) =
 
 class RunningCountFunc(windowSize: Duration) extends KeyedProcessFunction[Long, TestEvent, TestEvent]:
 
-  val oldEntriesCleanupInterval         = 1000L
-  var minTimestamp: ValueState[Long]    = _
-  var timeToCount: MapState[Long, Long] = _
+  val oldEntriesCleanupInterval                      = 1000L
+  var minTimestamp: ValueState[Long]                 = _
+  var timeToCount: MapState[Long, Long]              = _
   override def open(parameters: Configuration): Unit =
     timeToCount = getRuntimeContext.getMapState(
       MapStateDescriptor("timestamp2count", classOf[Long], classOf[Long])

@@ -15,7 +15,7 @@ import java.lang.{Long => JLong}
 val env      = StreamExecutionEnvironment.getExecutionEnvironment
 val settings = EnvironmentSettings.newInstance.inStreamingMode.build
 val table    = TableEnvironment.create(settings)
-val schema = Schema.newBuilder
+val schema   = Schema.newBuilder
   .column("id", DataTypes.INT())
   .column("bid_price", DataTypes.DOUBLE())
   .column("order_time", DataTypes.TIMESTAMP(2))

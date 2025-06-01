@@ -687,8 +687,8 @@ object IndylambdaScalaClosures {
 
     // Depth-first search for inner closures and track the fields that were accessed in them.
     // Start from the lambda body's implementation method, follow method invocations
-    val visited = mutable.Set.empty[MethodIdentifier[_]]
-    val stack   = mutable.Stack[MethodIdentifier[_]](implMethodId)
+    val visited                                               = mutable.Set.empty[MethodIdentifier[_]]
+    val stack                                                 = mutable.Stack[MethodIdentifier[_]](implMethodId)
     def pushIfNotVisited(methodId: MethodIdentifier[_]): Unit = {
       if (!visited.contains(methodId)) {
         stack.push(methodId)

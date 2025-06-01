@@ -11,7 +11,7 @@ class CoproductSerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
   it should "serialize then deserialize" in {
     // Create SerializerSnapshot
-    val subtypeClasses: Array[Class[?]] = Array(classOf[Foo], classOf[Bar])
+    val subtypeClasses: Array[Class[?]]              = Array(classOf[Foo], classOf[Bar])
     val subtypeSerializers: Array[TypeSerializer[?]] = Array(
       implicitly[TypeSerializer[Foo]],
       implicitly[TypeSerializer[Bar]]
