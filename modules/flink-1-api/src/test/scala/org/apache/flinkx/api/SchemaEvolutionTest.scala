@@ -15,7 +15,7 @@ import java.nio.file.{Files, Path}
 class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
   private implicit val eventTypeInfo: TypeInformation[Event]       = deriveTypeInformation[Event]
   private implicit val arityTestInfo: TypeInformation[NoArityTest] = deriveTypeInformation[NoArityTest]
-  private val clicks =
+  private val clicks                                               =
     List(ClickEvent("a", "2021-01-01"), ClickEvent("b", "2021-01-01"), ClickEvent("c", "2021-01-01"))
 
   def createSerializer[T: TypeInformation] =
@@ -42,7 +42,7 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
   }
 
   it should "decode class without arity info" in {
-    val buffer = this.getClass.getResourceAsStream("/without-arity-test.dat")
+    val buffer     = this.getClass.getResourceAsStream("/without-arity-test.dat")
     val serializer = createSerializer[NoArityTest] match {
       case s: CaseClassSerializer[_] => s
       case s                         => fail(s"Derived serializer must be of CaseClassSerializer type, but was $s")

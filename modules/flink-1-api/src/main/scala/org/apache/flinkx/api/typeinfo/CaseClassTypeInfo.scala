@@ -59,14 +59,14 @@ abstract class CaseClassTypeInfo[T <: Product](
       .asJava
   }
 
-  private val REGEX_INT_FIELD: String     = "[0-9]+"
-  private val REGEX_STR_FIELD: String     = "[\\p{L}_\\$][\\p{L}\\p{Digit}_\\$]*"
-  private val REGEX_FIELD: String         = REGEX_STR_FIELD + "|" + REGEX_INT_FIELD
-  private val REGEX_NESTED_FIELDS: String = "(" + REGEX_FIELD + ")(\\.(.+))?"
+  private val REGEX_INT_FIELD: String              = "[0-9]+"
+  private val REGEX_STR_FIELD: String              = "[\\p{L}_\\$][\\p{L}\\p{Digit}_\\$]*"
+  private val REGEX_FIELD: String                  = REGEX_STR_FIELD + "|" + REGEX_INT_FIELD
+  private val REGEX_NESTED_FIELDS: String          = "(" + REGEX_FIELD + ")(\\.(.+))?"
   private val REGEX_NESTED_FIELDS_WILDCARD: String = REGEX_NESTED_FIELDS + "|\\" +
     ExpressionKeys.SELECT_ALL_CHAR + "|\\" + ExpressionKeys.SELECT_ALL_CHAR_SCALA
 
-  private val PATTERN_NESTED_FIELDS: Pattern = Pattern.compile(REGEX_NESTED_FIELDS)
+  private val PATTERN_NESTED_FIELDS: Pattern          = Pattern.compile(REGEX_NESTED_FIELDS)
   private val PATTERN_NESTED_FIELDS_WILDCARD: Pattern =
     Pattern.compile(REGEX_NESTED_FIELDS_WILDCARD)
   private val PATTERN_INT_FIELD: Pattern = Pattern.compile(REGEX_INT_FIELD)

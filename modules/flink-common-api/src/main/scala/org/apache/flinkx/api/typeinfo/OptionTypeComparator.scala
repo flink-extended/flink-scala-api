@@ -34,7 +34,7 @@ class OptionTypeComparator[A](ascending: Boolean, typeComparator: TypeComparator
       case Some(firstValue) =>
         second match {
           case Some(secondValue) => typeComparator.compare(firstValue, secondValue)
-          case None =>
+          case None              =>
             if (ascending) {
               1
             } else {

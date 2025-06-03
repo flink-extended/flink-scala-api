@@ -25,8 +25,8 @@ private[api] trait LowPrioImplicits {
     val cacheKey = typeName[T]
     cache.get(cacheKey) match {
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]
-      case None =>
-        val clazz = classTag[T].runtimeClass.asInstanceOf[Class[T]]
+      case None         =>
+        val clazz      = classTag[T].runtimeClass.asInstanceOf[Class[T]]
         val serializer = if (typeOf[T].typeSymbol.isModuleClass) {
           new ScalaCaseObjectSerializer[T](clazz)
         } else {
@@ -52,7 +52,7 @@ private[api] trait LowPrioImplicits {
     val cacheKey = typeName[T]
     cache.get(cacheKey) match {
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]
-      case None =>
+      case None         =>
         val serializer = new CoproductSerializer[T](
           subtypeClasses = ctx.subtypes.map(_.typeclass.getTypeClass).toArray,
           subtypeSerializers = ctx.subtypes.map(_.typeclass.createSerializer(config)).toArray

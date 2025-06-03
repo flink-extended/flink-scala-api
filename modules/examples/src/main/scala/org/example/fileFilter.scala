@@ -27,8 +27,8 @@ class MyDefaultFileFilter extends Predicate[Path]:
       case None => false
 
 @main def filterFiles =
-  val currentDirectory = File(".").getCanonicalPath
-  val inputBasePath    = Path(s"$currentDirectory/input-table")
+  val currentDirectory  = File(".").getCanonicalPath
+  val inputBasePath     = Path(s"$currentDirectory/input-table")
   val fileSourceBuilder =
     FileSource.forRecordStreamFormat(
       TextLineInputFormat(),

@@ -77,7 +77,7 @@ class CoproductSerializerTest extends AnyFlatSpec with Matchers {
 
   it should "return a new instance of itself when the serializer is mutable" in {
     implicit val rowInfo: RowTypeInfo = new RowTypeInfo()
-    val serializer = implicitly[TypeSerializer[MutableSerializer]]
+    val serializer                    = implicitly[TypeSerializer[MutableSerializer]]
 
     val duplicatedSerializer = serializer.duplicate()
 

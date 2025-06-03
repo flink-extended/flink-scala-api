@@ -36,7 +36,7 @@ import scala.collection.JavaConverters.*
 class CustomTriggerTest extends AnyFlatSpec with Matchers with Inspectors:
 
   it should "test custom trigger" in {
-    val cfg = ExecutionConfig()
+    val cfg        = ExecutionConfig()
     val serializer = deriveTypeInformation[TestEvent].createSerializer(
       cfg
     )

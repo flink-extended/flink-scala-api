@@ -13,7 +13,7 @@ class MappedSerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
   it should "serialize then deserialize" in {
     // Create SerializerSnapshot
-    val mapper = new BigDecMapper()
+    val mapper      = new BigDecMapper()
     val tSerializer = implicitly[TypeSerializer[JBigDecimal]]
     val serializerSnapshot: MappedSerializer.MappedSerializerSnapshot[scala.BigDecimal, JBigDecimal] =
       new MappedSerializer.MappedSerializerSnapshot(mapper, tSerializer)

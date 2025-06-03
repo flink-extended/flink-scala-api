@@ -24,10 +24,10 @@ class SeqSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutabl
     }
   }
 
-  override def createInstance(): Seq[T] = Seq.empty[T]
-  override def getLength: Int           = -1
+  override def createInstance(): Seq[T]                   = Seq.empty[T]
+  override def getLength: Int                             = -1
   override def deserialize(source: DataInputView): Seq[T] = {
-    val count = source.readInt()
+    val count  = source.readInt()
     val result = for {
       _ <- 0 until count
     } yield {

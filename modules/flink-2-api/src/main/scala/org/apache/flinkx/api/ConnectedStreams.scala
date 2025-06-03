@@ -47,7 +47,7 @@ class ConnectedStreams[IN1, IN2](javaStream: JavaCStream[IN1, IN2]) {
     }
     val cleanFun1 = clean(fun1)
     val cleanFun2 = clean(fun2)
-    val comapper = new CoMapFunction[IN1, IN2, R] {
+    val comapper  = new CoMapFunction[IN1, IN2, R] {
       def map1(in1: IN1): R = cleanFun1(in1)
       def map2(in2: IN2): R = cleanFun2(in2)
     }
@@ -168,8 +168,8 @@ class ConnectedStreams[IN1, IN2](javaStream: JavaCStream[IN1, IN2]) {
     if (fun1 == null || fun2 == null) {
       throw new NullPointerException("FlatMap functions must not be null.")
     }
-    val cleanFun1 = clean(fun1)
-    val cleanFun2 = clean(fun2)
+    val cleanFun1  = clean(fun1)
+    val cleanFun2  = clean(fun2)
     val flatMapper = new CoFlatMapFunction[IN1, IN2, R] {
       def flatMap1(value: IN1, out: Collector[R]): Unit = cleanFun1(value, out)
       def flatMap2(value: IN2, out: Collector[R]): Unit = cleanFun2(value, out)

@@ -26,11 +26,10 @@ case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[
     }
   }
 
-
   override def equals(other: Any): Boolean = other match {
     case that: MappedSerializer[_, _] =>
-        mapper == that.mapper &&
-        ser == that.ser
+      mapper == that.mapper &&
+      ser == that.ser
     case _ => false
   }
 
@@ -38,7 +37,7 @@ case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[
 
   override def hashCode(): Int = 31 * mapper.hashCode + ser.hashCode
 
-  override def getLength: Int  = ser.getLength
+  override def getLength: Int = ser.getLength
 
   override def serialize(record: A, target: DataOutputView): Unit = {
     ser.serialize(mapper.map(record), target)

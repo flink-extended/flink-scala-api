@@ -24,10 +24,10 @@ class ListSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutab
     }
   }
 
-  override def createInstance(): List[T] = List.empty[T]
-  override def getLength: Int            = -1
+  override def createInstance(): List[T]                   = List.empty[T]
+  override def getLength: Int                              = -1
   override def deserialize(source: DataInputView): List[T] = {
-    val count = source.readInt()
+    val count  = source.readInt()
     val result = for {
       _ <- 0 until count
     } yield {

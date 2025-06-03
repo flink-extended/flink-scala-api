@@ -27,10 +27,10 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
     }
   }
 
-  override def createInstance(): Map[K, V] = Map.empty[K, V]
-  override def getLength: Int              = -1
+  override def createInstance(): Map[K, V]                   = Map.empty[K, V]
+  override def getLength: Int                                = -1
   override def deserialize(source: DataInputView): Map[K, V] = {
-    val count = source.readInt()
+    val count  = source.readInt()
     val result = for {
       _ <- 0 until count
     } yield {

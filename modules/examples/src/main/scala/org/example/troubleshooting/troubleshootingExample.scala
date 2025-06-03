@@ -100,7 +100,7 @@ val RANDOM_SEED         = 1
 val NUM_OF_MEASUREMENTS = 100_000
 
 def createSerializedMeasurements: Array[Array[Byte]] =
-  val rand = Random(RANDOM_SEED)
+  val rand      = Random(RANDOM_SEED)
   val locations =
     Using.resource(Source.fromResource("cities.csv"))(_.getLines().toArray)
 

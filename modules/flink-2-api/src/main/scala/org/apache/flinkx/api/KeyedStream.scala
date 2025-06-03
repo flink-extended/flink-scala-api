@@ -264,7 +264,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
       throw new NullPointerException("Reduce function must not be null.")
     }
     val cleanFun = clean(fun)
-    val reducer = new ReduceFunction[T] {
+    val reducer  = new ReduceFunction[T] {
       def reduce(v1: T, v2: T): T = { cleanFun(v1, v2) }
     }
     reduce(reducer)
@@ -414,7 +414,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S] =
+    val serializer: TypeSerializer[S]     =
       stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
 
     val filterFun = new RichFilterFunction[T] with StatefulFunction[T, Boolean, S] {
@@ -441,7 +441,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S] =
+    val serializer: TypeSerializer[S]     =
       stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
 
     val mapper = new RichMapFunction[T, R] with StatefulFunction[T, R, S] {
@@ -471,7 +471,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S] =
+    val serializer: TypeSerializer[S]     =
       stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment().getConfig().getSerializerConfig())
 
     val flatMapper = new RichFlatMapFunction[T, R] with StatefulFunction[T, IterableOnce[R], S] {

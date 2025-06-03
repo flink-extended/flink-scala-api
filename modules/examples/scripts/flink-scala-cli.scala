@@ -8,7 +8,7 @@ import java.io.File
 
 @main def wordCountExample =
   val logger = LoggerFactory.getLogger(this.getClass())
-  val files = File(".").listFiles ++ Option(File("/flink/lib/").listFiles)
+  val files  = File(".").listFiles ++ Option(File("/flink/lib/").listFiles)
     .getOrElse(Array.empty[File])
   val elems = files.filter(_.isFile).map(_.getAbsolutePath())
 

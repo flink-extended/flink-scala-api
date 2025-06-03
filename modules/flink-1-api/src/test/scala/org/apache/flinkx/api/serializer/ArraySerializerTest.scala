@@ -41,7 +41,7 @@ class ArraySerializerTest extends AnyFlatSpec with Matchers {
     val duplicatedIntArraySerializer = rowArraySerializer.duplicate()
 
     duplicatedIntArraySerializer shouldNot be theSameInstanceAs rowArraySerializer
-    duplicatedIntArraySerializer should be (rowArraySerializer)
+    duplicatedIntArraySerializer should be(rowArraySerializer)
   }
 
 }

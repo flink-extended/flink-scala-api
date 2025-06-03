@@ -32,7 +32,7 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         cached.asInstanceOf[TypeInformation[T]]
 
       case None =>
-        val clazz = classTag.runtimeClass.asInstanceOf[Class[T & Product]]
+        val clazz      = classTag.runtimeClass.asInstanceOf[Class[T & Product]]
         val serializer =
           if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
           else

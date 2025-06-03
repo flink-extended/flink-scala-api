@@ -26,7 +26,7 @@ class RunningAverage extends RichMapFunction[Transaction, (Transaction, Double)]
     ValueStateDescriptor("count", classOf[Int], 0)
   )
 
-  private def threadName = Thread.currentThread.getName
+  private def threadName                         = Thread.currentThread.getName
   override def open(config: Configuration): Unit =
     println(s"open map: $threadName")
 

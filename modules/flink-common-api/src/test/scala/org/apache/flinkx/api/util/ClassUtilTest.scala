@@ -33,7 +33,11 @@ class ClassUtilTest extends AnyFlatSpec with Matchers {
 
   it should "return false when the field is a disrupted private var" in {
     val aDisruptedPrivateNonFinal = classOf[DisruptedPrivateNonFinal]
-    ClassUtil.isFieldFinal(aDisruptedPrivateNonFinal.getDeclaredFields, aDisruptedPrivateNonFinal.getName, "a") shouldBe false
+    ClassUtil.isFieldFinal(
+      aDisruptedPrivateNonFinal.getDeclaredFields,
+      aDisruptedPrivateNonFinal.getName,
+      "a"
+    ) shouldBe false
   }
 
   it should "throw NoSuchFieldException when the field doesn't exist" in {
@@ -52,10 +56,9 @@ object ClassUtilTest {
   case class PrivateFinal(private val a: String)
   case class PrivateNonFinal(private var a: String)
   object DisruptiveObject {
-    def apply(value: Int): DisruptedPrivateFinal = DisruptedPrivateFinal(String.valueOf(value))
+    def apply(value: Int): DisruptedPrivateFinal     = DisruptedPrivateFinal(String.valueOf(value))
     def apply(value: Long): DisruptedPrivateNonFinal = DisruptedPrivateNonFinal(String.valueOf(value))
   }
   case class DisruptedPrivateFinal(private val a: String)
   case class DisruptedPrivateNonFinal(private var a: String)
 }
-
