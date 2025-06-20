@@ -11,7 +11,7 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.serialization.SerializerConfig
 import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
-import org.apache.flinkx.api.util.ClassUtil.isFieldFinal
+import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
   type Typeclass[T] = TypeInformation[T]
