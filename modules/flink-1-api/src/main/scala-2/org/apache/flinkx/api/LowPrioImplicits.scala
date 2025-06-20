@@ -34,7 +34,7 @@ private[api] trait LowPrioImplicits {
           new CaseClassSerializer[T](
             clazz = clazz,
             scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray,
-            isCaseClassImmutable = ctx.parameters.forall(p => isFieldFinal(fields, clazz.getName, p.label))
+            isCaseClassImmutable = ctx.parameters.forall(p => isFieldFinal(fields, clazz, p.label))
           )
         }
         val ti = new ProductTypeInformation[T](

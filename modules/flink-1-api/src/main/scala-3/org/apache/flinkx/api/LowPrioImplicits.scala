@@ -41,7 +41,7 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
               clazz = clazz,
               scalaFieldSerializers =
                 IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray,
-              isCaseClassImmutable = ctx.params.forall(p => isFieldFinal(fields, clazz.getName, p.label))
+              isCaseClassImmutable = ctx.params.forall(p => isFieldFinal(fields, clazz, p.label))
             )
         val ti = new ProductTypeInformation[T & Product](
           c = clazz,
