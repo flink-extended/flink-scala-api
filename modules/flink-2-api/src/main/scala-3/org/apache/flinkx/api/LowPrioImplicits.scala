@@ -37,12 +37,11 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         val serializer =
           if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
           else
-            val fields = clazz.getDeclaredFields
             new CaseClassSerializer[T & Product](
               clazz = clazz,
               scalaFieldSerializers =
                 IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray,
-              isCaseClassImmutable = ctx.params.forall(p => isFieldFinal(fields, clazz, p.label))
+              isCaseClassImmutable = isCaseClassImmutable(clazz, ctx.params.map(_.label))
             )
         val ti = new ProductTypeInformation[T & Product](
           c = clazz,
