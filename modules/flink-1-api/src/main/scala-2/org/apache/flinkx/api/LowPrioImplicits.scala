@@ -5,7 +5,7 @@ import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
-import org.apache.flinkx.api.util.ClassUtil.isFieldFinal
+import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 import scala.collection.mutable
 import scala.language.experimental.macros
@@ -30,11 +30,10 @@ private[api] trait LowPrioImplicits {
         val serializer = if (typeOf[T].typeSymbol.isModuleClass) {
           new ScalaCaseObjectSerializer[T](clazz)
         } else {
-          val fields = clazz.getDeclaredFields
           new CaseClassSerializer[T](
             clazz = clazz,
             scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray,
-            isCaseClassImmutable = ctx.parameters.forall(p => isFieldFinal(fields, clazz.getName, p.label))
+            isCaseClassImmutable = isCaseClassImmutable(clazz, ctx.parameters.map(_.label))
           )
         }
         val ti = new ProductTypeInformation[T](

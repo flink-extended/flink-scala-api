@@ -11,7 +11,7 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.serialization.SerializerConfig
 import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
-import org.apache.flinkx.api.util.ClassUtil.isFieldFinal
+import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
   type Typeclass[T] = TypeInformation[T]
@@ -37,12 +37,11 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
         val serializer =
           if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
           else
-            val fields = clazz.getDeclaredFields
             new CaseClassSerializer[T & Product](
               clazz = clazz,
               scalaFieldSerializers =
                 IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray,
-              isCaseClassImmutable = ctx.params.forall(p => isFieldFinal(fields, clazz.getName, p.label))
+              isCaseClassImmutable = isCaseClassImmutable(clazz, ctx.params.map(_.label))
             )
         val ti = new ProductTypeInformation[T & Product](
           c = clazz,

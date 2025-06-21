@@ -199,6 +199,11 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     roundtrip(ser, PrivateField("abc"))
   }
 
+  it should "serialize a case class overriding a field" in {
+    val ser = implicitly[TypeInformation[ExtendingCaseClass]].createSerializer(ec)
+    roundtrip(ser, ExtendingCaseClass("abc", "def"))
+  }
+
 }
 
 object SerializerTest {
@@ -266,5 +271,9 @@ object SerializerTest {
   }
 
   case class PrivateField(private val a: String)
+
+  abstract class AbstractClass(val a: String)
+
+  final case class ExtendingCaseClass(override val a: String, b: String) extends AbstractClass(a)
 
 }
