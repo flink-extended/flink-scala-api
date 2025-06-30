@@ -22,7 +22,6 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnap
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
-import org.apache.flinkx.api.serializer.CaseClassSerializer.isClassArityUsageDisabled
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.ObjectInputStream
@@ -101,7 +100,7 @@ class CaseClassSerializer[T <: Product](
 
   def serialize(value: T, target: DataOutputView): Unit = {
     val sourceArity = if (value == null) -1 else value.productArity
-    if (arity > 0 && !isClassArityUsageDisabled) {
+    if (arity > 0) {
       target.writeInt(sourceArity)
     }
 
@@ -119,15 +118,15 @@ class CaseClassSerializer[T <: Product](
   }
 
   def deserialize(reuse: T, source: DataInputView): T =
-    deserializeFromSource(source, isClassArityUsageDisabled)
+    deserializeFromSource(source)
 
   def deserialize(source: DataInputView): T =
-    deserializeFromSource(source, isClassArityUsageDisabled)
+    deserializeFromSource(source)
 
-  private[api] def deserializeFromSource(source: DataInputView, classArityUsageDisabled: Boolean): T = {
+  private[api] def deserializeFromSource(source: DataInputView): T = {
     var i           = 0
     var fieldFound  = true
-    val sourceArity = if (arity > 0 && !classArityUsageDisabled) Try(source.readInt()).getOrElse(arity) else arity
+    val sourceArity = if (arity > 0) Try(source.readInt()).getOrElse(arity) else arity
     if (sourceArity == -1) {
       null.asInstanceOf[T]
     } else {
@@ -160,14 +159,4 @@ class CaseClassSerializer[T <: Product](
     constructor = lookupConstructor(clazz, numFields)
   }
 
-}
-
-object CaseClassSerializer {
-  private val isClassArityUsageDisabled =
-    sys.env
-      .get("DISABLE_CASE_CLASS_ARITY_USAGE")
-      .exists(v =>
-        Try(v.toBoolean)
-          .getOrElse(false)
-      )
 }

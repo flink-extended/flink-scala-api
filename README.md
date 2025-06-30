@@ -413,26 +413,6 @@ env
 
 ## Feature Flags
 
-### Disable Class Arity Usage
-
-In the [1.1.5 release](https://github.com/flink-extended/flink-scala-api/releases/tag/v1.18.1_1.1.5) the Case Class serialization process also [stores case class arity](https://github.com/flink-extended/flink-scala-api/pull/98/files#diff-e896c210d6a754cb3afb462aea34cca08f090330f6f3c663a64dfb5584fc3727R106) number to
-a savepoint. This was introduced to support Case Class schema evolution and allow to add new
-class fields with default values. However, unfortunately this is the breaking change to the Flink job state restore process. Flink job will fail, if
-a savepoint used for the job restore was created by 1.1.4 or earlier releases.
-
-In order migrate to the 1.1.5 release version, one can use specially added environment variable:
-`DISABLE_CASE_CLASS_ARITY_USAGE`.
-
-To disable new savepoint format and be able to restore a Flink job with a savepoint created before 1.1.5 release set the variable to `true`. 
-
-Example: `DISABLE_CASE_CLASS_ARITY_USAGE = true`
-
-To enable new serialization logic set this variable to `false` or simply do not define this environment variable.
-
-Example: `DISABLE_CASE_CLASS_ARITY_USAGE = false`
-
-P.S. this flag can be deprecated in future when most of the users migrate to the latest library version.
-
 ### Disable fail-fast on Scala type resolution with Class
 
 From [1.2.3 release](https://github.com/flink-extended/flink-scala-api/releases/tag/v1.20.0_1.2.3), a check is done to prevent misusage of Scala type resolution with `Class` which may lead to silently fallback to generic Kryo serializers.

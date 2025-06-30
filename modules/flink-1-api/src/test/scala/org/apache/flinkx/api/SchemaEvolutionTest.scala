@@ -1,11 +1,10 @@
 package org.apache.flinkx.api
 
-import org.apache.flinkx.api.SchemaEvolutionTest.{Click, ClickEvent, Event, NoArityTest}
-import org.apache.flinkx.api.serializers._
-import org.apache.flinkx.api.serializer.CaseClassSerializer
+import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
-import org.apache.flink.api.common.ExecutionConfig
+import org.apache.flinkx.api.SchemaEvolutionTest.{Click, ClickEvent, Event, NoArityTest}
+import org.apache.flinkx.api.serializers._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -34,23 +33,6 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
     click shouldBe Click("p1", clicks)
   }
 
-  ignore should "generate blob for no arity test" in {
-    val buffer          = new ByteArrayOutputStream()
-    val eventSerializer = createSerializer[NoArityTest]
-    eventSerializer.serialize(NoArityTest(4, 3, List("test")), new DataOutputViewStreamWrapper(buffer))
-    Files.write(Path.of("src/test/resources/without-arity-test.dat"), buffer.toByteArray)
-  }
-
-  it should "decode class without arity info" in {
-    val buffer     = this.getClass.getResourceAsStream("/without-arity-test.dat")
-    val serializer = createSerializer[NoArityTest] match {
-      case s: CaseClassSerializer[_] => s
-      case s                         => fail(s"Derived serializer must be of CaseClassSerializer type, but was $s")
-    }
-    val decoded =
-      serializer.deserializeFromSource(new DataInputViewStreamWrapper(buffer), classArityUsageDisabled = true)
-    decoded shouldBe NoArityTest(4, 3, List("test"))
-  }
 }
 
 object SchemaEvolutionTest {
