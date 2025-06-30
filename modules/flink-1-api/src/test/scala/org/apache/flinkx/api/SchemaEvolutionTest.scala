@@ -3,7 +3,7 @@ package org.apache.flinkx.api
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.core.memory.{DataInputViewStreamWrapper, DataOutputViewStreamWrapper}
-import org.apache.flinkx.api.SchemaEvolutionTest.{Click, ClickEvent, Event, NoArityTest}
+import org.apache.flinkx.api.SchemaEvolutionTest.{Click, ClickEvent, Event}
 import org.apache.flinkx.api.serializers._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -13,7 +13,6 @@ import java.nio.file.{Files, Path}
 
 class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
   private implicit val eventTypeInfo: TypeInformation[Event]       = deriveTypeInformation[Event]
-  private implicit val arityTestInfo: TypeInformation[NoArityTest] = deriveTypeInformation[NoArityTest]
   private val clicks                                               =
     List(ClickEvent("a", "2021-01-01"), ClickEvent("b", "2021-01-01"), ClickEvent("c", "2021-01-01"))
 
@@ -36,8 +35,6 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
 }
 
 object SchemaEvolutionTest {
-  case class NoArityTest(field1: Long, field2: Long, field3: List[String] = Nil)
-
   sealed trait Event
   case class Click(
       id: String,

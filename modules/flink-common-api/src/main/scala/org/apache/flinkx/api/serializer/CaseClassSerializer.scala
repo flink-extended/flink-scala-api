@@ -99,38 +99,32 @@ class CaseClassSerializer[T <: Product](
     }
 
   def serialize(value: T, target: DataOutputView): Unit = {
-    val sourceArity = if (value == null) -1 else value.productArity
-    if (arity > 0) {
-      target.writeInt(sourceArity)
-    }
+    // Null value is handled by setting arity field to -1
+    val sourceArity = if (value == null) -1 else arity
+    target.writeInt(sourceArity)
 
-    if (sourceArity > 0) {
-      (0 until arity).foreach { i =>
-        val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
-        val o          = value.productElement(i)
-        try serializer.serialize(o, target)
-        catch {
-          case e: NullPointerException =>
-            throw new NullFieldException(i, e)
-        }
+    (0 until sourceArity).foreach { i =>
+      val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
+      val o          = value.productElement(i)
+      try serializer.serialize(o, target)
+      catch {
+        case e: NullPointerException =>
+          throw new NullFieldException(i, e)
       }
     }
   }
 
   def deserialize(reuse: T, source: DataInputView): T =
-    deserializeFromSource(source)
+    deserialize(source)
 
-  def deserialize(source: DataInputView): T =
-    deserializeFromSource(source)
-
-  private[api] def deserializeFromSource(source: DataInputView): T = {
+  def deserialize(source: DataInputView): T = {
     var i           = 0
     var fieldFound  = true
-    val sourceArity = if (arity > 0) Try(source.readInt()).getOrElse(arity) else arity
+    val sourceArity = source.readInt()
     if (sourceArity == -1) {
       null.asInstanceOf[T]
     } else {
-      val fields = new Array[AnyRef](arity)
+      val fields = new Array[AnyRef](sourceArity)
       while (i < sourceArity && fieldFound) {
         Try(fieldSerializers(i).deserialize(source)) match {
           case Failure(e) =>

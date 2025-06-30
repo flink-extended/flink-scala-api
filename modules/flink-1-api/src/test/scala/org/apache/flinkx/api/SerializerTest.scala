@@ -211,8 +211,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 
   it should "serialize a case class with a nullable field of a case class with no arity" in {
     val ser = implicitly[TypeInformation[NullableFieldWithNoArity]].createSerializer(ec)
-    // Deserialization works but produce NullableFieldWithNoArity(NoArity()) instead of NullableFieldWithNoArity(null)
-    // roundtrip(ser, NullableFieldWithNoArity(null))
+    roundtrip(ser, NullableFieldWithNoArity(null))
   }
 
 }
