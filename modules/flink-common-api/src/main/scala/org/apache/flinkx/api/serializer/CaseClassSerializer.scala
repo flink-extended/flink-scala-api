@@ -135,7 +135,7 @@ class CaseClassSerializer[T <: Product](
         }
         i += 1
       }
-      createInstance(fields.filter(_ != null))
+      createInstance(fields)
     }
   }
 
