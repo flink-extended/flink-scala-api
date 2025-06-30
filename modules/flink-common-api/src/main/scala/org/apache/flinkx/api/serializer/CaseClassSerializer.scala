@@ -100,16 +100,20 @@ class CaseClassSerializer[T <: Product](
     }
 
   def serialize(value: T, target: DataOutputView): Unit = {
-    if (arity > 0 && !isClassArityUsageDisabled)
-      target.writeInt(value.productArity)
+    val sourceArity = if (value == null) -1 else value.productArity
+    if (arity > 0 && !isClassArityUsageDisabled) {
+      target.writeInt(sourceArity)
+    }
 
-    (0 until arity).foreach { i =>
-      val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
-      val o          = value.productElement(i)
-      try serializer.serialize(o, target)
-      catch {
-        case e: NullPointerException =>
-          throw new NullFieldException(i, e)
+    if (sourceArity > 0) {
+      (0 until arity).foreach { i =>
+        val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
+        val o          = value.productElement(i)
+        try serializer.serialize(o, target)
+        catch {
+          case e: NullPointerException =>
+            throw new NullFieldException(i, e)
+        }
       }
     }
   }
@@ -124,18 +128,22 @@ class CaseClassSerializer[T <: Product](
     var i           = 0
     var fieldFound  = true
     val sourceArity = if (arity > 0 && !classArityUsageDisabled) Try(source.readInt()).getOrElse(arity) else arity
-    val fields      = new Array[AnyRef](arity)
-    while (i < sourceArity && fieldFound) {
-      Try(fieldSerializers(i).deserialize(source)) match {
-        case Failure(e) =>
-          log.warn(s"Failed to deserialize field at '$i' index", e)
-          fieldFound = false
-        case Success(value) =>
-          fields(i) = value
+    if (sourceArity == -1) {
+      null.asInstanceOf[T]
+    } else {
+      val fields = new Array[AnyRef](arity)
+      while (i < sourceArity && fieldFound) {
+        Try(fieldSerializers(i).deserialize(source)) match {
+          case Failure(e) =>
+            log.warn(s"Failed to deserialize field at '$i' index", e)
+            fieldFound = false
+          case Success(value) =>
+            fields(i) = value
+        }
+        i += 1
       }
-      i += 1
+      createInstance(fields.filter(_ != null))
     }
-    createInstance(fields.filter(_ != null))
   }
 
   override def createInstance(fields: Array[AnyRef]): T = {

@@ -204,6 +204,17 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     roundtrip(ser, ExtendingCaseClass("abc", "def"))
   }
 
+  it should "serialize a case class with nullable field" in {
+    val ser = implicitly[TypeInformation[NullableField]].createSerializer(ec)
+    roundtrip(ser, NullableField(null))
+  }
+
+  it should "serialize a case class with a nullable field of a case class with no arity" in {
+    val ser = implicitly[TypeInformation[NullableFieldWithNoArity]].createSerializer(ec)
+    // Deserialization works but produce NullableFieldWithNoArity(NoArity()) instead of NullableFieldWithNoArity(null)
+    // roundtrip(ser, NullableFieldWithNoArity(null))
+  }
+
 }
 
 object SerializerTest {
@@ -275,5 +286,11 @@ object SerializerTest {
   abstract class AbstractClass(val a: String)
 
   final case class ExtendingCaseClass(override val a: String, b: String) extends AbstractClass(a)
+
+  final case class NullableField(var a: Simple = null)
+
+  final case class NoArity()
+
+  final case class NullableFieldWithNoArity(var a: NoArity = null)
 
 }
