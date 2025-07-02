@@ -37,7 +37,7 @@ class CaseClassSerializer[T <: Product](
     with Cloneable
     with ConstructorCompat {
 
-  @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
+  @transient private lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override val isImmutableType: Boolean = isCaseClassImmutable &&
     fieldSerializers.forall(Option(_).exists(_.isImmutableType))
@@ -50,8 +50,7 @@ class CaseClassSerializer[T <: Product](
   // The easiest method is to serialize class names during the snapshotting phase.
   // During restoration, those class names are deserialized and instantiated via a class loader.
   // The underlying implementation is major version-specific (Scala 2 vs. Scala 3).
-  @transient
-  private lazy val constructor = lookupConstructor(tupleClass)
+  @transient private lazy val constructor = lookupConstructor(tupleClass)
 
   override def duplicate(): CaseClassSerializer[T] = {
     if (isImmutableSerializer) {

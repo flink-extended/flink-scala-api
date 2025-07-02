@@ -286,7 +286,11 @@ object SerializerTest {
 
   final case class ExtendingCaseClass(override val a: String, b: String) extends AbstractClass(a)
 
-  final case class NullableField(var a: Foo, var b: Bar)
+  final case class NullableField(var a: Foo = null, var b: Bar = null)
+
+  object NullableField {
+    def apply(a: Foo): NullableField = new NullableField(a, null)
+  }
 
   final case class NoArity()
 

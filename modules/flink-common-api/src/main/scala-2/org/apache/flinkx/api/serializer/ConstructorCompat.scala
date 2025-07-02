@@ -31,17 +31,16 @@ private[serializer] trait ConstructorCompat {
       .head
       .asMethod
 
-    val classMirror   = rootMirror.reflectClass(classSymbol)
-    val constructor   = classMirror.reflectConstructor(primaryConstructorSymbol)
-    val claas         = cm.classSymbol(cls)
-    val module        = claas.companion.asModule
-    val im            = cm.reflect(cm.reflectModule(module).instance)
-    val ts            = im.symbol.typeSignature
-    val applyMethod   = ts.member(TermName("apply")).asMethod
-    val applyArgs     = applyMethod.paramLists.flatten
-    val defaultValues = applyArgs.zipWithIndex
-      .flatMap { p =>
-        val defarg = ts.member(TermName(s"apply$$default$$${p._2 + 1}"))
+    val classMirror     = rootMirror.reflectClass(classSymbol)
+    val constructor     = classMirror.reflectConstructor(primaryConstructorSymbol)
+    val claas           = cm.classSymbol(cls)
+    val module          = claas.companion.asModule
+    val im              = cm.reflect(cm.reflectModule(module).instance)
+    val ts              = im.symbol.typeSignature
+    val constructorSize = primaryConstructorSymbol.paramLists.flatten.size
+    val defaultValues   = (1 to constructorSize)
+      .flatMap { i =>
+        val defarg = ts.member(TermName(s"$$lessinit$$greater$$default$$$i"))
         if (defarg != NoSymbol)
           Some(im.reflectMethod(defarg.asMethod)())
         else None
@@ -49,7 +48,7 @@ private[serializer] trait ConstructorCompat {
 
     (args: Array[AnyRef]) => {
       // Append default values for missing arguments
-      val allArgs = args ++ defaultValues.takeRight(applyArgs.length - args.length)
+      val allArgs = args ++ defaultValues.takeRight(constructorSize - args.length)
       constructor.apply(allArgs: _*).asInstanceOf[T]
     }
   }
