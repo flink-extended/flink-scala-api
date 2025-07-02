@@ -24,8 +24,6 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
 import org.slf4j.{Logger, LoggerFactory}
 
-import java.io.ObjectInputStream
-
 /** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
   * differently. Copied from Flink 1.14 and merged with ScalaCaseClassSerializer.
   */
@@ -53,7 +51,7 @@ class CaseClassSerializer[T <: Product](
   // During restoration, those class names are deserialized and instantiated via a class loader.
   // The underlying implementation is major version-specific (Scala 2 vs. Scala 3).
   @transient
-  private var constructor = lookupConstructor(tupleClass)
+  private lazy val constructor = lookupConstructor(tupleClass)
 
   override def duplicate(): CaseClassSerializer[T] = {
     if (isImmutableSerializer) {
@@ -135,12 +133,5 @@ class CaseClassSerializer[T <: Product](
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
     new ScalaCaseClassSerializerSnapshot[T](this)
-
-  // Do NOT delete this method, it is used by ser/de even though it is private.
-  // This should be removed once we make sure that serializer is no longer java serialized.
-  private def readObject(in: ObjectInputStream): Unit = {
-    in.defaultReadObject()
-    constructor = lookupConstructor(tupleClass)
-  }
 
 }
