@@ -25,7 +25,6 @@ import org.apache.flink.types.NullFieldException
 import org.slf4j.{Logger, LoggerFactory}
 
 import java.io.ObjectInputStream
-import scala.util.{Failure, Success, Try}
 
 /** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
   * differently. Copied from Flink 1.14 and merged with ScalaCaseClassSerializer.
@@ -40,14 +39,12 @@ class CaseClassSerializer[T <: Product](
     with Cloneable
     with ConstructorCompat {
 
-  private val numFields = scalaFieldSerializers.length
-
   @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override val isImmutableType: Boolean = isCaseClassImmutable &&
-    scalaFieldSerializers.forall(Option(_).exists(_.isImmutableType))
+    fieldSerializers.forall(Option(_).exists(_.isImmutableType))
   val isImmutableSerializer: Boolean =
-    scalaFieldSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
+    fieldSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
 
   // In Flink, serializers & serializer snapshotters have strict ser/de requirements.
   // Both need to be capable of creating one another.
@@ -56,7 +53,7 @@ class CaseClassSerializer[T <: Product](
   // During restoration, those class names are deserialized and instantiated via a class loader.
   // The underlying implementation is major version-specific (Scala 2 vs. Scala 3).
   @transient
-  private var constructor = lookupConstructor(clazz, numFields)
+  private var constructor = lookupConstructor(tupleClass)
 
   override def duplicate(): CaseClassSerializer[T] = {
     if (isImmutableSerializer) {
@@ -99,7 +96,7 @@ class CaseClassSerializer[T <: Product](
     }
 
   def serialize(value: T, target: DataOutputView): Unit = {
-    // Null value is handled by setting arity field to -1
+    // Write an arity of -1 to indicate null value
     val sourceArity = if (value == null) -1 else arity
     target.writeInt(sourceArity)
 
@@ -118,21 +115,14 @@ class CaseClassSerializer[T <: Product](
     deserialize(source)
 
   def deserialize(source: DataInputView): T = {
-    var i           = 0
-    var fieldFound  = true
     val sourceArity = source.readInt()
     if (sourceArity == -1) {
       null.asInstanceOf[T]
     } else {
       val fields = new Array[AnyRef](sourceArity)
-      while (i < sourceArity && fieldFound) {
-        Try(fieldSerializers(i).deserialize(source)) match {
-          case Failure(e) =>
-            log.warn(s"Failed to deserialize field at '$i' index", e)
-            fieldFound = false
-          case Success(value) =>
-            fields(i) = value
-        }
+      var i      = 0
+      while (i < sourceArity) {
+        fields(i) = fieldSerializers(i).deserialize(source)
         i += 1
       }
       createInstance(fields)
@@ -150,7 +140,7 @@ class CaseClassSerializer[T <: Product](
   // This should be removed once we make sure that serializer is no longer java serialized.
   private def readObject(in: ObjectInputStream): Unit = {
     in.defaultReadObject()
-    constructor = lookupConstructor(clazz, numFields)
+    constructor = lookupConstructor(tupleClass)
   }
 
 }

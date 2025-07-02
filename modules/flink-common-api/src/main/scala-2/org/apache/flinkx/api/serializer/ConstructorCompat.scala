@@ -1,14 +1,13 @@
 package org.apache.flinkx.api.serializer
 
 import scala.annotation.nowarn
-import scala.reflect.runtime.{currentMirror => cm}
-import scala.reflect.runtime.universe
 import scala.reflect.runtime.universe._
+import scala.reflect.runtime.{universe, currentMirror => cm}
 
 private[serializer] trait ConstructorCompat {
 
   @nowarn("msg=(eliminated by erasure)|(explicit array)")
-  final def lookupConstructor[T <: Product](cls: Class[T], numFields: Int): Array[AnyRef] => T = {
+  final def lookupConstructor[T <: Product](cls: Class[T]): Array[AnyRef] => T = {
     val rootMirror  = universe.runtimeMirror(cls.getClassLoader)
     val classSymbol = rootMirror.classSymbol(cls)
 
@@ -32,41 +31,27 @@ private[serializer] trait ConstructorCompat {
       .head
       .asMethod
 
-    val classMirror             = rootMirror.reflectClass(classSymbol)
-    val constructorMethodMirror = classMirror.reflectConstructor(primaryConstructorSymbol)
-
-    lazy val claas  = cm.classSymbol(cls)
-    lazy val module = claas.companion.asModule
-    lazy val im     = cm.reflect(cm.reflectModule(module).instance)
-
-    def withDefault(im: InstanceMirror, name: String, givenArgs: Int): List[Any] = {
-      val at     = TermName(name)
-      val ts     = im.symbol.typeSignature
-      val method = ts.member(at).asMethod
-
-      // either defarg or default val for type of p
-      def valueFor(p: Symbol, i: Int): Any = {
-        val defarg = ts member TermName(s"$name$$default$$${i + 1}")
+    val classMirror   = rootMirror.reflectClass(classSymbol)
+    val constructor   = classMirror.reflectConstructor(primaryConstructorSymbol)
+    val claas         = cm.classSymbol(cls)
+    val module        = claas.companion.asModule
+    val im            = cm.reflect(cm.reflectModule(module).instance)
+    val ts            = im.symbol.typeSignature
+    val applyMethod   = ts.member(TermName("apply")).asMethod
+    val applyArgs     = applyMethod.paramLists.flatten
+    val defaultValues = applyArgs.zipWithIndex
+      .flatMap { p =>
+        val defarg = ts.member(TermName(s"apply$$default$$${p._2 + 1}"))
         if (defarg != NoSymbol)
-          im.reflectMethod(defarg.asMethod)()
-        else
-          p.typeSignature match {
-            case t if t =:= typeOf[String]                                                                => null
-            case t if t =:= typeOf[Int] | t =:= typeOf[Long] | t =:= typeOf[Double] | t =:= typeOf[Float] => 0
-            case x => throw new IllegalArgumentException(x.toString)
-          }
+          Some(im.reflectMethod(defarg.asMethod)())
+        else None
       }
 
-      val defaultArgs = method.paramLists.flatten.splitAt(givenArgs)._2
-      defaultArgs.zipWithIndex.map(p => valueFor(p._1, p._2 + givenArgs))
-    }
-
-    { (args: Array[AnyRef]) =>
-      {
-        lazy val defaultArgs = withDefault(im, "apply", args.length)
-        val allArgs          = args.toList ++ (if (args.length == numFields) Nil else defaultArgs)
-        constructorMethodMirror.apply(allArgs: _*).asInstanceOf[T]
-      }
+    (args: Array[AnyRef]) => {
+      // Append default values for missing arguments
+      val allArgs = args ++ defaultValues.takeRight(applyArgs.length - args.length)
+      constructor.apply(allArgs: _*).asInstanceOf[T]
     }
   }
+
 }
