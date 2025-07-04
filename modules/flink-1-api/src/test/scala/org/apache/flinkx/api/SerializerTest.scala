@@ -3,10 +3,13 @@ package org.apache.flinkx.api
 import cats.data.NonEmptyList
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flink.api.common.typeutils.base.StringSerializer
+import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
 import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 import org.apache.flinkx.api.SerializerTest._
 import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.serializer.{CaseClassSerializer, nullable}
 import org.scalatest.Inspectors
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -214,12 +217,21 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     roundtrip(ser, NullableFieldWithNoArity(null))
   }
 
+  it should "serialize nullable fields" in {
+    val ser = implicitly[TypeInformation[SimpleJava]].createSerializer(ec)
+    roundtrip(ser, SimpleJava(null, null))
+    val ccser = ser.asInstanceOf[CaseClassSerializer[SimpleJava]]
+    // IntSerializer doesn't handle null so it's wrapped in a NullableSerializer
+    ccser.getFieldSerializers()(0) shouldBe a[NullableSerializer[Integer]]
+    ccser.getFieldSerializers()(1) shouldBe a[StringSerializer] // StringSerializer natively handles null
+  }
+
 }
 
 object SerializerTest {
   case class Simple(a: Int, b: String)
   case class SimpleList(a: List[Int])
-  case class SimpleJava(a: Integer, b: String)
+  case class SimpleJava(@nullable a: Integer, @nullable b: String)
   case class JavaTime(a: Instant, b: LocalDate, c: LocalDateTime)
   case class Nested(a: Simple)
 

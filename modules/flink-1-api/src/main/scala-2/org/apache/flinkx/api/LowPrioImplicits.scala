@@ -3,7 +3,8 @@ package org.apache.flinkx.api
 import magnolia1.{CaseClass, Magnolia, SealedTrait}
 import org.apache.flink.api.common.ExecutionConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
+import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
+import org.apache.flinkx.api.serializer.{CaseClassSerializer, CoproductSerializer, ScalaCaseObjectSerializer, nullable}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
@@ -32,7 +33,12 @@ private[api] trait LowPrioImplicits {
         } else {
           new CaseClassSerializer[T](
             clazz = clazz,
-            scalaFieldSerializers = ctx.parameters.map(_.typeclass.createSerializer(config)).toArray,
+            scalaFieldSerializers = ctx.parameters.map { p =>
+              val ser = p.typeclass.createSerializer(config)
+              if (p.annotations.exists(_.isInstanceOf[nullable])) {
+                NullableSerializer.wrapIfNullIsNotSupported(ser, true)
+              } else ser
+            }.toArray,
             isCaseClassImmutable = isCaseClassImmutable(clazz, ctx.parameters.map(_.label))
           )
         }

@@ -4,12 +4,12 @@ import scala.collection.mutable
 import scala.compiletime.summonInline
 import scala.deriving.Mirror
 import scala.reflect.ClassTag
-
 import magnolia1.{CaseClass, SealedTrait}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.common.serialization.SerializerConfig
-import org.apache.flinkx.api.serializer.{CoproductSerializer, CaseClassSerializer, ScalaCaseObjectSerializer}
+import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
+import org.apache.flinkx.api.serializer.{CaseClassSerializer, CoproductSerializer, ScalaCaseObjectSerializer, nullable}
 import org.apache.flinkx.api.typeinfo.{CoproductTypeInformation, ProductTypeInformation}
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
@@ -39,8 +39,12 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
           else
             new CaseClassSerializer[T & Product](
               clazz = clazz,
-              scalaFieldSerializers =
-                IArray.genericWrapArray(ctx.params.map(_.typeclass.createSerializer(config))).toArray,
+              scalaFieldSerializers = IArray.genericWrapArray(ctx.params.map { p =>
+                val ser = p.typeclass.createSerializer(config)
+                if (p.annotations.exists(_.isInstanceOf[nullable])) {
+                  NullableSerializer.wrapIfNullIsNotSupported(ser, true)
+                } else ser
+              }).toArray,
               isCaseClassImmutable = isCaseClassImmutable(clazz, ctx.params.map(_.label))
             )
         val ti = new ProductTypeInformation[T & Product](
