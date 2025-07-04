@@ -209,7 +209,7 @@ From Flink 1.19, a check is done to detect this misusage. To disable it, see [Di
 
 ### Flink ADT
 
-To derive a TypeInformation for a sealed trait, you can do:
+To derive a TypeInformation for a case class or sealed trait, you can do:
 
 ```scala mdoc:reset-object
 import org.apache.flinkx.api.serializers._
@@ -226,6 +226,31 @@ object Event {
 ```
 
 Be careful with a wildcard import of import `org.apache.flink.api.scala._`: it has a `createTypeInformation` implicit function, which may happily generate you a kryo-based serializer in a place you never expected. So in a case if you want to do this type of wildcard import, make sure that you explicitly called `deriveTypeInformation` for all the sealed traits in the current scope.
+
+#### Null value handling
+
+A case class can be null, the case class serializer natively handles the null case.
+
+A case class field can also be null, either:
+- the serializer of this field natively handles its nullability.
+- the field must be annotated with `@nullable` in order to be wrapped in Flink's `NullableSerializer`.
+
+In any cases, it can be a good hint to use `@nullable` annotation to indicate when fields are meant to be nullable.
+
+```scala mdoc:reset-object
+import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.serializer.nullable
+import org.apache.flink.api.common.typeinfo.TypeInformation
+
+case class Click(id: String, clickEvent: ClickEvent)
+
+case class ClickEvent(
+    @nullable history: Array[String], // @nullable allows to handle null array
+    @nullable id: String) // Effectless here as null strings are natively handled
+
+Click("id1", null) // A case class can be null
+Click("id2", ClickEvent(null, null)) // Valid thanks to @nullable
+```
 
 ### Java types
 
