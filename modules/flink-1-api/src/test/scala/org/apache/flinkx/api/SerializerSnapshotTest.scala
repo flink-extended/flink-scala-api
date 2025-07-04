@@ -6,6 +6,7 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnap
 import org.apache.flink.core.memory._
 import org.apache.flink.util.ChildFirstClassLoader
 import org.apache.flinkx.api.SerializerSnapshotTest._
+import org.apache.flinkx.api.serializer.CaseClassSerializer
 import org.apache.flinkx.api.serializers._
 import org.scalatest.Assertion
 import org.scalatest.flatspec.AnyFlatSpec
@@ -61,7 +62,7 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
   }
 
   it should "do map ser snapshot adt " in {
-    implicit val ti: Typeclass[OuterTrait] = deriveTypeInformation[OuterTrait]
+    implicit val ti: TypeInformation[OuterTrait] = deriveTypeInformation[OuterTrait]
     drop(ti)
     assertRoundtripSerializer(createSerializer[TraitMap])
   }
@@ -133,6 +134,42 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
     deserializedData should be(expectedData)
   }
 
+  it should "serialize and deserialize case class with null and default" in {
+    val expectedData = WithDefault(null)
+    // Serializer before schema change: without serializers for the second "new" default fields
+    val oldSerializer = new CaseClassSerializer[WithDefault](
+      clazz = classOf[WithDefault],
+      scalaFieldSerializers = Array(implicitly[TypeSerializer[SimpleClass1]]),
+      isCaseClassImmutable = false
+    )
+    val oldSnapshot = oldSerializer.snapshotConfiguration()
+
+    // Serialize the old snapshot
+    val output = new DataOutputSerializer(1024 * 1024)
+    TypeSerializerSnapshot.writeVersionedSnapshot(output, oldSnapshot) // Flink always calls this
+
+    // Serialize the "old" data with "old" serializer
+    oldSerializer.serialize(expectedData, output)
+
+    // Deserialize the old snapshot
+    val input                   = new DataInputDeserializer(output.getSharedBuffer)
+    val deserializedOldSnapshot = TypeSerializerSnapshot
+      .readVersionedSnapshot[WithDefault](input, getClass.getClassLoader) // Flink always calls this
+
+    // Deserialize the old data with the new serializer
+    val newSerializer = implicitly[TypeSerializer[WithDefault]]
+    val deserializedData = newSerializer.deserialize(input)
+    deserializedData should be(expectedData)
+
+    // serialize modified data with new serializer
+    expectedData.sc2 = SimpleClass2("c", 3)
+    newSerializer.serialize(expectedData, output)
+
+    // deserialize modified data with new serializer
+    val modifiedResult = newSerializer.deserialize(input)
+    modifiedResult shouldBe expectedData
+  }
+
   def roundtripSerializer[T](ser: TypeSerializer[T], cl: ClassLoader = getClass.getClassLoader): TypeSerializer[T] = {
     val snap   = ser.snapshotConfiguration()
     val buffer = new ByteArrayOutputStream()
@@ -173,5 +210,7 @@ object SerializerSnapshotTest {
   case object Bar2 extends ADT2
 
   case class OuterClass(map: Map[UUID, List[OuterTrait]])
+
+  case class WithDefault(var sc1: SimpleClass1 = SimpleClass1("a", 1), var sc2: SimpleClass2 = SimpleClass2("b", 2))
 
 }

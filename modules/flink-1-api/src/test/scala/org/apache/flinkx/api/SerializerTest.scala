@@ -1,15 +1,15 @@
 package org.apache.flinkx.api
 
 import cats.data.NonEmptyList
+import org.apache.flink.api.common.ExecutionConfig
+import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 import org.apache.flinkx.api.SerializerTest._
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.common.ExecutionConfig
+import org.apache.flinkx.api.serializers._
 import org.scalatest.Inspectors
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flinkx.api.serializers._
 
 import java.time.{Instant, LocalDate, LocalDateTime}
 import java.util.UUID
@@ -204,6 +204,16 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     roundtrip(ser, ExtendingCaseClass("abc", "def"))
   }
 
+  it should "serialize a case class with nullable field" in {
+    val ser = implicitly[TypeInformation[NullableField]].createSerializer(ec)
+    roundtrip(ser, NullableField(null, Bar(1)))
+  }
+
+  it should "serialize a case class with a nullable field of a case class with no arity" in {
+    val ser = implicitly[TypeInformation[NullableFieldWithNoArity]].createSerializer(ec)
+    roundtrip(ser, NullableFieldWithNoArity(null))
+  }
+
 }
 
 object SerializerTest {
@@ -275,5 +285,15 @@ object SerializerTest {
   abstract class AbstractClass(val a: String)
 
   final case class ExtendingCaseClass(override val a: String, b: String) extends AbstractClass(a)
+
+  final case class NullableField(var a: Foo = null, var b: Bar = null)
+
+  object NullableField {
+    def apply(a: Foo): NullableField = new NullableField(a, null)
+  }
+
+  final case class NoArity()
+
+  final case class NullableFieldWithNoArity(var a: NoArity)
 
 }

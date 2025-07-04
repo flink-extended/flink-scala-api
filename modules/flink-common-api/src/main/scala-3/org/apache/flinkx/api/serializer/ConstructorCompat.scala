@@ -1,20 +1,25 @@
 package org.apache.flinkx.api.serializer
 
-import java.lang.reflect.Modifier
-
+import java.lang.reflect.Constructor
 import scala.util.control.NonFatal
 
 private[serializer] trait ConstructorCompat:
   // As of Scala version 3.1.2, there is no direct support for runtime reflection.
   // This is in contrast to Scala 2, which has its own APIs for reflecting on classes.
   // Thus, fallback to Java reflection and look up the constructor matching the required signature.
-  final def lookupConstructor[T](cls: Class[T], numFields: Int): Array[AnyRef] => T =
+  final def lookupConstructor[T](cls: Class[T]): Array[AnyRef] => T =
     // Types of parameters can fail to match when (un)boxing is used.
     // Say you have a class `final case class Foo(a: String, b: Int)`.
     // The first parameter is an alias for `java.lang.String`, which the constructor uses.
     // The second parameter is an alias for `java.lang.Integer`, but the constructor actually takes an unboxed `int`.
     val constructor =
-      try cls.getConstructors.collectFirst { case c if c.getParameterCount == numFields => c }.get
+      try
+        cls.getConstructors
+          .foldLeft[Option[Constructor[?]]](None) {
+            case (Some(longest), c) if longest.getParameterCount < c.getParameterCount => Some(c)
+            case (_, c)                                                                => Some(c)
+          }
+          .get
       catch
         case NonFatal(e) =>
           throw new IllegalArgumentException(
@@ -28,19 +33,13 @@ private[serializer] trait ConstructorCompat:
             e
           )
 
-    { (args: Array[AnyRef]) =>
-      {
-        lazy val defaultArgs = cls
-          .getMethods()
-          .filter(
-            _.getName()
-              .startsWith("$lessinit$greater$default")
-          )
-          .sortBy(_.getName())
-          .map(_.invoke(null))
-          .takeRight(numFields - args.length) // read default values for missing arguments
+    lazy val defaultArgs = cls.getMethods
+      .filter(_.getName.startsWith("$lessinit$greater$default"))
+      .sortBy(_.getName())
+      .map(_.invoke(null))
 
-        val allArgs = args.toList ++ (if (args.length == numFields) Nil else defaultArgs)
-        constructor.newInstance(allArgs*).asInstanceOf[T]
-      }
+    (args: Array[AnyRef]) => {
+      // Append default values for missing arguments
+      val allArgs = args ++ defaultArgs.takeRight(constructor.getParameterCount - args.length)
+      constructor.newInstance(allArgs*).asInstanceOf[T]
     }

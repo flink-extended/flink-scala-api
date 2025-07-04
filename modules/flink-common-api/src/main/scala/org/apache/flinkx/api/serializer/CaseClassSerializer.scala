@@ -22,11 +22,7 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnap
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
-import org.apache.flinkx.api.serializer.CaseClassSerializer.isClassArityUsageDisabled
 import org.slf4j.{Logger, LoggerFactory}
-
-import java.io.ObjectInputStream
-import scala.util.{Failure, Success, Try}
 
 /** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
   * differently. Copied from Flink 1.14 and merged with ScalaCaseClassSerializer.
@@ -41,14 +37,12 @@ class CaseClassSerializer[T <: Product](
     with Cloneable
     with ConstructorCompat {
 
-  private val numFields = scalaFieldSerializers.length
-
-  @transient lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
+  @transient private lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
 
   override val isImmutableType: Boolean = isCaseClassImmutable &&
-    scalaFieldSerializers.forall(Option(_).exists(_.isImmutableType))
+    fieldSerializers.forall(Option(_).exists(_.isImmutableType))
   val isImmutableSerializer: Boolean =
-    scalaFieldSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
+    fieldSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
 
   // In Flink, serializers & serializer snapshotters have strict ser/de requirements.
   // Both need to be capable of creating one another.
@@ -56,8 +50,7 @@ class CaseClassSerializer[T <: Product](
   // The easiest method is to serialize class names during the snapshotting phase.
   // During restoration, those class names are deserialized and instantiated via a class loader.
   // The underlying implementation is major version-specific (Scala 2 vs. Scala 3).
-  @transient
-  private var constructor = lookupConstructor(clazz, numFields)
+  @transient private lazy val constructor = lookupConstructor(tupleClass)
 
   override def duplicate(): CaseClassSerializer[T] = {
     if (isImmutableSerializer) {
@@ -100,10 +93,11 @@ class CaseClassSerializer[T <: Product](
     }
 
   def serialize(value: T, target: DataOutputView): Unit = {
-    if (arity > 0 && !isClassArityUsageDisabled)
-      target.writeInt(value.productArity)
+    // Write an arity of -1 to indicate null value
+    val sourceArity = if (value == null) -1 else arity
+    target.writeInt(sourceArity)
 
-    (0 until arity).foreach { i =>
+    (0 until sourceArity).foreach { i =>
       val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
       val o          = value.productElement(i)
       try serializer.serialize(o, target)
@@ -115,27 +109,21 @@ class CaseClassSerializer[T <: Product](
   }
 
   def deserialize(reuse: T, source: DataInputView): T =
-    deserializeFromSource(source, isClassArityUsageDisabled)
+    deserialize(source)
 
-  def deserialize(source: DataInputView): T =
-    deserializeFromSource(source, isClassArityUsageDisabled)
-
-  private[api] def deserializeFromSource(source: DataInputView, classArityUsageDisabled: Boolean): T = {
-    var i           = 0
-    var fieldFound  = true
-    val sourceArity = if (arity > 0 && !classArityUsageDisabled) Try(source.readInt()).getOrElse(arity) else arity
-    val fields      = new Array[AnyRef](arity)
-    while (i < sourceArity && fieldFound) {
-      Try(fieldSerializers(i).deserialize(source)) match {
-        case Failure(e) =>
-          log.warn(s"Failed to deserialize field at '$i' index", e)
-          fieldFound = false
-        case Success(value) =>
-          fields(i) = value
+  def deserialize(source: DataInputView): T = {
+    val sourceArity = source.readInt()
+    if (sourceArity == -1) {
+      null.asInstanceOf[T]
+    } else {
+      val fields = new Array[AnyRef](sourceArity)
+      var i      = 0
+      while (i < sourceArity) {
+        fields(i) = fieldSerializers(i).deserialize(source)
+        i += 1
       }
-      i += 1
+      createInstance(fields)
     }
-    createInstance(fields.filter(_ != null))
   }
 
   override def createInstance(fields: Array[AnyRef]): T = {
@@ -145,21 +133,4 @@ class CaseClassSerializer[T <: Product](
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
     new ScalaCaseClassSerializerSnapshot[T](this)
 
-  // Do NOT delete this method, it is used by ser/de even though it is private.
-  // This should be removed once we make sure that serializer is no longer java serialized.
-  private def readObject(in: ObjectInputStream): Unit = {
-    in.defaultReadObject()
-    constructor = lookupConstructor(clazz, numFields)
-  }
-
-}
-
-object CaseClassSerializer {
-  private val isClassArityUsageDisabled =
-    sys.env
-      .get("DISABLE_CASE_CLASS_ARITY_USAGE")
-      .exists(v =>
-        Try(v.toBoolean)
-          .getOrElse(false)
-      )
 }
