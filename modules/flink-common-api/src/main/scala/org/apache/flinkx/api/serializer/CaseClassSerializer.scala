@@ -22,6 +22,7 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnap
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
+import org.apache.flinkx.api.serializer.CaseClassSerializer.EmptyByteArray
 import org.slf4j.{Logger, LoggerFactory}
 
 /** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
@@ -38,6 +39,8 @@ class CaseClassSerializer[T <: Product](
     with ConstructorCompat {
 
   @transient private lazy val log: Logger = LoggerFactory.getLogger(this.getClass)
+
+  private val nullPadding: Array[Byte] = if (super.getLength > 0) new Array(super.getLength) else EmptyByteArray
 
   override val isImmutableType: Boolean = isCaseClassImmutable &&
     fieldSerializers.forall(Option(_).exists(_.isImmutableType))
@@ -98,6 +101,7 @@ class CaseClassSerializer[T <: Product](
     // Write an arity of -1 to indicate null value
     val sourceArity = if (value == null) -1 else arity
     target.writeInt(sourceArity)
+    if (value == null) target.write(nullPadding)
 
     (0 until sourceArity).foreach { i =>
       val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
@@ -116,6 +120,7 @@ class CaseClassSerializer[T <: Product](
   def deserialize(source: DataInputView): T = {
     val sourceArity = source.readInt()
     if (sourceArity == -1) {
+      source.skipBytesToRead(nullPadding.length)
       null.asInstanceOf[T]
     } else {
       val fields = new Array[AnyRef](sourceArity)
@@ -135,4 +140,8 @@ class CaseClassSerializer[T <: Product](
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
     new ScalaCaseClassSerializerSnapshot[T](this)
 
+}
+
+object CaseClassSerializer {
+  private val EmptyByteArray: Array[Byte] = new Array(0)
 }

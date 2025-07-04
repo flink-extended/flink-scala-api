@@ -207,6 +207,11 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     roundtrip(ser, ExtendingCaseClass("abc", "def"))
   }
 
+  it should "serialize a null case class" in {
+    val ser = implicitly[TypeInformation[Simple]].createSerializer(ec)
+    roundtrip(ser, null)
+  }
+
   it should "serialize a case class with nullable field" in {
     val ser = implicitly[TypeInformation[NullableField]].createSerializer(ec)
     roundtrip(ser, NullableField(null, Bar(1)))
@@ -224,6 +229,11 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     // IntSerializer doesn't handle null so it's wrapped in a NullableSerializer
     ccser.getFieldSerializers()(0) shouldBe a[NullableSerializer[Integer]]
     ccser.getFieldSerializers()(1) shouldBe a[StringSerializer] // StringSerializer natively handles null
+  }
+
+  it should "serialize a case class with a nullable field of a fixed size case class" in {
+    val ser = implicitly[TypeInformation[NullableFixedSizeCaseClass]].createSerializer(ec)
+    roundtrip(ser, NullableFixedSizeCaseClass(null))
   }
 
 }
@@ -307,5 +317,7 @@ object SerializerTest {
   final case class NoArity()
 
   final case class NullableFieldWithNoArity(var a: NoArity)
+
+  final case class NullableFixedSizeCaseClass(@nullable javaTime: JavaTime)
 
 }
