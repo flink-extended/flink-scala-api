@@ -92,6 +92,8 @@ class CaseClassSerializer[T <: Product](
       createInstance(fields.toArray)
     }
 
+  override val getLength: Int = if (super.getLength == -1) -1 else super.getLength + 4 // +4 bytes for the arity field
+
   def serialize(value: T, target: DataOutputView): Unit = {
     // Write an arity of -1 to indicate null value
     val sourceArity = if (value == null) -1 else arity
