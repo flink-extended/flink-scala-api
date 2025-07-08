@@ -17,7 +17,7 @@ jobs:
         java: [11]
         scala: [2.13.16, 3.3.6]
         flink: [1.18.1, 1.19.1]
-        sbt-module: ['flink-1-api']
+        sbt-module: ['flink-1-api', 'scala-api-common']
         include:
           - scala: 3.3.6
             java: 17
@@ -25,8 +25,12 @@ jobs:
             sbt-module: 'flink-1-api'
           - scala: 3.3.6
             java: 17
+            flink: 1.20.0
+            sbt-module: 'scala-api-common'
+          - scala: 3.3.6
+            java: 17
             flink: 2.0.0          
-            sbt-module: 'flink-2-api' 
+            sbt-module: 'flink-2-api'
     env:
       JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
     steps:
