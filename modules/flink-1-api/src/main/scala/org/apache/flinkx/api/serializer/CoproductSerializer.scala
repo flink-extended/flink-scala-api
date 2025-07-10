@@ -8,8 +8,8 @@ import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerS
 class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers: Array[TypeSerializer[_]])
     extends MutableSerializer[T] {
 
-  override val isImmutableType: Boolean = subtypeSerializers.forall(Option(_).exists(_.isImmutableType))
-  val isImmutableSerializer: Boolean    = subtypeSerializers.forall(Option(_).forall(s => s.duplicate().eq(s)))
+  override val isImmutableType: Boolean = subtypeSerializers.forall(_.isImmutableType)
+  val isImmutableSerializer: Boolean    = subtypeSerializers.forall(s => s.duplicate().eq(s))
 
   override def copy(from: T): T = {
     if (from == null || isImmutableType) {

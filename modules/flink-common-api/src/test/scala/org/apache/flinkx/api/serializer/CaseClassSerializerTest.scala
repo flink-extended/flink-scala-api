@@ -21,11 +21,6 @@ class CaseClassSerializerTest extends AnyFlatSpec with Matchers {
   it should "be false when the content of one parameter is mutable" in {
     val mutableSerializer = new CaseClassSerializer[Mutable](classOf[Mutable], Array(StringSerializer.INSTANCE), false)
     val serializer = new CaseClassSerializer[OuterImmutable](classOf[OuterImmutable], Array(mutableSerializer), true)
-    mutableSerializer.isImmutableType should be(false)
-  }
-
-  it should "be false when missing information about one parameter" in {
-    val serializer = new CaseClassSerializer[Immutable](classOf[Immutable], Array(null), true)
     serializer.isImmutableType should be(false)
   }
 
