@@ -71,8 +71,13 @@ class CaseClassSerializer[T <: Product](
 
   def createInstance: T =
     try {
-      val fields = (0 until arity).map(i => fieldSerializers(i).createInstance())
-      createInstance(fields.toArray)
+      val fields = new Array[AnyRef](arity)
+      var i      = 0
+      while (i < arity) {
+        fields(i) = fieldSerializers(i).createInstance()
+        i += 1
+      }
+      createInstance(fields)
     } catch {
       case t: Throwable =>
         log.warn(s"Failed to create an instance returning null", t)
@@ -89,8 +94,13 @@ class CaseClassSerializer[T <: Product](
     if (from == null || isImmutableType) {
       from
     } else {
-      val fields = (0 until arity).map(i => fieldSerializers(i).copy(from.productElement(i).asInstanceOf[AnyRef]))
-      createInstance(fields.toArray)
+      val fields = new Array[AnyRef](arity)
+      var i      = 0
+      while (i < arity) {
+        fields(i) = fieldSerializers(i).copy(from.productElement(i).asInstanceOf[AnyRef])
+        i += 1
+      }
+      createInstance(fields)
     }
 
   override val getLength: Int = if (super.getLength == -1) -1 else super.getLength + 4 // +4 bytes for the arity field
@@ -101,7 +111,8 @@ class CaseClassSerializer[T <: Product](
     target.writeInt(sourceArity)
     if (value == null) target.write(nullPadding)
 
-    (0 until sourceArity).foreach { i =>
+    var i = 0
+    while (i < sourceArity) {
       val serializer = fieldSerializers(i).asInstanceOf[TypeSerializer[Any]]
       val o          = value.productElement(i)
       try serializer.serialize(o, target)
@@ -109,6 +120,7 @@ class CaseClassSerializer[T <: Product](
         case e: NullPointerException =>
           throw new NullFieldException(i, e)
       }
+      i += 1
     }
   }
 
