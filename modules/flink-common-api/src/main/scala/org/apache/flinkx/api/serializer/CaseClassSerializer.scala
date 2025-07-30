@@ -43,7 +43,7 @@ class CaseClassSerializer[T <: Product](
   private val nullPadding: Array[Byte] = if (super.getLength > 0) new Array(super.getLength) else EmptyByteArray
 
   override val isImmutableType: Boolean = isCaseClassImmutable && fieldSerializers.forall(_.isImmutableType)
-  val isImmutableSerializer: Boolean = fieldSerializers.forall(s => s.duplicate().eq(s))
+  val isImmutableSerializer: Boolean    = fieldSerializers.forall(s => s.duplicate().eq(s))
 
   // In Flink, serializers & serializer snapshotters have strict ser/de requirements.
   // Both need to be capable of creating one another.
@@ -128,6 +128,17 @@ class CaseClassSerializer[T <: Product](
         i += 1
       }
       createInstance(fields)
+    }
+  }
+
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    val sourceArity = source.readInt()
+    target.writeInt(sourceArity)
+    if (sourceArity == -1) {
+      source.skipBytesToRead(nullPadding.length)
+      target.skipBytesToWrite(nullPadding.length)
+    } else {
+      super.copy(source, target)
     }
   }
 
