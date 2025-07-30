@@ -2,6 +2,7 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.base.StringSerializer
 import org.apache.flink.api.java.typeutils.runtime.RowSerializer
+import org.apache.flink.core.memory.{DataInputDeserializer, DataOutputSerializer}
 import org.apache.flinkx.api.serializer.CaseClassSerializerTest.{Immutable, Mutable, OuterImmutable, OuterMutable}
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -87,6 +88,22 @@ class CaseClassSerializerTest extends AnyFlatSpec with Matchers {
 
     resultData shouldNot be theSameInstanceAs expectedData
     resultData.a should be theSameInstanceAs expectedData.a
+    resultData shouldEqual expectedData
+  }
+
+  it should "copy the serialized stream" in {
+    val serializer = new CaseClassSerializer[Immutable](classOf[Immutable], Array(StringSerializer.INSTANCE), true)
+    val outerSerializer = new CaseClassSerializer[OuterMutable](classOf[OuterMutable], Array(serializer), true)
+    val expectedData = OuterMutable(Immutable("a"))
+
+    val output = new DataOutputSerializer(1024)
+    outerSerializer.serialize(expectedData, output)
+    val input = new DataInputDeserializer(output.getSharedBuffer)
+    val newOutput = new DataOutputSerializer(1024)
+    outerSerializer.copy(input, newOutput)
+    val newInput = new DataInputDeserializer(newOutput.getSharedBuffer)
+    val resultData = outerSerializer.deserialize(newInput)
+
     resultData shouldEqual expectedData
   }
 
