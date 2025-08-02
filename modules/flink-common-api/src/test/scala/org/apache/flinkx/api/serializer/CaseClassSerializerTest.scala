@@ -92,16 +92,16 @@ class CaseClassSerializerTest extends AnyFlatSpec with Matchers {
   }
 
   it should "copy the serialized stream" in {
-    val serializer = new CaseClassSerializer[Immutable](classOf[Immutable], Array(StringSerializer.INSTANCE), true)
+    val serializer      = new CaseClassSerializer[Immutable](classOf[Immutable], Array(StringSerializer.INSTANCE), true)
     val outerSerializer = new CaseClassSerializer[OuterMutable](classOf[OuterMutable], Array(serializer), true)
-    val expectedData = OuterMutable(Immutable("a"))
+    val expectedData    = OuterMutable(Immutable("a"))
 
     val output = new DataOutputSerializer(1024)
     outerSerializer.serialize(expectedData, output)
-    val input = new DataInputDeserializer(output.getSharedBuffer)
+    val input     = new DataInputDeserializer(output.getSharedBuffer)
     val newOutput = new DataOutputSerializer(1024)
     outerSerializer.copy(input, newOutput)
-    val newInput = new DataInputDeserializer(newOutput.getSharedBuffer)
+    val newInput   = new DataInputDeserializer(newOutput.getSharedBuffer)
     val resultData = outerSerializer.deserialize(newInput)
 
     resultData shouldEqual expectedData

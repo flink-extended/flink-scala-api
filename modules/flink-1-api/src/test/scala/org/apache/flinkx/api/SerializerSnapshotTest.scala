@@ -157,7 +157,7 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
       .readVersionedSnapshot[WithDefault](input, getClass.getClassLoader) // Flink always calls this
 
     // Deserialize the old data with the new serializer
-    val newSerializer = implicitly[TypeSerializer[WithDefault]]
+    val newSerializer    = implicitly[TypeSerializer[WithDefault]]
     val deserializedData = newSerializer.deserialize(input)
     deserializedData should be(expectedData)
 

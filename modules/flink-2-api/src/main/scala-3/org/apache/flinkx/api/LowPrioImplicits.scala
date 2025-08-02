@@ -39,12 +39,14 @@ private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
           else
             new CaseClassSerializer[T & Product](
               clazz = clazz,
-              scalaFieldSerializers = IArray.genericWrapArray(ctx.params.map { p =>
-                val ser = p.typeclass.createSerializer(config)
-                if (p.annotations.exists(_.isInstanceOf[nullable])) {
-                  NullableSerializer.wrapIfNullIsNotSupported(ser, true)
-                } else ser
-              }).toArray,
+              scalaFieldSerializers = IArray
+                .genericWrapArray(ctx.params.map { p =>
+                  val ser = p.typeclass.createSerializer(config)
+                  if (p.annotations.exists(_.isInstanceOf[nullable])) {
+                    NullableSerializer.wrapIfNullIsNotSupported(ser, true)
+                  } else ser
+                })
+                .toArray,
               isCaseClassImmutable = isCaseClassImmutable(clazz, ctx.params.map(_.label))
             )
         val ti = new ProductTypeInformation[T & Product](
