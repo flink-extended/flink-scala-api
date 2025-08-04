@@ -14,14 +14,18 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        java: [11, 21]
+        java: [11, 17]
         scala: [2.13.16, 3.3.6]
         flink: [1.19.3, 1.20.2]
         sbt-module: ['flink-1-api', 'scala-api-common']
         include:
-          - scala: 3.3.6
+          - scala: 2.13.16
             java: 17
-            flink: 2.0.0          
+            flink: 2.0.0
+            sbt-module: 'flink-2-api'
+          - scala: 3.3.6
+            java: 21
+            flink: 2.0.0
             sbt-module: 'flink-2-api'
     env:
       JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
