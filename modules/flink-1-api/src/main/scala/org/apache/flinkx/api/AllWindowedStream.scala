@@ -6,6 +6,13 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.{AllWindowedStream => JavaAllWStream}
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction.AggregationType
 import org.apache.flink.streaming.api.functions.aggregation.{ComparableAggregator, SumAggregator}
+import org.apache.flink.streaming.api.windowing.evictors.Evictor
+import org.apache.flink.streaming.api.windowing.time.Time
+import org.apache.flink.streaming.api.windowing.triggers.Trigger
+import org.apache.flink.streaming.api.windowing.windows.Window
+import org.apache.flink.util.Collector
+import org.apache.flink.util.Preconditions.checkNotNull
+import org.apache.flinkx.api.ScalaStreamOps._
 import org.apache.flinkx.api.function.util.{
   ScalaAllWindowFunction,
   ScalaAllWindowFunctionWrapper,
@@ -13,13 +20,6 @@ import org.apache.flinkx.api.function.util.{
   ScalaReduceFunction
 }
 import org.apache.flinkx.api.function.{AllWindowFunction, ProcessAllWindowFunction}
-import org.apache.flink.streaming.api.windowing.evictors.Evictor
-import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flink.streaming.api.windowing.triggers.Trigger
-import org.apache.flink.streaming.api.windowing.windows.Window
-import org.apache.flink.util.Collector
-import org.apache.flink.util.Preconditions.checkNotNull
-import ScalaStreamOps._
 
 /** A [[AllWindowedStream]] represents a data stream where the stream of elements is split into windows based on a
   * [[org.apache.flink.streaming.api.windowing.assigners.WindowAssigner]]. Window emission is triggered based on a
