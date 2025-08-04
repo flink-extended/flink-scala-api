@@ -99,8 +99,9 @@ object MapSerializer {
     }
 
     override def resolveSchemaCompatibility(
-        newSerializer: TypeSerializer[Map[K, V]]
-    ): TypeSerializerSchemaCompatibility[Map[K, V]] = TypeSerializerSchemaCompatibility.compatibleAsIs()
+        oldSerializer: TypeSerializerSnapshot[Map[K, V]]
+    ): TypeSerializerSchemaCompatibility[Map[K, V]] =
+      TypeSerializerSchemaCompatibility.compatibleAsIs()
 
     override def restoreSerializer(): TypeSerializer[Map[K, V]] = new MapSerializer(keySerializer, valueSerializer)
   }

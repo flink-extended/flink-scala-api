@@ -92,7 +92,9 @@ object MappedSerializer {
       }
     }
 
-    override def resolveSchemaCompatibility(newSerializer: TypeSerializer[A]): TypeSerializerSchemaCompatibility[A] =
+    override def resolveSchemaCompatibility(
+        oldSerializer: TypeSerializerSnapshot[A]
+    ): TypeSerializerSchemaCompatibility[A] =
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 
     override def writeSnapshot(out: DataOutputView): Unit = {

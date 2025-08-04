@@ -32,7 +32,9 @@ import java.util.Optional;
 import static org.apache.flink.util.Preconditions.checkNotNull;
 import static org.apache.flink.util.Preconditions.checkState;
 
-/** {@link TypeSerializerSnapshot} for {@link CaseClassSerializer}. */
+/**
+ * {@link TypeSerializerSnapshot} for {@link CaseClassSerializer}.
+ */
 @Internal
 public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
         extends CompositeTypeSerializerSnapshot<T, CaseClassSerializer<T>> {
@@ -42,13 +44,17 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
     private Class<T> type;
     private boolean isCaseClassImmutable;
 
-    /** Used via reflection. */
+    /**
+     * Used via reflection.
+     */
     @SuppressWarnings("unused")
     public ScalaCaseClassSerializerSnapshot() {
         super(CaseClassSerializer.class);
     }
 
-    /** Used for the snapshot path. */
+    /**
+     * Used for the snapshot path.
+     */
     public ScalaCaseClassSerializerSnapshot(CaseClassSerializer<T> serializerInstance) {
         super(serializerInstance);
         this.type = checkNotNull(serializerInstance.getTupleClass(), "tuple class can not be NULL");
@@ -91,9 +97,13 @@ public final class ScalaCaseClassSerializerSnapshot<T extends scala.Product>
 
     @Override
     protected CompositeTypeSerializerSnapshot.OuterSchemaCompatibility
-    resolveOuterSchemaCompatibility(CaseClassSerializer<T> newSerializer) {
+    resolveOuterSchemaCompatibility(TypeSerializerSnapshot<T> oldSerializerSnapshot) {
+        if (!(oldSerializerSnapshot instanceof ScalaCaseClassSerializerSnapshot)) {
+            return OuterSchemaCompatibility.INCOMPATIBLE;
+        }
+        var caseClassSerializerSnapshot = (ScalaCaseClassSerializerSnapshot<T>) oldSerializerSnapshot;
         var currentTypeName = Optional.ofNullable(type).map(Class::getName);
-        var newTypeName = Optional.ofNullable(newSerializer.getTupleClass()).map(Class::getName);
+        var newTypeName = Optional.ofNullable(caseClassSerializerSnapshot.type).map(Class::getName);
         if (currentTypeName.equals(newTypeName)) {
             return OuterSchemaCompatibility.COMPATIBLE_AS_IS;
         } else {

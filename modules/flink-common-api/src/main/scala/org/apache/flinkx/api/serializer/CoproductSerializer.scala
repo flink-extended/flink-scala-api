@@ -117,7 +117,9 @@ object CoproductSerializer {
       })
     }
 
-    override def resolveSchemaCompatibility(newSerializer: TypeSerializer[T]): TypeSerializerSchemaCompatibility[T] =
+    override def resolveSchemaCompatibility(
+        oldSerializer: TypeSerializerSnapshot[T]
+    ): TypeSerializerSchemaCompatibility[T] =
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 
     override def restoreSerializer(): TypeSerializer[T] =
