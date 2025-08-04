@@ -2,15 +2,13 @@ package org.apache.flinkx.api
 
 import org.apache.flink.annotation.{Internal, Public, PublicEvolving}
 import org.apache.flink.api.common.ExecutionConfig
-import org.apache.flink.api.common.serialization.SerializerConfig
 import org.apache.flink.api.common.eventtime.{TimestampAssigner, WatermarkGenerator, WatermarkStrategy}
 import org.apache.flink.api.common.functions.{FilterFunction, FlatMapFunction, MapFunction, Partitioner}
 import org.apache.flink.api.common.io.OutputFormat
 import org.apache.flink.api.common.operators.{ResourceSpec, SlotSharingGroup}
-import org.apache.flink.api.common.serialization.SerializationSchema
+import org.apache.flink.api.common.serialization.{SerializationSchema, SerializerConfig}
 import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flink.api.connector.sink2.Sink
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
 import org.apache.flink.streaming.api.datastream.{
@@ -21,15 +19,16 @@ import org.apache.flink.streaming.api.datastream.{
   DataStream => JavaStream,
   KeyedStream => JavaKeyedStream
 }
-import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor
 import org.apache.flink.streaming.api.functions.ProcessFunction
+import org.apache.flink.streaming.api.functions.sink.legacy.SinkFunction
+import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator
 import org.apache.flink.streaming.api.windowing.assigners._
-import org.apache.flink.streaming.api.windowing.windows.{GlobalWindow, TimeWindow, Window}
+import org.apache.flink.streaming.api.windowing.windows.{GlobalWindow, Window}
 import org.apache.flink.util.Collector
-import org.apache.flink.api.java.tuple.{Tuple => JavaTuple}
+import org.apache.flinkx.api.ScalaStreamOps._
+
 import scala.jdk.CollectionConverters._
-import ScalaStreamOps._
 
 @Public
 class DataStream[T](stream: JavaStream[T]) {
@@ -77,7 +76,7 @@ class DataStream[T](stream: JavaStream[T]) {
   def executionConfig: ExecutionConfig = stream.getExecutionConfig
 
   def serializerConfig: SerializerConfig =
-    stream.getExecutionEnvironment().getConfig().getSerializerConfig()
+    stream.getExecutionEnvironment.getConfig.getSerializerConfig
 
   /** Returns the [[StreamExecutionEnvironment]] associated with this data stream
     */
@@ -702,25 +701,25 @@ class DataStream[T](stream: JavaStream[T]) {
     stream.writeToSocket(hostname, port, schema)
   }
 
-  // /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
-  //   * StreamExecutionEnvironment.execute(...) method is called.
-  //   */
-  // def addSink(sinkFunction: SinkFunction[T]): DataStreamSink[T] =
-  //   stream.addSink(sinkFunction)
+  /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
+    * StreamExecutionEnvironment.execute(...) method is called.
+    */
+  def addSink(sinkFunction: SinkFunction[T]): DataStreamSink[T] =
+    stream.addSink(sinkFunction)
 
-  // /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
-  //   * StreamExecutionEnvironment.execute(...) method is called.
-  //   */
-  // def addSink(fun: T => Unit): DataStreamSink[T] = {
-  //   if (fun == null) {
-  //     throw new NullPointerException("Sink function must not be null.")
-  //   }
-  //   val cleanFun = clean(fun)
-  //   val sinkFunction = new SinkFunction[T] {
-  //     override def invoke(in: T) = cleanFun(in)
-  //   }
-  //   this.addSink(sinkFunction)
-  // }
+  /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
+    * StreamExecutionEnvironment.execute(...) method is called.
+    */
+  def addSink(fun: T => Unit): DataStreamSink[T] = {
+    if (fun == null) {
+      throw new NullPointerException("Sink function must not be null.")
+    }
+    val cleanFun     = clean(fun)
+    val sinkFunction = new SinkFunction[T] {
+      override def invoke(in: T) = cleanFun(in)
+    }
+    this.addSink(sinkFunction)
+  }
 
   /** Adds the given sink to this DataStream. Only streams with sinks added will be executed once the
     * StreamExecutionEnvironment.execute(...) method is called.

@@ -14,19 +14,11 @@ jobs:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
-        java: [11]
+        java: [11, 17, 21]
         scala: [2.13.16, 3.3.6]
-        flink: [1.18.1, 1.19.1]
+        flink: [1.19.3, 1.20.2]
         sbt-module: ['flink-1-api', 'scala-api-common']
         include:
-          - scala: 3.3.6
-            java: 17
-            flink: 1.20.0
-            sbt-module: 'flink-1-api'
-          - scala: 3.3.6
-            java: 17
-            flink: 1.20.0
-            sbt-module: 'scala-api-common'
           - scala: 3.3.6
             java: 17
             flink: 2.0.0          
@@ -47,7 +39,7 @@ jobs:
         run: JAVA_OPTS=$JAVA_OPTIONS sbt "++ ${{ matrix.scala }} docs/mdoc"
       - name: Run tests on examples
         # always running on Scala 3.x version by default
-        if: ${{ !startsWith(matrix.flink, '1.18') && !startsWith(matrix.flink, '2.') }}
+        if: ${{ startsWith(matrix.flink, '2.') }}
         run: JAVA_OPTS=$JAVA_OPTIONS sbt -DflinkVersion1=${{ matrix.flink }} "project examples; test"
       - name: Run tests on Flink API         
         run: JAVA_OPTS=$JAVA_OPTIONS sbt -DflinkVersion1=${{ matrix.flink }} -DflinkVersion2=${{ matrix.flink }} "++ ${{ matrix.scala }}; project ${{ matrix.sbt-module }}; test"

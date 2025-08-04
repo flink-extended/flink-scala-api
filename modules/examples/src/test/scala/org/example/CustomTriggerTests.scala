@@ -8,10 +8,8 @@ import org.scalatest.time.Seconds
 import org.scalatest.time.Span
 import org.scalatest.time.Millis
 import org.scalatest.Inspectors
-
 import org.apache.flinkx.api.*
 import org.apache.flinkx.api.serializers.*
-
 import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness
 import org.apache.flink.streaming.api.operators.KeyedProcessOperator
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction
@@ -26,17 +24,17 @@ import org.apache.flink.streaming.runtime.streamrecord.StreamRecord
 import org.apache.flink.streaming.api.watermark.Watermark
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.ExecutionConfig
+import org.apache.flink.api.common.serialization.SerializerConfigImpl
 import org.apache.flink.api.common.state.ReducingStateDescriptor
 import org.apache.flink.util.Collector
 
 import java.util.concurrent.TimeUnit
-
 import scala.collection.JavaConverters.*
 
 class CustomTriggerTest extends AnyFlatSpec with Matchers with Inspectors:
 
   it should "test custom trigger" in {
-    val cfg        = ExecutionConfig()
+    val cfg        = new SerializerConfigImpl()
     val serializer = deriveTypeInformation[TestEvent].createSerializer(
       cfg
     )

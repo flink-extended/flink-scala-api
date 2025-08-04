@@ -6,7 +6,7 @@ Global / excludeLintKeys      := Set(git.useGitDescribe, crossScalaVersions)
 
 lazy val rootScalaVersion = "3.3.6"
 lazy val crossVersions    = Seq("2.13.16", rootScalaVersion)
-lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.1")
+lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
 
 lazy val root = (project in file("."))
@@ -114,21 +114,23 @@ lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
     libraryDependencies ++= Seq(
-      "org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Provided,
-      "org.scalatest"   %% "scalatest"            % "3.2.19"      % Test,
-      "ch.qos.logback"   % "logback-classic"      % "1.5.17"      % Test
+      "org.apache.flink"  % "flink-streaming-java" % flinkVersion1 % Provided,
+      "org.apache.flink"  % "flink-test-utils"     % flinkVersion1 % Test,
+      ("org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Test).classifier("tests"),
+      "org.typelevel"    %% "cats-core"            % "2.13.0"      % Test,
+      "org.scalatest"    %% "scalatest"            % "3.2.19"      % Test,
+      "ch.qos.logback"    % "logback-classic"      % "1.5.17"      % Test
     )
   )
 
 def flinkDependencies(flinkVersion: String) =
   Seq(
-    "org.apache.flink"  % "flink-streaming-java"        % flinkVersion % Provided,
-    "org.apache.flink"  % "flink-table-api-java-bridge" % flinkVersion % Provided,
-    "org.apache.flink"  % "flink-test-utils"            % flinkVersion % Test,
-    ("org.apache.flink" % "flink-streaming-java"        % flinkVersion % Test).classifier("tests"),
-    "org.typelevel"    %% "cats-core"                   % "2.13.0"     % Test,
-    "org.scalatest"    %% "scalatest"                   % "3.2.19"     % Test,
-    "ch.qos.logback"    % "logback-classic"             % "1.5.17"     % Test
+    "org.apache.flink" % "flink-streaming-java"        % flinkVersion % Provided,
+    "org.apache.flink" % "flink-table-api-java-bridge" % flinkVersion % Provided,
+    "org.apache.flink" % "flink-test-utils"            % flinkVersion % Test,
+    "org.typelevel"   %% "cats-core"                   % "2.13.0"     % Test,
+    "org.scalatest"   %% "scalatest"                   % "3.2.19"     % Test,
+    "ch.qos.logback"   % "logback-classic"             % "1.5.17"     % Test
   )
 
 lazy val `flink-1-api` = (project in file("modules/flink-1-api"))
@@ -192,6 +194,7 @@ lazy val `examples` = (project in file("modules/examples"))
       "ch.qos.logback"   % "logback-classic"            % "1.4.14"      % Provided,
       "org.apache.flink" % "flink-test-utils"           % flinkVersion1 % Test,
       "org.apache.flink" % "flink-streaming-java"       % flinkVersion1 % Test classifier "tests",
+      "org.typelevel"   %% "cats-core"                  % "2.13.0"      % Test,
       "org.scalatest"   %% "scalatest"                  % "3.2.15"      % Test
     ),
     Compile / run := Defaults

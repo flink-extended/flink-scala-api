@@ -6,6 +6,12 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.streaming.api.datastream.{AllWindowedStream => JavaAllWStream}
 import org.apache.flink.streaming.api.functions.aggregation.AggregationFunction.AggregationType
 import org.apache.flink.streaming.api.functions.aggregation.{ComparableAggregator, SumAggregator}
+import org.apache.flink.streaming.api.windowing.evictors.Evictor
+import org.apache.flink.streaming.api.windowing.triggers.Trigger
+import org.apache.flink.streaming.api.windowing.windows.Window
+import org.apache.flink.util.Collector
+import org.apache.flink.util.Preconditions.checkNotNull
+import org.apache.flinkx.api.ScalaStreamOps._
 import org.apache.flinkx.api.function.util.{
   ScalaAllWindowFunction,
   ScalaAllWindowFunctionWrapper,
@@ -13,12 +19,8 @@ import org.apache.flinkx.api.function.util.{
   ScalaReduceFunction
 }
 import org.apache.flinkx.api.function.{AllWindowFunction, ProcessAllWindowFunction}
-import org.apache.flink.streaming.api.windowing.evictors.Evictor
-import org.apache.flink.streaming.api.windowing.triggers.Trigger
-import org.apache.flink.streaming.api.windowing.windows.Window
-import org.apache.flink.util.Collector
-import org.apache.flink.util.Preconditions.checkNotNull
-import ScalaStreamOps._
+
+import java.time.Duration
 
 /** A [[AllWindowedStream]] represents a data stream where the stream of elements is split into windows based on a
   * [[org.apache.flink.streaming.api.windowing.assigners.WindowAssigner]]. Window emission is triggered based on a
@@ -39,6 +41,17 @@ import ScalaStreamOps._
   */
 @Public
 class AllWindowedStream[T, W <: Window](javaStream: JavaAllWStream[T, W]) {
+
+  /** Sets the allowed lateness to a user-specified value. If not explicitly set, the allowed lateness is [[0L]].
+    * Setting the allowed lateness is only valid for event-time windows. If a value different than 0 is provided with a
+    * processing-time [[org.apache.flink.streaming.api.windowing.assigners.WindowAssigner]], then an exception is
+    * thrown.
+    */
+  @PublicEvolving
+  def allowedLateness(lateness: Duration): AllWindowedStream[T, W] = {
+    javaStream.allowedLateness(lateness)
+    this
+  }
 
   /** Send late arriving data to the side output identified by the given [[OutputTag]]. Data is considered late after
     * the watermark has passed the end of the window plus the allowed lateness set using [[allowedLateness(Time)]].
