@@ -11,7 +11,7 @@ abstract class SimpleTypeInformation[T: ClassTag: TypeSerializer] extends TypeIn
 
   override def createSerializer(config: SerializerConfig): TypeSerializer[T] = implicitly[TypeSerializer[T]].duplicate()
   // override modifier removed to satisfy both implementation requirement of Flink 1.x and removal in 2.x
-  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = null
+  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = implicitly[TypeSerializer[T]].duplicate()
 
   override def isBasicType: Boolean   = false
   override def isTupleType: Boolean   = false

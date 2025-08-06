@@ -70,7 +70,7 @@ class EitherTypeInfo[A, B, T <: Either[A, B]](
   }
 
   // override modifier removed to satisfy both implementation requirement of Flink 1.x and removal in 2.x
-  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = null
+  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = createSerializer(config.getSerializerConfig)
 
   override def equals(obj: Any): Boolean = {
     obj match {

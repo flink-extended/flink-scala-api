@@ -9,7 +9,7 @@ case class CoproductTypeInformation[T](c: Class[T], ser: TypeSerializer[T]) exte
 
   override def createSerializer(config: SerializerConfig): TypeSerializer[T] = ser.duplicate()
   // override modifier removed to satisfy both implementation requirement of Flink 1.x and removal in 2.x
-  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = null
+  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = ser.duplicate()
 
   override def isBasicType: Boolean   = false
   override def isTupleType: Boolean   = false

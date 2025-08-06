@@ -49,7 +49,7 @@ class CaseClassTypeInfo[T <: Product](
   override def createSerializer(config: SerializerConfig): TypeSerializer[T] = ser.duplicate()
 
   // override modifier removed to satisfy both implementation requirement of Flink 1.x and removal in 2.x
-  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = null
+  def createSerializer(config: ExecutionConfig): TypeSerializer[T] = ser.duplicate()
 
   private val REGEX_INT_FIELD: String              = "[0-9]+"
   private val REGEX_STR_FIELD: String              = "[\\p{L}_\\$][\\p{L}\\p{Digit}_\\$]*"

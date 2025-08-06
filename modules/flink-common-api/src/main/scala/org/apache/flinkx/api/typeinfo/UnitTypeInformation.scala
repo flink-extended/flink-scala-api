@@ -10,7 +10,7 @@ class UnitTypeInformation extends TypeInformation[Unit] {
 
   override def createSerializer(config: SerializerConfig): TypeSerializer[Unit] = new UnitSerializer()
   // override modifier removed to satisfy both implementation requirement of Flink 1.x and removal in 2.x
-  def createSerializer(config: ExecutionConfig): TypeSerializer[Unit] = null
+  def createSerializer(config: ExecutionConfig): TypeSerializer[Unit] = new UnitSerializer()
 
   override def isKeyType: Boolean          = false
   override def getTotalFields: Int         = 0

@@ -15,7 +15,7 @@ case class MappedTypeInformation[A: ClassTag, B](mapper: TypeMapper[A, B], neste
   override def createSerializer(config: SerializerConfig): TypeSerializer[A] =
     new MappedSerializer(mapper, nested.createSerializer(config))
   // override modifier removed to satisfy both implementation requirement of Flink 1.x and removal in 2.x
-  def createSerializer(config: ExecutionConfig): TypeSerializer[A] = null
+  def createSerializer(config: ExecutionConfig): TypeSerializer[A] = createSerializer(config.getSerializerConfig)
 
   override def isKeyType: Boolean   = nested.isKeyType
   override def getTotalFields: Int  = nested.getTotalFields
