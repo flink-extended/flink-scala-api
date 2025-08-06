@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers
 class MappedTypeInfoTest extends AnyFlatSpec with Matchers with TestUtils {
   import MappedTypeInfoTest._
   it should "derive TI for non-serializable classes" in {
-    drop(implicitly[TypeInformation[WrappedString]])
+    implicitly[TypeInformation[WrappedString]] shouldNot be(null)
   }
 }
 

@@ -10,15 +10,16 @@ import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 import scala.collection.mutable
 import scala.language.experimental.macros
-import scala.reflect._
-import scala.reflect.runtime.universe.{Try => _, _}
+import scala.reflect.runtime.universe.{TypeTag, typeOf}
+import scala.reflect.{ClassTag, classTag}
 
 private[api] trait LowPrioImplicits {
-  type Typeclass[T] = TypeInformation[T]
+
+  private[api] type Typeclass[T] = TypeInformation[T]
 
   protected def config: SerializerConfig
 
-  protected def cache: mutable.Map[String, TypeInformation[_]]
+  protected val cache: mutable.Map[String, TypeInformation[_]] = mutable.Map.empty
 
   def join[T <: Product: ClassTag: TypeTag](
       ctx: CaseClass[TypeInformation, T]

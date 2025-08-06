@@ -1,34 +1,34 @@
 package org.apache.flinkx.api
 
 import org.apache.flinkx.api.TypeInfoTest._
+import org.apache.flinkx.api.serializers._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
-import org.apache.flinkx.api.serializers._
 
 class TypeInfoTest extends AnyFlatSpec with Matchers {
 
   it should "derive simple classes" in {
-    drop(deriveTypeInformation[Simple])
+    deriveTypeInformation[Simple] shouldNot be(null)
   }
 
   it should "derive parameterized classes" in {
-    drop(deriveTypeInformation[Parameterized[String]])
+    deriveTypeInformation[Parameterized[String]] shouldNot be(null)
   }
 
   it should "derive lists" in {
-    drop(deriveTypeInformation[ListedList])
+    deriveTypeInformation[ListedList] shouldNot be(null)
   }
 
   it should "derive arrays" in {
-    drop(deriveTypeInformation[ListedArray])
+    deriveTypeInformation[ListedArray] shouldNot be(null)
   }
 
   it should "derive maps" in {
-    drop(deriveTypeInformation[ListedMap])
+    deriveTypeInformation[ListedMap] shouldNot be(null)
   }
 
   it should "derive ADT" in {
-    drop(deriveTypeInformation[ADT])
+    deriveTypeInformation[ADT] shouldNot be(null)
   }
 }
 

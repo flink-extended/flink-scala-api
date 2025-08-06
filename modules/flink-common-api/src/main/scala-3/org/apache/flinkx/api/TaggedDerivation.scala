@@ -10,7 +10,7 @@ import magnolia1.Macro.*
 // Typeclass derivation providing `ClassTag` and `TypeTag` givens.
 // Copied & modified from Magnolia, since the Scala 3 version disallows adding constraints to `join` and `split`.
 trait CommonTaggedDerivation[TypeClass[_]]:
-  type Typeclass[T] = TypeClass[T]
+  private[api] type Typeclass[T] = TypeClass[T]
 
   def join[T](ctx: CaseClass[Typeclass, T])(using
       classTag: ClassTag[T],

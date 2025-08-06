@@ -63,7 +63,6 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
   it should "do map ser snapshot adt " in {
     implicit val ti: TypeInformation[OuterTrait] = deriveTypeInformation[OuterTrait]
-    drop(ti)
     assertRoundtripSerializer(createSerializer[TraitMap])
   }
 

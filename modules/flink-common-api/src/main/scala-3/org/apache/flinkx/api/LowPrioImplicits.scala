@@ -15,11 +15,12 @@ import scala.deriving.Mirror
 import scala.reflect.ClassTag
 
 private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
-  type Typeclass[T] = TypeInformation[T]
+
+  private[api] type Typeclass[T] = TypeInformation[T]
 
   protected def config: SerializerConfig
 
-  protected def cache: mutable.Map[String, TypeInformation[?]]
+  protected val cache: mutable.Map[String, TypeInformation[?]] = mutable.Map.empty
 
   // We cannot add a constraint of `T <: Product`, even though `join` is always called on products.
   // Need to mix in via `& Product`.
