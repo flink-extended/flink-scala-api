@@ -3,11 +3,7 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
-import scala.reflect.ClassTag
-
 class SeqSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends MutableSerializer[Seq[T]] {
-
-  private implicit val classTag: ClassTag[T] = ClassTag(clazz)
 
   override val isImmutableType: Boolean = child.isImmutableType
 
