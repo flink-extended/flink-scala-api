@@ -373,9 +373,9 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
   private def aggregate(aggregationType: AggregationType, field: String): DataStream[T] = {
     val aggregationFunc = aggregationType match {
       case AggregationType.SUM =>
-        new SumAggregator(field, javaStream.getType, javaStream.getExecutionConfig)
+        new SumAggregator(field, dataType, executionConfig)
       case _ =>
-        new ComparableAggregator(field, javaStream.getType, aggregationType, true, javaStream.getExecutionConfig)
+        new ComparableAggregator(field, dataType, aggregationType, true, executionConfig)
     }
 
     aggregate(aggregationFunc)
@@ -384,9 +384,9 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
   private def aggregate(aggregationType: AggregationType, position: Int): DataStream[T] = {
     val aggregationFunc = aggregationType match {
       case AggregationType.SUM =>
-        new SumAggregator(position, javaStream.getType, javaStream.getExecutionConfig)
+        new SumAggregator(position, dataType, executionConfig)
       case _ =>
-        new ComparableAggregator(position, javaStream.getType, aggregationType, true, javaStream.getExecutionConfig)
+        new ComparableAggregator(position, dataType, aggregationType, true, executionConfig)
     }
 
     aggregate(aggregationFunc)
@@ -413,8 +413,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S]     =
-      stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment.getConfig.getSerializerConfig)
+    val serializer: TypeSerializer[S]     = stateTypeInfo.createSerializer(serializerConfig)
 
     val filterFun = new RichFilterFunction[T] with StatefulFunction[T, Boolean, S] {
 
@@ -440,8 +439,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S]     =
-      stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment.getConfig.getSerializerConfig)
+    val serializer: TypeSerializer[S]     = stateTypeInfo.createSerializer(serializerConfig)
 
     val mapper = new RichMapFunction[T, R] with StatefulFunction[T, R, S] {
 
@@ -470,8 +468,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     val cleanFun                          = clean(fun)
     val stateTypeInfo: TypeInformation[S] = implicitly[TypeInformation[S]]
-    val serializer: TypeSerializer[S]     =
-      stateTypeInfo.createSerializer(javaStream.getExecutionEnvironment.getConfig.getSerializerConfig)
+    val serializer: TypeSerializer[S]     = stateTypeInfo.createSerializer(serializerConfig)
 
     val flatMapper = new RichFlatMapFunction[T, R] with StatefulFunction[T, IterableOnce[R], S] {
 
@@ -496,7 +493,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
     */
   @Deprecated
   def asQueryableState(queryableStateName: String): QueryableStateStream[K, T] = {
-    val stateDescriptor = new ValueStateDescriptor(queryableStateName, dataType.createSerializer(executionConfig))
+    val stateDescriptor = new ValueStateDescriptor(queryableStateName, dataType.createSerializer(serializerConfig))
 
     asQueryableState(queryableStateName, stateDescriptor)
   }
@@ -526,7 +523,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     stateDescriptor.initializeSerializerUnlessSet(executionConfig)
 
-    new QueryableStateStream(queryableStateName, stateDescriptor, getKeyType.createSerializer(executionConfig))
+    new QueryableStateStream(queryableStateName, stateDescriptor, getKeyType.createSerializer(serializerConfig))
   }
 
   /** Publishes the keyed stream as a queryable ReducingState instance.
@@ -553,7 +550,7 @@ class KeyedStream[T, K](javaStream: KeyedJavaStream[T, K]) extends DataStream[T]
 
     stateDescriptor.initializeSerializerUnlessSet(executionConfig)
 
-    new QueryableStateStream(queryableStateName, stateDescriptor, getKeyType.createSerializer(executionConfig))
+    new QueryableStateStream(queryableStateName, stateDescriptor, getKeyType.createSerializer(serializerConfig))
   }
 
 }

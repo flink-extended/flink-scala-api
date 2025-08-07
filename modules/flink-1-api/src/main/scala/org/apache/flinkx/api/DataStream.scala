@@ -6,7 +6,7 @@ import org.apache.flink.api.common.eventtime.{TimestampAssigner, WatermarkGenera
 import org.apache.flink.api.common.functions.{FilterFunction, FlatMapFunction, MapFunction, Partitioner}
 import org.apache.flink.api.common.io.OutputFormat
 import org.apache.flink.api.common.operators.{ResourceSpec, SlotSharingGroup}
-import org.apache.flink.api.common.serialization.SerializationSchema
+import org.apache.flink.api.common.serialization.{SerializationSchema, SerializerConfig}
 import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.connector.sink2.Sink
@@ -76,6 +76,8 @@ class DataStream[T](stream: JavaStream[T]) {
   /** Returns the execution config.
     */
   def executionConfig: ExecutionConfig = stream.getExecutionConfig
+
+  def serializerConfig: SerializerConfig = stream.getExecutionConfig.getSerializerConfig
 
   /** Returns the [[StreamExecutionEnvironment]] associated with this data stream
     */

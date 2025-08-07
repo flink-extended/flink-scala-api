@@ -75,8 +75,7 @@ class DataStream[T](stream: JavaStream[T]) {
     */
   def executionConfig: ExecutionConfig = stream.getExecutionConfig
 
-  def serializerConfig: SerializerConfig =
-    stream.getExecutionEnvironment.getConfig.getSerializerConfig
+  def serializerConfig: SerializerConfig = stream.getExecutionConfig.getSerializerConfig
 
   /** Returns the [[StreamExecutionEnvironment]] associated with this data stream
     */
