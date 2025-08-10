@@ -17,7 +17,6 @@
  */
 package org.apache.flinkx.api
 
-import com.esotericsoftware.kryo.Serializer
 import org.apache.flink.annotation.{Experimental, Internal, Public, PublicEvolving}
 import org.apache.flink.api.common.ExecutionConfig.ClosureCleanerLevel
 import org.apache.flink.api.common.cache.DistributedCache
@@ -30,11 +29,9 @@ import org.apache.flink.api.connector.source.lib.NumberSequenceSource
 import org.apache.flink.api.connector.source.{Source, SourceSplit}
 import org.apache.flink.api.java.tuple
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
-import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
 import org.apache.flink.configuration.{Configuration, ReadableConfig}
 import org.apache.flink.core.execution.{JobClient, JobListener}
 import org.apache.flink.core.fs.Path
-import org.apache.flink.runtime.state.StateBackend
 import org.apache.flink.streaming.api.CheckpointingMode
 import org.apache.flink.streaming.api.environment.{CheckpointConfig, StreamExecutionEnvironment => JavaEnv}
 import org.apache.flink.streaming.api.functions.source._

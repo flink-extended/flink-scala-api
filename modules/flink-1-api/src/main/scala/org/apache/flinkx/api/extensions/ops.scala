@@ -15,7 +15,7 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.apache.flinkx.api.extension
+package org.apache.flinkx.api.extensions
 
 import org.apache.flink.annotation.PublicEvolving
 import org.apache.flinkx.api.extensions.impl.acceptPartialFunctions._

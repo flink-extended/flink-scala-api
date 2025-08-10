@@ -6,11 +6,12 @@ import org.apache.flink.api.common.eventtime.{TimestampAssigner, WatermarkGenera
 import org.apache.flink.api.common.functions.{FilterFunction, FlatMapFunction, MapFunction, Partitioner}
 import org.apache.flink.api.common.io.OutputFormat
 import org.apache.flink.api.common.operators.{ResourceSpec, SlotSharingGroup}
-import org.apache.flink.api.common.serialization.SerializationSchema
+import org.apache.flink.api.common.serialization.{SerializationSchema, SerializerConfig}
 import org.apache.flink.api.common.state.MapStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.connector.sink2.Sink
 import org.apache.flink.api.java.functions.KeySelector
+import org.apache.flink.api.java.tuple.{Tuple => JavaTuple}
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
 import org.apache.flink.streaming.api.datastream.{
   BroadcastStream,
@@ -20,16 +21,16 @@ import org.apache.flink.streaming.api.datastream.{
   DataStream => JavaStream,
   KeyedStream => JavaKeyedStream
 }
+import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.streaming.api.functions.sink.SinkFunction
 import org.apache.flink.streaming.api.functions.timestamps.AscendingTimestampExtractor
-import org.apache.flink.streaming.api.functions.ProcessFunction
 import org.apache.flink.streaming.api.operators.OneInputStreamOperator
 import org.apache.flink.streaming.api.windowing.assigners._
-import org.apache.flink.streaming.api.windowing.windows.{GlobalWindow, TimeWindow, Window}
+import org.apache.flink.streaming.api.windowing.windows.{GlobalWindow, Window}
 import org.apache.flink.util.Collector
-import org.apache.flink.api.java.tuple.{Tuple => JavaTuple}
+import org.apache.flinkx.api.ScalaStreamOps._
+
 import scala.jdk.CollectionConverters._
-import ScalaStreamOps._
 
 @Public
 class DataStream[T](stream: JavaStream[T]) {
@@ -75,6 +76,8 @@ class DataStream[T](stream: JavaStream[T]) {
   /** Returns the execution config.
     */
   def executionConfig: ExecutionConfig = stream.getExecutionConfig
+
+  def serializerConfig: SerializerConfig = stream.getExecutionConfig.getSerializerConfig
 
   /** Returns the [[StreamExecutionEnvironment]] associated with this data stream
     */

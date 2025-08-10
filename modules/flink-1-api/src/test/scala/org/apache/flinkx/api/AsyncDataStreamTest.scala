@@ -4,11 +4,11 @@ import org.apache.flink.configuration.Configuration
 import org.apache.flink.streaming.util.retryable.AsyncRetryStrategies
 import org.apache.flinkx.api.async._
 import org.apache.flinkx.api.serializers.intInfo
-import org.scalatest.{BeforeAndAfter, BeforeAndAfterEach}
+import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.util.concurrent.{CountDownLatch, TimeUnit}
+import java.util.concurrent.TimeUnit
 import scala.concurrent.ExecutionContext.Implicits.global
 import scala.concurrent.Future
 

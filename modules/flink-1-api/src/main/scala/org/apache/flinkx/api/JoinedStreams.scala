@@ -1,13 +1,13 @@
 package org.apache.flinkx.api
 
-import org.apache.flink.annotation.{PublicEvolving, Public}
+import org.apache.flink.annotation.{Public, PublicEvolving}
 import org.apache.flink.api.common.functions.{FlatJoinFunction, JoinFunction}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.functions.KeySelector
 import org.apache.flink.api.java.typeutils.ResultTypeQueryable
 import org.apache.flink.streaming.api.datastream.{
-  JoinedStreams => JavaJoinedStreams,
-  CoGroupedStreams => JavaCoGroupedStreams
+  CoGroupedStreams => JavaCoGroupedStreams,
+  JoinedStreams => JavaJoinedStreams
 }
 import org.apache.flink.streaming.api.windowing.assigners.WindowAssigner
 import org.apache.flink.streaming.api.windowing.evictors.Evictor
@@ -15,7 +15,7 @@ import org.apache.flink.streaming.api.windowing.time.Time
 import org.apache.flink.streaming.api.windowing.triggers.Trigger
 import org.apache.flink.streaming.api.windowing.windows.Window
 import org.apache.flink.util.Collector
-import ScalaStreamOps._
+import org.apache.flinkx.api.ScalaStreamOps._
 
 /** `JoinedStreams` represents two [[DataStream]]s that have been joined. A streaming join operation is evaluated over
   * elements in a window.
