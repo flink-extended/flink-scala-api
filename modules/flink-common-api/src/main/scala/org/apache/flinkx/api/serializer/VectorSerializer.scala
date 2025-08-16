@@ -27,13 +27,14 @@ class VectorSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
   override def createInstance(): Vector[T]                   = Vector.empty[T]
   override def getLength: Int                                = -1
   override def deserialize(source: DataInputView): Vector[T] = {
-    val count  = source.readInt()
-    val result = for {
-      _ <- 0 until count
-    } yield {
-      child.deserialize(source)
+    var remaining = source.readInt()
+    val builder   = Vector.newBuilder[T]
+    builder.sizeHint(remaining)
+    while (remaining > 0) {
+      builder.addOne(child.deserialize(source))
+      remaining -= 1
     }
-    result.toVector
+    builder.result()
   }
   override def serialize(record: Vector[T], target: DataOutputView): Unit = {
     target.writeInt(record.size)

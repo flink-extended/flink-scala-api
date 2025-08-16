@@ -3,7 +3,13 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
+import scala.collection.immutable
+import scala.collection.immutable.ArraySeq
+import scala.reflect.ClassTag
+
 class SeqSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends MutableSerializer[Seq[T]] {
+
+  private implicit val classTag: ClassTag[T] = ClassTag(clazz)
 
   override val isImmutableType: Boolean = child.isImmutableType
 
@@ -27,13 +33,14 @@ class SeqSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutabl
   override def createInstance(): Seq[T]                   = Seq.empty[T]
   override def getLength: Int                             = -1
   override def deserialize(source: DataInputView): Seq[T] = {
-    val count  = source.readInt()
-    val result = for {
-      _ <- 0 until count
-    } yield {
-      child.deserialize(source)
+    val length = source.readInt()
+    val array  = new Array[T](length)
+    var i      = 0
+    while (i < length) {
+      array(i) = child.deserialize(source)
+      i += 1
     }
-    result
+    ArraySeq.unsafeWrapArray(array)
   }
   override def serialize(record: Seq[T], target: DataOutputView): Unit = {
     target.writeInt(record.size)
