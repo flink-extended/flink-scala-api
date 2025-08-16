@@ -40,6 +40,15 @@ class SetSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutabl
     record.foreach(element => child.serialize(element, target))
   }
 
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    var remaining = source.readInt()
+    target.writeInt(remaining)
+    while (remaining > 0) {
+      child.copy(source, target)
+      remaining -= 1
+    }
+  }
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[Set[T]] =
     new CollectionSerializerSnapshot[Set, T, SetSerializer[T]](child, classOf[SetSerializer[T]], clazz)
 

@@ -48,6 +48,16 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
     })
   }
 
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    var remaining = source.readInt()
+    target.writeInt(remaining)
+    while (remaining > 0) {
+      ks.copy(source, target)
+      vs.copy(source, target)
+      remaining -= 1
+    }
+  }
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[Map[K, V]] = new MapSerializerSnapshot(ks, vs)
 }
 

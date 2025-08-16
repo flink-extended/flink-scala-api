@@ -40,6 +40,15 @@ class ListSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutab
     record.foreach(element => child.serialize(element, target))
   }
 
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    var remaining = source.readInt()
+    target.writeInt(remaining)
+    while (remaining > 0) {
+      child.copy(source, target)
+      remaining -= 1
+    }
+  }
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[List[T]] =
     new CollectionSerializerSnapshot[List, T, ListSerializer[T]](child, classOf[ListSerializer[T]], clazz)
 
