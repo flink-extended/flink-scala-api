@@ -62,6 +62,15 @@ class ArraySerializer[T](val child: TypeSerializer[T], clazz: Class[T]) extends 
     }
   }
 
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    var remaining = source.readInt()
+    target.writeInt(remaining)
+    while (remaining > 0) {
+      child.copy(source, target)
+      remaining -= 1
+    }
+  }
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[Array[T]] =
     new CollectionSerializerSnapshot[Array, T, ArraySerializer[T]](child, classOf[ArraySerializer[T]], clazz)
 
