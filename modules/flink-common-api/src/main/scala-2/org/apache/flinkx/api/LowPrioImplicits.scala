@@ -4,8 +4,9 @@ import magnolia1.{CaseClass, Magnolia, SealedTrait}
 import org.apache.flink.api.common.serialization.SerializerConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
+import org.apache.flink.util.FlinkRuntimeException
 import org.apache.flinkx.api.serializer.{CaseClassSerializer, CoproductSerializer, ScalaCaseObjectSerializer, nullable}
-import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformation}
+import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformation, MarkerTypeInfo}
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 import scala.collection.mutable
@@ -26,8 +27,11 @@ private[api] trait LowPrioImplicits {
   ): TypeInformation[T] = {
     val cacheKey = typeName[T]
     cache.get(cacheKey) match {
+      case Some(MarkerTypeInfo) =>
+        throw new FlinkRuntimeException(s"Unsupported: recursivity detected in '$cacheKey'.")
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]
       case None         =>
+        cache.put(cacheKey, MarkerTypeInfo)
         val clazz      = classTag[T].runtimeClass.asInstanceOf[Class[T]]
         val serializer = if (typeOf[T].typeSymbol.isModuleClass) {
           new ScalaCaseObjectSerializer[T](clazz)
