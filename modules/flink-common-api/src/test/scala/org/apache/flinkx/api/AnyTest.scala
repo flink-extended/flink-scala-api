@@ -2,9 +2,9 @@ package org.apache.flinkx.api
 
 import cats.data.NonEmptyList
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.AnyTest._
 import org.apache.flinkx.api.AnyTest.FAny.FValueAny.FTerm
 import org.apache.flinkx.api.AnyTest.FAny.FValueAny.FTerm.StringTerm
+import org.apache.flinkx.api.AnyTest._
 import org.apache.flinkx.api.serializers._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -12,19 +12,19 @@ import org.scalatest.matchers.should.Matchers
 class AnyTest extends AnyFlatSpec with Matchers with TestUtils {
 
   it should "serialize concrete class" in {
-    StringTerm("fo") should haveTypeInfoAndBeSerializable[StringTerm]
+    testTypeInfoAndSerializer(StringTerm("fo"))
   }
 
   it should "serialize ADT" in {
-    StringTerm("fo") should haveTypeInfoAndBeSerializable[FAny](nullable = false)
+    testTypeInfoAndSerializer(StringTerm("fo"), nullable = false)
   }
 
   it should "serialize NEL" in {
-    NonEmptyList.one(StringTerm("fo")) should haveTypeInfoAndBeSerializable[NonEmptyList[FTerm]]
+    testTypeInfoAndSerializer(NonEmptyList.one(StringTerm("fo")))
   }
 
   it should "serialize nested nel" in {
-    TermFilter("a", NonEmptyList.one(StringTerm("fo"))) should haveTypeInfoAndBeSerializable[TermFilter]
+    testTypeInfoAndSerializer(TermFilter("a", NonEmptyList.one(StringTerm("fo"))))
   }
 }
 

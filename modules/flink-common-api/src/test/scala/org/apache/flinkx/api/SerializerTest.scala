@@ -5,7 +5,7 @@ import org.apache.flink.api.common.serialization.SerializerConfigImpl
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.base.StringSerializer
 import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
-import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food, Ham}
+import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.Egg
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 import org.apache.flinkx.api.SerializerTest._
 import org.apache.flinkx.api.serializer.{CaseClassSerializer, nullable}
@@ -21,56 +21,56 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   val ec = new SerializerConfigImpl()
 
   it should "derive serializer for simple class" in {
-    Simple(1, "foo") should haveTypeInfoAndBeSerializable[Simple]
+    testTypeInfoAndSerializer(Simple(1, "foo"))
   }
 
   it should "derive serializer for java classes" in {
-    SimpleJava(1, "foo") should beSerializable[SimpleJava]
+    testSerializer(SimpleJava(1, "foo"))
   }
 
   it should "derive serializer for java.time classes" in {
-    JavaTime(Instant.now(), LocalDate.now(), LocalDateTime.now()) should haveTypeInfoAndBeSerializable[JavaTime]
+    testTypeInfoAndSerializer(JavaTime(Instant.now(), LocalDate.now(), LocalDateTime.now()))
   }
 
   it should "derive nested classes" in {
-    Nested(Simple(1, "foo")) should haveTypeInfoAndBeSerializable[Nested]
+    testTypeInfoAndSerializer(Nested(Simple(1, "foo")))
   }
 
   it should "derive for ADTs" in {
-    Foo("a") should haveTypeInfoAndBeSerializable[ADT](nullable = false)
-    Bar(1) should haveTypeInfoAndBeSerializable[ADT](nullable = false)
+    testTypeInfoAndSerializer(Foo("a"), nullable = false)
+    testTypeInfoAndSerializer(Bar(1), nullable = false)
   }
 
   it should "derive for ADTs with case objects" in {
-    Foo2 should haveTypeInfoAndBeSerializable[ADT2](nullable = false)
-    Bar2 should haveTypeInfoAndBeSerializable[ADT2](nullable = false)
+    testTypeInfoAndSerializer(Foo2, nullable = false)
+    testTypeInfoAndSerializer(Bar2, nullable = false)
   }
 
   it should "derive for deeply nested classes" in {
-    Egg(1) should haveTypeInfoAndBeSerializable[Egg]
+    testTypeInfoAndSerializer(Egg(1))
   }
 
   it should "derive for deeply nested adts" in {
-    Egg(1) should haveTypeInfoAndBeSerializable[Food](nullable = false)
+    testTypeInfoAndSerializer(Egg(1), nullable = false)
   }
 
   it should "derive for nested ADTs" in {
-    WrappedADT(Foo("a")) should haveTypeInfoAndBeSerializable[WrappedADT]
-    WrappedADT(Bar(1)) should haveTypeInfoAndBeSerializable[WrappedADT]
+    testTypeInfoAndSerializer(WrappedADT(Foo("a")))
+    testTypeInfoAndSerializer(WrappedADT(Bar(1)))
   }
 
   it should "derive for generic ADTs" in {
-    P2(1) should haveTypeInfoAndBeSerializable[Param[Int]](nullable = false)
+    testTypeInfoAndSerializer(P2(1), nullable = false)
   }
 
   it should "derive seq" in {
-    SimpleSeq(Seq(Simple(1, "a"))) should haveTypeInfoAndBeSerializable[SimpleSeq]
+    testTypeInfoAndSerializer(SimpleSeq(Seq(Simple(1, "a"))))
   }
 
   it should "derive list of ADT" in {
-    List(Foo("a")) should haveTypeInfoAndBeSerializable[List[ADT]](nullable = false)
-    ::(Foo("a"), Nil) should beSerializable[List[ADT]](nullable = false)
-    Nil should beSerializable[List[ADT]](nullable = false)
+    testTypeInfoAndSerializer(List(Foo("a")), nullable = false)
+    testSerializer(::(Foo("a"), Nil), nullable = false)
+    testSerializer(Nil, nullable = false)
   }
 
   it should "derive recursively" in {
@@ -79,19 +79,19 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "derive list" in {
-    List(Simple(1, "a")) should haveTypeInfoAndBeSerializable[List[Simple]](nullable = false)
+    testTypeInfoAndSerializer(List(Simple(1, "a")), nullable = false)
   }
 
   it should "derive nested list" in {
-    List(SimpleList(List(1))) should haveTypeInfoAndBeSerializable[List[SimpleList]](nullable = false)
+    testTypeInfoAndSerializer(List(SimpleList(List(1))), nullable = false)
   }
 
   it should "derive seq of seq" in {
-    SimpleSeqSeq(Seq(Seq(Simple(1, "a")))) should haveTypeInfoAndBeSerializable[SimpleSeqSeq]
+    testTypeInfoAndSerializer(SimpleSeqSeq(Seq(Seq(Simple(1, "a")))))
   }
 
   it should "derive generic type bounded classes" in {
-    BoundADT(Foo("a")) should haveTypeInfoAndBeSerializable[BoundADT[Foo]]
+    testTypeInfoAndSerializer(BoundADT(Foo("a")))
   }
 
   //  it should "derive nested generic type bounded classes" in {
@@ -117,80 +117,80 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "serialize Option" in {
-    SimpleOption(None) should haveTypeInfoAndBeSerializable[SimpleOption]
-    SimpleOption(Some("foo")) should beSerializable[SimpleOption]
+    testTypeInfoAndSerializer(SimpleOption(None))
+    testSerializer(SimpleOption(Some("foo")))
   }
 
   it should "serialize Either" in {
-    SimpleEither(Left("foo")) should haveTypeInfoAndBeSerializable[SimpleEither]
-    SimpleEither(Right(42)) should beSerializable[SimpleEither]
+    testTypeInfoAndSerializer(SimpleEither(Left("foo")))
+    testSerializer(SimpleEither(Right(42)))
   }
 
   it should "serialize nested list of ADT" in {
-    ListADT(Nil) should haveTypeInfoAndBeSerializable[ListADT]
-    ListADT(List(Foo("a"))) should beSerializable[ListADT]
+    testTypeInfoAndSerializer(ListADT(Nil))
+    testSerializer(ListADT(List(Foo("a"))))
   }
 
   it should "derive multiple instances of generic class" in {
-    Generic(SimpleOption(None), Bar(0)) should haveTypeInfoAndBeSerializable[Generic[SimpleOption]]
-    Generic(Simple(0, "asd"), Bar(0)) should haveTypeInfoAndBeSerializable[Generic[Simple]]
+    testTypeInfoAndSerializer(Generic(SimpleOption(None), Bar(0)))
+    testTypeInfoAndSerializer(Generic(Simple(0, "asd"), Bar(0)))
   }
 
   it should "serialize nil" in {
-    NonEmptyList.one("a") should haveTypeInfoAndBeSerializable[NonEmptyList[String]]
+    testTypeInfoAndSerializer(NonEmptyList.one("a"))
   }
 
   it should "serialize unit" in {
-    () should haveTypeInfoAndBeSerializable[Unit](nullable = false)
+    testTypeInfoAndSerializer((), nullable = false)
   }
 
   it should "serialize triple-nested case clases" in {
-    List(NestedBottom(Some("a"), None)) should haveTypeInfoAndBeSerializable[Seq[NestedBottom]](nullable = false)
+    testTypeInfoAndSerializer(List(NestedBottom(Some("a"), None)), nullable = false)
   }
 
   it should "serialize classes with type mapper" in {
     import MappedTypeInfoTest._
     val str = new WrappedString()
     str.put("foo")
-    str should haveTypeInfoAndBeSerializable[WrappedString](nullable = false)
+    testTypeInfoAndSerializer(str, nullable = false)
   }
 
   it should "serialize bigint" in {
-    BigInt(123) should haveTypeInfoAndBeSerializable[BigInt](nullable = false)
+    testTypeInfoAndSerializer(BigInt(123), nullable = false)
   }
 
   it should "serialize bigdec" in {
-    BigDecimal(123) should haveTypeInfoAndBeSerializable[BigDecimal](nullable = false)
+    testTypeInfoAndSerializer(BigDecimal(123), nullable = false)
   }
 
   it should "serialize uuid" in {
-    UUID.randomUUID() should haveTypeInfoAndBeSerializable[UUID](nullable = false)
+    testTypeInfoAndSerializer(UUID.randomUUID(), nullable = false)
   }
 
   it should "serialize case class with private field" in {
-    PrivateField("abc") should haveTypeInfoAndBeSerializable[PrivateField]
+    testTypeInfoAndSerializer(PrivateField("abc"))
   }
 
   it should "serialize a case class overriding a field" in {
-    ExtendingCaseClass("abc", "def") should haveTypeInfoAndBeSerializable[ExtendingCaseClass]
+    testTypeInfoAndSerializer(ExtendingCaseClass("abc", "def"))
   }
 
   it should "serialize a null case class" in {
     val data: Simple = null
-    data should haveTypeInfoAndBeSerializable[Simple]
+    testTypeInfoAndSerializer(data)
   }
 
   it should "serialize a case class with nullable field" in {
-    Bar(1) should haveTypeInfoAndBeSerializable[Bar]
+    testTypeInfoAndSerializer(Bar(1))
   }
 
   it should "serialize a case class with a nullable field of a case class with no arity" in {
-    NullableFieldWithNoArity(null) should haveTypeInfoAndBeSerializable[NullableFieldWithNoArity]
+    testTypeInfoAndSerializer(NullableFieldWithNoArity(null))
   }
 
   it should "serialize nullable fields" in {
     val ser = implicitly[TypeInformation[SimpleJava]].createSerializer(ec)
-    SimpleJava(null, null) should haveTypeInfoAndBeSerializable[SimpleJava]
+    testTypeInfoAndSerializer(SimpleJava(null, null))
     val ccser = ser.asInstanceOf[CaseClassSerializer[SimpleJava]]
     // IntSerializer doesn't handle null so it's wrapped in a NullableSerializer
     ccser.getFieldSerializers()(0) shouldBe a[NullableSerializer[Integer]]
@@ -198,7 +198,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "serialize a case class with a nullable field of a fixed size case class" in {
-    NullableFixedSizeCaseClass(null) should haveTypeInfoAndBeSerializable[NullableFixedSizeCaseClass]
+    testTypeInfoAndSerializer(NullableFixedSizeCaseClass(null))
   }
 
 }
