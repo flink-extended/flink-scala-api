@@ -73,7 +73,7 @@ trait TestUtils extends Matchers with Inspectors {
     assertion(result, expected)
   }
 
-  /** Checks the binary direct-memory copy functionality.
+  /** Checks the copy from `DataInputView` to `DataOutputView` functionality.
     * @param ser
     *   The serializer to test.
     * @param expected
@@ -84,7 +84,7 @@ trait TestUtils extends Matchers with Inspectors {
     * @tparam T
     *   The type of the object being processed.
     */
-  def checkBinaryCopy[T](
+  def checkDataViewCopy[T](
       ser: TypeSerializer[T],
       expected: T,
       assertion: (T, T) => Assertion = (_: T) shouldBe (_: T)
@@ -130,7 +130,7 @@ trait TestUtils extends Matchers with Inspectors {
       implicit ser: TypeSerializer[T]
   ): Unit = {
     roundtrip(ser, expected, assertion)
-    checkBinaryCopy(ser, expected, assertion)
+    checkDataViewCopy(ser, expected, assertion)
     checkInstanceCopy(ser, expected, assertion)
     noKryo(ser)
     javaSerializable(ser)
