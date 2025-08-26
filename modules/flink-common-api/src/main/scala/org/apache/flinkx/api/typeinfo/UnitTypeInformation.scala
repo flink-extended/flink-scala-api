@@ -13,11 +13,11 @@ class UnitTypeInformation extends TypeInformation[Unit] {
   def createSerializer(config: ExecutionConfig): TypeSerializer[Unit] = new UnitSerializer()
 
   override def isKeyType: Boolean          = false
-  override def getTotalFields: Int         = 0
+  override def getTotalFields: Int         = 1 // The total number of fields must be at least 1.
   override def isTupleType: Boolean        = false
   override def canEqual(obj: Any): Boolean = obj.isInstanceOf[UnitTypeInformation]
   override def getTypeClass: Class[Unit]   = classOf[Unit]
-  override def getArity: Int               = 0
+  override def getArity: Int               = 1 // Basic type has an arity of 1
   override def isBasicType: Boolean        = true
 
   override def toString: String = "{}"

@@ -63,6 +63,9 @@ class CaseClassTypeInfo[T <: Product](
     Pattern.compile(REGEX_NESTED_FIELDS_WILDCARD)
   private val PATTERN_INT_FIELD: Pattern = Pattern.compile(REGEX_INT_FIELD)
 
+  override def getTotalFields: Int =
+    if (super.getTotalFields == 0) 1 else super.getTotalFields // The total number of fields must be at least 1.
+
   @PublicEvolving
   def getFieldIndices(fields: Array[String]): Array[Int] = {
     fields map { x => fieldNames.indexOf(x) }

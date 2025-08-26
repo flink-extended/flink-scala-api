@@ -1,6 +1,5 @@
 package org.apache.flinkx.api
 
-import org.apache.flink.api.common.serialization.SerializerConfigImpl
 import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, TypeInformation}
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.api.java.typeutils.TupleTypeInfoBase
@@ -154,9 +153,15 @@ trait TestUtils extends Matchers with Inspectors {
 
   private def isNotBitmapField(field: Field): Boolean = !field.getName.startsWith("bitmap$")
 
+  private def isNotOverriddenField(field: Field, childFields: Array[Field]): Boolean =
+    !childFields.exists(_.getName == field.getName)
+
   @tailrec
   private def getAllFields[T](typeClass: Class[T], fields: Array[Field] = Array.empty): Array[Field] = {
-    val allFields  = fields ++ typeClass.getDeclaredFields.filter(isInstanceField).filter(isNotBitmapField)
+    val allFields  = fields ++ typeClass.getDeclaredFields
+      .filter(isInstanceField)
+      .filter(isNotBitmapField)
+      .filter(isNotOverriddenField(_, fields))
     val superClass = typeClass.getSuperclass
     if (superClass == null || superClass == classOf[Object]) {
       allFields
@@ -195,9 +200,13 @@ trait TestUtils extends Matchers with Inspectors {
   }
 
   def checkTotalFields[T](info: TypeInformation[T]): Assertion = {
-    val typeClass   = info.getTypeClass
-    val totalFields = getTotalFields(typeClass)
-    withClue("getTotalFields:")(info.getTotalFields shouldBe totalFields)
+    val typeClass = info.getTypeClass
+    if (typeClass.getTypeParameters.isEmpty) {
+      val totalFields = getTotalFields(typeClass)
+      withClue("getTotalFields:")(info.getTotalFields shouldBe totalFields)
+    } else {
+      succeed // cannot check getTotalFields for generic types.
+    }
   }
 
   def checkKeyType[T](info: TypeInformation[T]): Assertion = info match {
@@ -230,8 +239,8 @@ trait TestUtils extends Matchers with Inspectors {
     }
     checkBasicType(infoToCheck)
     checkTupleType(infoToCheck)
-//    checkArity(infoToCheck)
-//    checkTotalFields(infoToCheck)
+    checkArity(infoToCheck)
+    checkTotalFields(infoToCheck)
     checkKeyType(infoToCheck)
     checkToString(infoToCheck)
     checkEquals(infoToCheck)

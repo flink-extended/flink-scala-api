@@ -16,5 +16,5 @@ case class CoproductTypeInformation[T](c: Class[T], ser: TypeSerializer[T]) exte
   override def isKeyType: Boolean     = false
   override def getTotalFields: Int    = 1
   override def getTypeClass: Class[T] = c
-  override def getArity: Int          = 1
+  override def getArity: Int          = 0
 }

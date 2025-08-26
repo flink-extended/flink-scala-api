@@ -19,5 +19,5 @@ case class CollectionTypeInformation[T: ClassTag](serializer: TypeSerializer[T])
   override def isKeyType: Boolean     = false
   override def getTotalFields: Int    = 1
   override def getTypeClass: Class[T] = clazz
-  override def getArity: Int          = 1
+  override def getArity: Int          = 0
 }
