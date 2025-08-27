@@ -5,7 +5,7 @@ import org.apache.flink.api.common.serialization.SerializerConfigImpl
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.base.StringSerializer
 import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
-import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.{Egg, Food}
+import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.Egg
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 import org.apache.flinkx.api.SerializerTest._
 import org.apache.flinkx.api.serializer.{CaseClassSerializer, nullable}
@@ -21,90 +21,72 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   val ec = new SerializerConfigImpl()
 
   it should "derive serializer for simple class" in {
-    val ser = implicitly[TypeInformation[Simple]].createSerializer(ec)
-    all(ser, Simple(1, "foo"))
+    testTypeInfoAndSerializer(Simple(1, "foo"))
   }
 
   it should "derive serializer for java classes" in {
-    val ser = implicitly[TypeInformation[SimpleJava]].createSerializer(ec)
-    all(ser, SimpleJava(1, "foo"))
+    testSerializer(SimpleJava(1, "foo"))
   }
 
   it should "derive serializer for java.time classes" in {
-    val ser = implicitly[TypeInformation[JavaTime]].createSerializer(ec)
-    all(ser, JavaTime(Instant.now(), LocalDate.now(), LocalDateTime.now()))
+    testTypeInfoAndSerializer(JavaTime(Instant.now(), LocalDate.now(), LocalDateTime.now()))
   }
 
   it should "derive nested classes" in {
-    val ser = implicitly[TypeInformation[Nested]].createSerializer(ec)
-    all(ser, Nested(Simple(1, "foo")))
+    testTypeInfoAndSerializer(Nested(Simple(1, "foo")))
   }
 
   it should "derive for ADTs" in {
-    val ser = implicitly[TypeInformation[ADT]].createSerializer(ec)
-    all(ser, Foo("a"))
-    all(ser, Bar(1))
+    testTypeInfoAndSerializer(Foo("a"), nullable = false)
+    testTypeInfoAndSerializer(Bar(1), nullable = false)
   }
 
   it should "derive for ADTs with case objects" in {
-    val ser = implicitly[TypeInformation[ADT2]].createSerializer(ec)
-    all(ser, Foo2)
-    all(ser, Bar2)
+    testTypeInfoAndSerializer(Foo2, nullable = false)
+    testTypeInfoAndSerializer(Bar2, nullable = false)
   }
 
   it should "derive for deeply nested classes" in {
-    val ser = implicitly[TypeInformation[Egg]].createSerializer(ec)
-    all(ser, Egg(1))
+    testTypeInfoAndSerializer(Egg(1))
   }
 
   it should "derive for deeply nested adts" in {
-    val ser = implicitly[TypeInformation[Food]].createSerializer(ec)
-    all(ser, Egg(1))
+    testTypeInfoAndSerializer(Egg(1), nullable = false)
   }
 
   it should "derive for nested ADTs" in {
-    val ser = implicitly[TypeInformation[WrappedADT]].createSerializer(ec)
-    all(ser, WrappedADT(Foo("a")))
-    all(ser, WrappedADT(Bar(1)))
+    testTypeInfoAndSerializer(WrappedADT(Foo("a")))
+    testTypeInfoAndSerializer(WrappedADT(Bar(1)))
   }
 
   it should "derive for generic ADTs" in {
-    val ser = implicitly[TypeInformation[Param[Int]]].createSerializer(ec)
-    all(ser, P2(1))
+    testTypeInfoAndSerializer(P2(1), nullable = false)
   }
 
   it should "derive seq" in {
-    val ser = implicitly[TypeInformation[SimpleSeq]].createSerializer(ec)
-    noKryo(ser)
-    serializable(ser)
+    testTypeInfoAndSerializer(SimpleSeq(Seq(Simple(1, "a"))))
   }
 
   it should "derive list of ADT" in {
-    val ser = implicitly[TypeInformation[List[ADT]]].createSerializer(ec)
-    all(ser, List(Foo("a")))
-    roundtrip(ser, ::(Foo("a"), Nil))
-    roundtrip(ser, Nil)
+    testTypeInfoAndSerializer(List(Foo("a")), nullable = false)
+    testSerializer(::(Foo("a"), Nil), nullable = false)
+    testSerializer(Nil, nullable = false)
   }
 
   it should "derive list" in {
-    val ser = implicitly[TypeInformation[List[Simple]]].createSerializer(ec)
-    all(ser, List(Simple(1, "a")))
+    testTypeInfoAndSerializer(List(Simple(1, "a")), nullable = false)
   }
 
   it should "derive nested list" in {
-    val ser = implicitly[TypeInformation[List[SimpleList]]].createSerializer(ec)
-    all(ser, List(SimpleList(List(1))))
+    testTypeInfoAndSerializer(List(SimpleList(List(1))), nullable = false)
   }
 
   it should "derive seq of seq" in {
-    val ser = implicitly[TypeInformation[SimpleSeqSeq]].createSerializer(ec)
-    noKryo(ser)
-    serializable(ser)
+    testTypeInfoAndSerializer(SimpleSeqSeq(Seq(Seq(Simple(1, "a")))))
   }
 
   it should "derive generic type bounded classes" in {
-    val ser = implicitly[TypeInformation[BoundADT[Foo]]].createSerializer(ec)
-    noKryo(ser)
+    testTypeInfoAndSerializer(BoundADT(Foo("a")))
   }
 
   //  it should "derive nested generic type bounded classes" in {
@@ -121,105 +103,89 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 
   it should "be serializable in case of annotations on classes" in {
     val ser = implicitly[TypeInformation[Annotated]].createSerializer(ec)
-    serializable(ser)
+    javaSerializable(ser)
   }
 
   it should "be serializable in case of annotations on subtypes" in {
     val ser = implicitly[TypeInformation[Ann]].createSerializer(ec)
-    serializable(ser)
+    javaSerializable(ser)
   }
 
   it should "serialize Option" in {
-    val ser = implicitly[TypeInformation[SimpleOption]].createSerializer(ec)
-    all(ser, SimpleOption(None))
-    roundtrip(ser, SimpleOption(Some("foo")))
+    testTypeInfoAndSerializer(SimpleOption(None))
+    testSerializer(SimpleOption(Some("foo")))
   }
 
   it should "serialize Either" in {
-    val ser = implicitly[TypeInformation[SimpleEither]].createSerializer(ec)
-    all(ser, SimpleEither(Left("foo")))
-    roundtrip(ser, SimpleEither(Right(42)))
+    testTypeInfoAndSerializer(SimpleEither(Left("foo")))
+    testSerializer(SimpleEither(Right(42)))
   }
 
   it should "serialize nested list of ADT" in {
-    val ser = implicitly[TypeInformation[ListADT]].createSerializer(ec)
-    all(ser, ListADT(Nil))
-    roundtrip(ser, ListADT(List(Foo("a"))))
+    testTypeInfoAndSerializer(ListADT(Nil))
+    testSerializer(ListADT(List(Foo("a"))))
   }
 
   it should "derive multiple instances of generic class" in {
-    val ser  = implicitly[TypeInformation[Generic[SimpleOption]]].createSerializer(ec)
-    val ser2 = implicitly[TypeInformation[Generic[Simple]]].createSerializer(ec)
-    all(ser, Generic(SimpleOption(None), Bar(0)))
-    all(ser2, Generic(Simple(0, "asd"), Bar(0)))
+    testTypeInfoAndSerializer(Generic(SimpleOption(None), Bar(0)))
+    testTypeInfoAndSerializer(Generic(Simple(0, "asd"), Bar(0)))
   }
 
   it should "serialize nil" in {
-    val ser = implicitly[TypeInformation[NonEmptyList[String]]].createSerializer(ec)
-    roundtrip(ser, NonEmptyList.one("a"))
+    testTypeInfoAndSerializer(NonEmptyList.one("a"))
   }
 
   it should "serialize unit" in {
-    val ser = implicitly[TypeInformation[Unit]].createSerializer(ec)
-    roundtrip(ser, ())
+    testTypeInfoAndSerializer((), nullable = false)
   }
 
   it should "serialize triple-nested case clases" in {
-    val ser = implicitly[TypeInformation[Seq[NestedBottom]]].createSerializer(ec)
-    roundtrip(ser, List(NestedBottom(Some("a"), None)))
+    testTypeInfoAndSerializer(List(NestedBottom(Some("a"), None)), nullable = false)
   }
 
   it should "serialize classes with type mapper" in {
     import MappedTypeInfoTest._
-    val ser = implicitly[TypeInformation[WrappedString]].createSerializer(ec)
     val str = new WrappedString()
     str.put("foo")
-    roundtrip(ser, str)
+    testTypeInfoAndSerializer(str, nullable = false)
   }
 
   it should "serialize bigint" in {
-    val ser = implicitly[TypeInformation[BigInt]].createSerializer(ec)
-    roundtrip(ser, BigInt(123))
+    testTypeInfoAndSerializer(BigInt(123), nullable = false)
   }
 
   it should "serialize bigdec" in {
-    val ser = implicitly[TypeInformation[BigDecimal]].createSerializer(ec)
-    roundtrip(ser, BigDecimal(123))
+    testTypeInfoAndSerializer(BigDecimal(123), nullable = false)
   }
 
   it should "serialize uuid" in {
-    val ser = implicitly[TypeInformation[UUID]].createSerializer(ec)
-    roundtrip(ser, UUID.randomUUID())
+    testTypeInfoAndSerializer(UUID.randomUUID(), nullable = false)
   }
 
   it should "serialize case class with private field" in {
-    val ser = implicitly[TypeInformation[PrivateField]].createSerializer(ec)
-    roundtrip(ser, PrivateField("abc"))
+    testTypeInfoAndSerializer(PrivateField("abc"))
   }
 
   it should "serialize a case class overriding a field" in {
-    val ser = implicitly[TypeInformation[ExtendingCaseClass]].createSerializer(ec)
-    roundtrip(ser, ExtendingCaseClass("abc", "def"))
+    testTypeInfoAndSerializer(ExtendingCaseClass("abc", "def"))
   }
 
   it should "serialize a null case class" in {
-    val ser = implicitly[TypeInformation[Simple]].createSerializer(ec)
-    roundtrip(ser, null)
+    val data: Simple = null
+    testTypeInfoAndSerializer(data)
   }
 
   it should "serialize a case class with nullable field" in {
-    val ser = implicitly[TypeInformation[NullableField]].createSerializer(ec)
-    roundtrip(ser, NullableField(null, Bar(1)))
+    testTypeInfoAndSerializer(Bar(1))
   }
 
   it should "serialize a case class with a nullable field of a case class with no arity" in {
-    val ser = implicitly[TypeInformation[NullableFieldWithNoArity]].createSerializer(ec)
-    roundtrip(ser, NullableFieldWithNoArity(null))
+    testTypeInfoAndSerializer(NullableFieldWithNoArity(null))
   }
 
   it should "serialize nullable fields" in {
     val ser = implicitly[TypeInformation[SimpleJava]].createSerializer(ec)
-    roundtrip(ser, SimpleJava(null, null))
+    testTypeInfoAndSerializer(SimpleJava(null, null))
     val ccser = ser.asInstanceOf[CaseClassSerializer[SimpleJava]]
     // IntSerializer doesn't handle null so it's wrapped in a NullableSerializer
     ccser.getFieldSerializers()(0) shouldBe a[NullableSerializer[Integer]]
@@ -227,8 +193,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "serialize a case class with a nullable field of a fixed size case class" in {
-    val ser = implicitly[TypeInformation[NullableFixedSizeCaseClass]].createSerializer(ec)
-    roundtrip(ser, NullableFixedSizeCaseClass(null))
+    testTypeInfoAndSerializer(NullableFixedSizeCaseClass(null))
   }
 
 }

@@ -58,6 +58,13 @@ class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers
     subtype.asInstanceOf[TypeSerializer[T]].deserialize(source)
   }
 
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    val index   = source.readByte()
+    val subtype = subtypeSerializers(index.toInt)
+    target.writeByte(index)
+    subtype.asInstanceOf[TypeSerializer[T]].copy(source, target)
+  }
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
     new CoproductSerializerSnapshot(subtypeClasses, subtypeSerializers)
 }

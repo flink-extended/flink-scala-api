@@ -5,6 +5,7 @@ import org.apache.flink.api.common.serialization.SerializerConfig
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flinkx.api.serializer.UnitSerializer
+import org.apache.flinkx.api.{BasicTypeArity, BasicTypeTotalFields}
 
 class UnitTypeInformation extends TypeInformation[Unit] {
 
@@ -13,11 +14,11 @@ class UnitTypeInformation extends TypeInformation[Unit] {
   def createSerializer(config: ExecutionConfig): TypeSerializer[Unit] = new UnitSerializer()
 
   override def isKeyType: Boolean          = false
-  override def getTotalFields: Int         = 0
+  override def getTotalFields: Int         = BasicTypeTotalFields
   override def isTupleType: Boolean        = false
   override def canEqual(obj: Any): Boolean = obj.isInstanceOf[UnitTypeInformation]
   override def getTypeClass: Class[Unit]   = classOf[Unit]
-  override def getArity: Int               = 0
+  override def getArity: Int               = BasicTypeArity
   override def isBasicType: Boolean        = true
 
   override def toString: String = "{}"

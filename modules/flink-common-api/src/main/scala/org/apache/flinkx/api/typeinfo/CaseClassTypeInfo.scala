@@ -30,6 +30,7 @@ import org.apache.flink.api.common.typeutils.CompositeType.{
 }
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.api.java.typeutils.TupleTypeInfoBase
+import org.apache.flinkx.api.MinimumTotalFields
 
 import java.util.regex.{Matcher, Pattern}
 import scala.annotation.tailrec
@@ -62,6 +63,9 @@ class CaseClassTypeInfo[T <: Product](
   private val PATTERN_NESTED_FIELDS_WILDCARD: Pattern =
     Pattern.compile(REGEX_NESTED_FIELDS_WILDCARD)
   private val PATTERN_INT_FIELD: Pattern = Pattern.compile(REGEX_INT_FIELD)
+
+  override def getTotalFields: Int =
+    if (super.getTotalFields == 0) MinimumTotalFields else super.getTotalFields
 
   @PublicEvolving
   def getFieldIndices(fields: Array[String]): Array[Int] = {

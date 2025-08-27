@@ -39,6 +39,15 @@ class ListCCSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
     record.foreach(element => child.serialize(element, target))
   }
 
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    var remaining = source.readInt()
+    target.writeInt(remaining)
+    while (remaining > 0) {
+      child.copy(source, target)
+      remaining -= 1
+    }
+  }
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[::[T]] =
     new CollectionSerializerSnapshot[::, T, ListCCSerializer[T]](child, classOf[ListCCSerializer[T]], clazz)
 

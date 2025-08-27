@@ -30,15 +30,16 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
   override def createInstance(): Map[K, V]                   = Map.empty[K, V]
   override def getLength: Int                                = -1
   override def deserialize(source: DataInputView): Map[K, V] = {
-    val count  = source.readInt()
-    val result = for {
-      _ <- 0 until count
-    } yield {
+    var remaining = source.readInt()
+    val builder   = Map.newBuilder[K, V]
+    builder.sizeHint(remaining)
+    while (remaining > 0) {
       val key   = ks.deserialize(source)
       val value = vs.deserialize(source)
-      key -> value
+      builder.addOne(key -> value)
+      remaining -= 1
     }
-    result.toMap
+    builder.result()
   }
   override def serialize(record: Map[K, V], target: DataOutputView): Unit = {
     target.writeInt(record.size)
@@ -46,6 +47,16 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
       ks.serialize(element._1, target)
       vs.serialize(element._2, target)
     })
+  }
+
+  override def copy(source: DataInputView, target: DataOutputView): Unit = {
+    var remaining = source.readInt()
+    target.writeInt(remaining)
+    while (remaining > 0) {
+      ks.copy(source, target)
+      vs.copy(source, target)
+      remaining -= 1
+    }
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[Map[K, V]] = new MapSerializerSnapshot(ks, vs)

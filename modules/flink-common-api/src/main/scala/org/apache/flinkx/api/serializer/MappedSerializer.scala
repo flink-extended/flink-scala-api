@@ -49,6 +49,8 @@ case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[
 
   override def deserialize(source: DataInputView): A = mapper.contramap(ser.deserialize(source))
 
+  override def copy(source: DataInputView, target: DataOutputView): Unit = ser.copy(source, target)
+
   override def snapshotConfiguration(): TypeSerializerSnapshot[A] = new MappedSerializerSnapshot[A, B](mapper, ser)
 
   override def createInstance(): A = mapper.contramap(ser.createInstance())
