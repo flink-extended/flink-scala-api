@@ -158,7 +158,7 @@ trait TestUtils extends Matchers with Inspectors {
 
   @tailrec
   private def getAllFields[T](typeClass: Class[T], fields: Array[Field] = Array.empty): Array[Field] = {
-    val allFields  = fields ++ typeClass.getDeclaredFields
+    val allFields = fields ++ typeClass.getDeclaredFields
       .filter(isInstanceField)
       .filter(isNotBitmapField)
       .filter(isNotOverriddenField(_, fields))
