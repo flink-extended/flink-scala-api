@@ -20,6 +20,7 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
+import org.apache.flinkx.api.VariableLengthDataType
 
 /** Serializer for [[Either]]. Copied from Flink 1.14.
   */
@@ -50,7 +51,12 @@ class EitherSerializer[A, B](
     (rightSerializer == null || rightSerializer.isImmutableType)
   }
 
-  override def getLength: Int = -1
+  override val getLength: Int =
+    if (leftSerializer.getLength == rightSerializer.getLength) {
+      leftSerializer.getLength
+    } else {
+      VariableLengthDataType
+    }
 
   override def copy(from: Either[A, B]): Either[A, B] = from match {
     case Left(a)  => if (leftSerializer.isImmutableType) from else Left(leftSerializer.copy(a))

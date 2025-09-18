@@ -7,6 +7,7 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 
 import scala.reflect.{ClassTag, classTag}
 
+@deprecated("Use SimpleTypeInfo instead.", "1.2.10")
 abstract class SimpleTypeInformation[T: ClassTag: TypeSerializer] extends TypeInformation[T] {
 
   override def createSerializer(config: SerializerConfig): TypeSerializer[T] = implicitly[TypeSerializer[T]].duplicate()

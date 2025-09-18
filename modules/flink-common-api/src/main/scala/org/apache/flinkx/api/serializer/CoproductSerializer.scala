@@ -3,6 +3,7 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
+import org.apache.flinkx.api.VariableLengthDataType
 import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerSnapshot
 
 class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers: Array[TypeSerializer[_]])
@@ -32,7 +33,14 @@ class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers
     // this one may be used for later reuse, but we never reuse coproducts due to their unclear concrete type
     subtypeSerializers.head.createInstance().asInstanceOf[T]
 
-  override def getLength: Int = -1
+  override val getLength: Int = {
+    val length = subtypeSerializers(0).getLength
+    if (subtypeSerializers.forall(_.getLength == length)) {
+      length
+    } else {
+      VariableLengthDataType
+    }
+  }
 
   override def serialize(record: T, target: DataOutputView): Unit = {
     var subtypeIndex = 0

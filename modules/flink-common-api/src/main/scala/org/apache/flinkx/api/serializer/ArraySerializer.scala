@@ -2,6 +2,7 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
+import org.apache.flinkx.api.VariableLengthDataType
 
 import scala.reflect.ClassTag
 
@@ -38,7 +39,7 @@ class ArraySerializer[T](val child: TypeSerializer[T], clazz: Class[T]) extends 
     }
   }
 
-  override def getLength: Int = -1
+  override def getLength: Int = VariableLengthDataType
 
   override def deserialize(source: DataInputView): Array[T] = {
     val length = source.readInt()
