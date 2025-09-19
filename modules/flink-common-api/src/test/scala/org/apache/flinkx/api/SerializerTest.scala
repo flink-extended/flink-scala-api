@@ -201,15 +201,18 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "serialize ZoneOffset" in {
-    testTypeInfoAndSerializer(ZoneOffset.UTC)
+    // Don't test type info, as its arity and total fields depend on the JDK version
+    testSerializer(ZoneOffset.UTC)
   }
 
   it should "serialize OffsetDateTime" in {
-    testTypeInfoAndSerializer(OffsetDateTime.now())
+    // Don't test type info, as its arity and total fields depend on the JDK version
+    testSerializer(OffsetDateTime.now())
   }
 
   it should "serialize ZonedDateTime" in {
-    testTypeInfoAndSerializer(ZonedDateTime.now())
+    // Don't test type info, as its arity and total fields depend on the JDK version
+    testSerializer(ZonedDateTime.now())
   }
 
 }
