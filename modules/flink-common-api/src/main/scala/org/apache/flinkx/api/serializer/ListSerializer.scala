@@ -28,7 +28,7 @@ class ListSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutab
   override def getLength: Int                              = -1
   override def deserialize(source: DataInputView): List[T] = {
     var remaining = source.readInt()
-    val builder = List.newBuilder[T]
+    val builder   = List.newBuilder[T]
     builder.sizeHint(remaining)
     while (remaining > 0) {
       builder.addOne(child.deserialize(source))
