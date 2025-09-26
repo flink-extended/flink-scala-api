@@ -20,6 +20,7 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
+import org.apache.flinkx.api.VariableLengthDataType
 
 /** Serializer for [[Option]].
   */
@@ -41,7 +42,7 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends Mutable
 
   override val isImmutableType: Boolean = elemSerializer == null || elemSerializer.isImmutableType
 
-  override def getLength: Int = -1
+  override def getLength: Int = VariableLengthDataType
 
   override def copy(from: Option[A]): Option[A] = from match {
     case Some(a) => if (isImmutableType) from else Some(elemSerializer.copy(a))

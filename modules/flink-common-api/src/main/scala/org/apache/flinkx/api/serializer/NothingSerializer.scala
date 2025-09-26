@@ -18,10 +18,10 @@
 package org.apache.flinkx.api.serializer
 
 import java.util.function.Supplier
-
 import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.typeutils.{SimpleTypeSerializerSnapshot, TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
+import org.apache.flinkx.api.VariableLengthDataType
 
 /** Serializer for cases where no serializer is required but the system still expects one. This happens for
   * OptionTypeInfo when None is used, or for Either when one of the type parameters is Nothing.
@@ -35,7 +35,7 @@ class NothingSerializer extends ImmutableSerializer[Any] {
     Integer.valueOf(-1)
   }
 
-  override def getLength: Int = -1
+  override def getLength: Int = VariableLengthDataType
 
   override def copy(from: Any): Any =
     throw new RuntimeException("This must not be used. You encountered a bug.")

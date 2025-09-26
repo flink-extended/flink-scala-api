@@ -3,6 +3,16 @@ package org.apache.flinkx.api
 import org.apache.flink.api.common.serialization.{SerializerConfig, SerializerConfigImpl}
 import org.apache.flink.api.common.typeinfo.{BasicTypeInfo, LocalTimeTypeInfo, TypeInformation}
 import org.apache.flink.api.common.typeutils.TypeSerializer
+import org.apache.flink.api.common.typeutils.base.{
+  BooleanSerializer,
+  ByteSerializer,
+  CharSerializer,
+  DoubleSerializer,
+  FloatSerializer,
+  IntSerializer,
+  LongSerializer,
+  ShortSerializer
+}
 import org.apache.flink.api.common.typeutils.base.array._
 import org.apache.flinkx.api.mapper.{BigDecMapper, BigIntMapper, UuidMapper}
 import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
@@ -19,7 +29,7 @@ import java.lang.{Integer => JInteger}
 import java.lang.{Character => JCharacter}
 import java.math.{BigInteger => JBigInteger}
 import java.math.{BigDecimal => JBigDecimal}
-import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.UUID
 import scala.reflect.{ClassTag, classTag}
 
@@ -67,22 +77,18 @@ trait serializers extends LowPrioImplicits {
   implicit val shortArraySerializer: TypeSerializer[Array[Short]]     = new ShortPrimitiveArraySerializer()
   implicit val stringArraySerializer: TypeSerializer[Array[String]]   = new StringArraySerializer()
 
-  implicit lazy val jIntegerSerializer: TypeSerializer[Integer] =
-    new org.apache.flink.api.common.typeutils.base.IntSerializer()
-  implicit lazy val jLongSerializer: TypeSerializer[JLong] =
-    new org.apache.flink.api.common.typeutils.base.LongSerializer()
-  implicit lazy val jFloatSerializer: TypeSerializer[JFloat] =
-    new org.apache.flink.api.common.typeutils.base.FloatSerializer()
-  implicit lazy val jDoubleSerializer: TypeSerializer[JDouble] =
-    new org.apache.flink.api.common.typeutils.base.DoubleSerializer()
-  implicit lazy val jBooleanSerializer: TypeSerializer[JBoolean] =
-    new org.apache.flink.api.common.typeutils.base.BooleanSerializer()
-  implicit lazy val jByteSerializer: TypeSerializer[JByte] =
-    new org.apache.flink.api.common.typeutils.base.ByteSerializer()
-  implicit lazy val jCharSerializer: TypeSerializer[JCharacter] =
-    new org.apache.flink.api.common.typeutils.base.CharSerializer()
-  implicit lazy val jShortSerializer: TypeSerializer[JShort] =
-    new org.apache.flink.api.common.typeutils.base.ShortSerializer()
+  implicit lazy val jIntegerSerializer: TypeSerializer[Integer]               = new IntSerializer()
+  implicit lazy val jLongSerializer: TypeSerializer[JLong]                    = new LongSerializer()
+  implicit lazy val jFloatSerializer: TypeSerializer[JFloat]                  = new FloatSerializer()
+  implicit lazy val jDoubleSerializer: TypeSerializer[JDouble]                = new DoubleSerializer()
+  implicit lazy val jBooleanSerializer: TypeSerializer[JBoolean]              = new BooleanSerializer()
+  implicit lazy val jByteSerializer: TypeSerializer[JByte]                    = new ByteSerializer()
+  implicit lazy val jCharSerializer: TypeSerializer[JCharacter]               = new CharSerializer()
+  implicit lazy val jShortSerializer: TypeSerializer[JShort]                  = new ShortSerializer()
+  implicit lazy val jZoneIdSerializer: TypeSerializer[ZoneId]                 = ZoneIdSerializer
+  implicit lazy val jZoneOffsetSerializer: TypeSerializer[ZoneOffset]         = ZoneOffsetSerializer
+  implicit lazy val jZonedDateTimeSerializer: TypeSerializer[ZonedDateTime]   = ZonedDateTimeSerializer
+  implicit lazy val jOffsetDateTimeSerializer: TypeSerializer[OffsetDateTime] = OffsetDateTimeSerializer
 
   // type infos
   implicit lazy val stringInfo: TypeInformation[String] = BasicTypeInfo.STRING_TYPE_INFO
@@ -136,6 +142,10 @@ trait serializers extends LowPrioImplicits {
   implicit lazy val jLocalDateTypeInfo: TypeInformation[LocalDate]         = LocalTimeTypeInfo.LOCAL_DATE
   implicit lazy val jLocalDateTimeTypeInfo: TypeInformation[LocalDateTime] = LocalTimeTypeInfo.LOCAL_DATE_TIME
   implicit lazy val jLocalTimeTypeInfo: TypeInformation[LocalTime]         = LocalTimeTypeInfo.LOCAL_TIME
+  implicit lazy val jZoneIdInfo: TypeInformation[ZoneId]                   = SimpleTypeInfo(0)
+  implicit lazy val jZoneOffsetInfo: TypeInformation[ZoneOffset]           = SimpleTypeInfo(3, 9, keyType = true)
+  implicit lazy val jZonedDateTimeInfo: TypeInformation[ZonedDateTime]     = SimpleTypeInfo(3, 11, keyType = true)
+  implicit lazy val jOffsetDateTimeInfo: TypeInformation[OffsetDateTime]   = SimpleTypeInfo(2, 10, keyType = true)
 
   implicit def listCCInfo[T: ClassTag](implicit ls: TypeSerializer[::[T]]): TypeInformation[::[T]] =
     new CollectionTypeInformation[::[T]](ls)

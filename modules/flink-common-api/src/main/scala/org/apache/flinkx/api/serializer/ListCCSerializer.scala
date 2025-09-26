@@ -2,6 +2,7 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
+import org.apache.flinkx.api.VariableLengthDataType
 
 class ListCCSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends MutableSerializer[::[T]] {
 
@@ -26,7 +27,7 @@ class ListCCSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
   }
 
   override def createInstance(): ::[T] = throw new IllegalArgumentException("cannot create instance of non-empty list")
-  override def getLength: Int          = -1
+  override def getLength: Int          = VariableLengthDataType
   override def deserialize(source: DataInputView): ::[T] = {
     val count  = source.readInt()
     val result = (0 until count)

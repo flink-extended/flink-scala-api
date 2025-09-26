@@ -2,6 +2,7 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
+import org.apache.flinkx.api.VariableLengthDataType
 
 class VectorSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends MutableSerializer[Vector[T]] {
 
@@ -25,7 +26,7 @@ class VectorSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
   }
 
   override def createInstance(): Vector[T]                   = Vector.empty[T]
-  override def getLength: Int                                = -1
+  override def getLength: Int                                = VariableLengthDataType
   override def deserialize(source: DataInputView): Vector[T] = {
     var remaining = source.readInt()
     val builder   = Vector.newBuilder[T]

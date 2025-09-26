@@ -14,7 +14,7 @@ import org.scalatest.Inspectors
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.time.{Instant, LocalDate, LocalDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime, OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
 import java.util.UUID
 
 class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with TestUtils {
@@ -194,6 +194,25 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
 
   it should "serialize a case class with a nullable field of a fixed size case class" in {
     testTypeInfoAndSerializer(NullableFixedSizeCaseClass(null))
+  }
+
+  it should "serialize ZoneId" in {
+    testTypeInfoAndSerializer(ZoneId.systemDefault())
+  }
+
+  it should "serialize ZoneOffset" in {
+    // Don't test type info, as its arity and total fields depend on the JDK version
+    testSerializer(ZoneOffset.UTC)
+  }
+
+  it should "serialize OffsetDateTime" in {
+    // Don't test type info, as its arity and total fields depend on the JDK version
+    testSerializer(OffsetDateTime.now())
+  }
+
+  it should "serialize ZonedDateTime" in {
+    // Don't test type info, as its arity and total fields depend on the JDK version
+    testSerializer(ZonedDateTime.now())
   }
 
 }
