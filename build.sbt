@@ -1,5 +1,5 @@
 import sbtrelease.ReleaseStateTransformations.*
-import xerial.sbt.Sonatype.sonatypeCentralHost
+// import xerial.sbt.Sonatype.sonatypeCentralHost
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe, crossScalaVersions)
@@ -46,8 +46,8 @@ lazy val commonSettings = Seq(
   description            := "Community-maintained fork of official Apache Flink Scala API",
   licenses               := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
   homepage               := Some(url("https://github.com/flink-extended/flink-scala-api")),
-  sonatypeCredentialHost := sonatypeCentralHost,
-  sonatypeRepository     := "https://s01.oss.sonatype.org/service/local",
+  // sonatypeCredentialHost := sonatypeCentralHost,
+  // sonatypeRepository     := "https://s01.oss.sonatype.org/service/local",
   // publishMavenStyle      := true,
   // publishTo              := sonatypePublishToBundle.value,
   pgpPassphrase          := scala.util.Properties.propOrNone("gpg.passphrase").map(_.toCharArray),
