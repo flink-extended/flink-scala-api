@@ -18,6 +18,7 @@ jobs:
       - uses: sbt/setup-sbt@v1
       - run: sbt ci-release
         env:
+          RELEASE_VERSION_BUMP: true
           PGP_PASSPHRASE: ${{ secrets.PGP_PASSPHRASE }}
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
