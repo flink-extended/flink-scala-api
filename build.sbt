@@ -1,5 +1,4 @@
 import sbtrelease.ReleaseStateTransformations.*
-// import xerial.sbt.Sonatype.sonatypeCentralHost
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(git.useGitDescribe, crossScalaVersions)
@@ -8,6 +7,39 @@ lazy val rootScalaVersion = "3.3.6"
 lazy val crossVersions    = Seq("2.13.16", rootScalaVersion)
 lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
+
+inThisBuild(
+  List(
+    organization := "com.github.sbt",
+    homepage     := Some(url("https://github.com/sbt/sbt-ci-release")),
+    // Alternatively License.Apache2 see https://github.com/sbt/librarymanagement/blob/develop/core/src/main/scala/sbt/librarymanagement/License.scala
+    licenses   := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
+    developers := List(
+      Developer(
+        id = "romangrebennikov",
+        name = "Roman Grebennikov",
+        email = "grv@dfdx.me",
+        url = url("https://dfdx.me/")
+      ),
+      Developer(
+        id = "novakov-alexey",
+        name = "Alexey Novakov",
+        email = "novakov.alex@gmail.com",
+        url = url("https://novakov-alexey.github.io/")
+      )
+    ),
+    scmInfo := Some(
+      ScmInfo(
+        url("https://github.com/flink-extended/flink-scala-api"),
+        "scm:git@github.com:flink-extended/flink-scala-api.git"
+      )
+    ),
+    organization := "org.flinkextended",
+    description  := "Community-maintained fork of official Apache Flink Scala API",
+    licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+    homepage     := Some(url("https://github.com/flink-extended/flink-scala-api"))
+  )
+)
 
 lazy val root = (project in file("."))
   .aggregate(`scala-api-common`, `flink-1-api`, `flink-2-api`, `examples`)
@@ -42,17 +74,7 @@ lazy val commonSettings = Seq(
     val Some((major, _)) = CrossVersion.partialVersion(scalaVersion.value)
     file(s"$dir-$major")
   },
-  organization := "org.flinkextended",
-  description  := "Community-maintained fork of official Apache Flink Scala API",
-  licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-  homepage     := Some(url("https://github.com/flink-extended/flink-scala-api")),
-  // sonatypeCredentialHost := sonatypeCentralHost,
-  // sonatypeRepository     := "https://s01.oss.sonatype.org/service/local",
-  // publishMavenStyle      := true,
-  // publishTo              := sonatypePublishToBundle.value,
-  pgpPassphrase      := scala.util.Properties.propOrNone("gpg.passphrase").map(_.toCharArray),
-  git.useGitDescribe := true,
-  scalacOptions ++= Seq(
+  scalacOptions ++= Seq (
     "-deprecation",
     "-feature",
     "-language:higherKinds",
@@ -65,26 +87,6 @@ lazy val commonSettings = Seq(
       Nil
     }
   },
-  scmInfo := Some(
-    ScmInfo(
-      url("https://github.com/flink-extended/flink-scala-api"),
-      "scm:git@github.com:flink-extended/flink-scala-api.git"
-    )
-  ),
-  developers := List(
-    Developer(
-      id = "romangrebennikov",
-      name = "Roman Grebennikov",
-      email = "grv@dfdx.me",
-      url = url("https://dfdx.me/")
-    ),
-    Developer(
-      id = "novakov-alexey",
-      name = "Alexey Novakov",
-      email = "novakov.alex@gmail.com",
-      url = url("https://novakov-alexey.github.io/")
-    )
-  ),
   releaseProcess := Seq.empty[ReleaseStep],
   releaseProcess ++= (if (sys.env.contains("RELEASE_VERSION_BUMP"))
                         Seq[ReleaseStep](
