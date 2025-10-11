@@ -92,9 +92,9 @@ lazy val commonSettings = Seq(
                           inquireVersions,
                           setReleaseVersion,
                           commitReleaseVersion,
-                          tagRelease,
-                          releaseStepCommandAndRemaining("+publishSigned"),
-                          releaseStepCommand("sonatypeBundleRelease")
+                          tagRelease
+                          // releaseStepCommandAndRemaining("+publishSigned"),
+                          // releaseStepCommand("sonatypeBundleRelease")
                         )
                       else Seq.empty[ReleaseStep]),
   releaseProcess ++= (if (sys.env.contains("RELEASE_PUBLISH"))
