@@ -42,16 +42,16 @@ lazy val commonSettings = Seq(
     val Some((major, _)) = CrossVersion.partialVersion(scalaVersion.value)
     file(s"$dir-$major")
   },
-  organization           := "org.flinkextended",
-  description            := "Community-maintained fork of official Apache Flink Scala API",
-  licenses               := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-  homepage               := Some(url("https://github.com/flink-extended/flink-scala-api")),
+  organization := "org.flinkextended",
+  description  := "Community-maintained fork of official Apache Flink Scala API",
+  licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+  homepage     := Some(url("https://github.com/flink-extended/flink-scala-api")),
   // sonatypeCredentialHost := sonatypeCentralHost,
   // sonatypeRepository     := "https://s01.oss.sonatype.org/service/local",
   // publishMavenStyle      := true,
   // publishTo              := sonatypePublishToBundle.value,
-  pgpPassphrase          := scala.util.Properties.propOrNone("gpg.passphrase").map(_.toCharArray),
-  git.useGitDescribe     := true,
+  pgpPassphrase      := scala.util.Properties.propOrNone("gpg.passphrase").map(_.toCharArray),
+  git.useGitDescribe := true,
   scalacOptions ++= Seq(
     "-deprecation",
     "-feature",
