@@ -11,6 +11,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.io.ByteArrayOutputStream
 import java.nio.file.{Files, Path}
+import java.io.FileInputStream
 
 class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
   private implicit val newClickTypeInfo: TypeInformation[Click] = deriveTypeInformation[Click]
@@ -49,15 +50,18 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
     modifiedResult shouldBe modifiedExpected
   }
 
-  ignore should "generate blob for event=click+purchase" in {
+  def generateBlobForEvent() =  {
     val buffer          = new ByteArrayOutputStream()
     val eventSerializer = createSerializer[Event]
     eventSerializer.serialize(Click("p1", clicks), new DataOutputViewStreamWrapper(buffer))
-    Files.write(Path.of("src/test/resources/click.dat"), buffer.toByteArray)
+    val path = Path.of("target/test/resources/click.dat")
+    Files.createDirectories(path.getParent())
+    Files.write(path, buffer.toByteArray)
   }
 
   it should "decode click when we added view" in {
-    val buffer = this.getClass.getResourceAsStream("/click.dat")
+    generateBlobForEvent()
+    val buffer = new FileInputStream("target/test/resources/click.dat")
     val click  = createSerializer[Event].deserialize(new DataInputViewStreamWrapper(buffer))
     click shouldBe Click("p1", clicks)
   }

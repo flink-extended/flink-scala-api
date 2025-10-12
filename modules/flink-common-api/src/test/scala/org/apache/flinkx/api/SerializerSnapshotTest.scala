@@ -16,6 +16,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream}
 import java.net.URLClassLoader
 import java.nio.file.{Files, Paths}
 import java.util.UUID
+import java.io.FileInputStream
 
 class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
@@ -78,7 +79,7 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
     }
   }
 
-  ignore should "serialize old serialization with the old serializer snapshot" in {
+  def serializeWithOldSerializer() = {
     val uuid                 = UUID.fromString("4daf2791-abbe-420f-9594-f57ded1fee8c")
     val expectedData         = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
     val outerClassSerializer = implicitly[TypeSerializer[OuterClass]]
@@ -90,15 +91,18 @@ class SerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
     // Serialize the data
     outerClassSerializer.serialize(expectedData, out)
-    Files.write(Paths.get("modules/flink-1-api/src/test/resources/old-serializer-snapshot.dat"), out.getSharedBuffer)
+    val path = Paths.get("target/test/resources/old-serializer-snapshot.dat")
+    Files.createDirectories(path.getParent())
+    Files.write(path, out.getSharedBuffer)
   }
 
   it should "deserialize old serialization with the new serializer snapshot" in {
+    serializeWithOldSerializer()
     val uuid         = UUID.fromString("4daf2791-abbe-420f-9594-f57ded1fee8c")
     val expectedData = OuterClass(Map(uuid -> List(SimpleClass2("a", 1))))
 
     // Deserialize the old serialization
-    val buffer               = getClass.getResourceAsStream("/old-serializer-snapshot.dat").readAllBytes()
+    val buffer               = new FileInputStream("target/test/resources/old-serializer-snapshot.dat").readAllBytes()
     val in                   = new DataInputDeserializer(buffer)
     val deserializedSnapshot = TypeSerializerSnapshot
       .readVersionedSnapshot[OuterClass](in, getClass.getClassLoader) // Flink always calls this
