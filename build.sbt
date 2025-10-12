@@ -1,12 +1,14 @@
 import sbtrelease.ReleaseStateTransformations.*
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
-Global / excludeLintKeys      := Set(git.useGitDescribe, crossScalaVersions)
+Global / excludeLintKeys      := Set(crossScalaVersions)
 
 lazy val rootScalaVersion = "3.3.6"
 lazy val crossVersions    = Seq("2.13.16", rootScalaVersion)
 lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
+
+ThisBuild / publishTo := sonatypePublishToBundle.value
 
 inThisBuild(
   List(
@@ -34,10 +36,11 @@ inThisBuild(
         "scm:git@github.com:flink-extended/flink-scala-api.git"
       )
     ),
-    organization := "org.flinkextended",
-    description  := "Community-maintained fork of official Apache Flink Scala API",
-    licenses     := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-    homepage     := Some(url("https://github.com/flink-extended/flink-scala-api"))
+    organization           := "org.flinkextended",
+    description            := "Community-maintained fork of official Apache Flink Scala API",
+    licenses               := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
+    homepage               := Some(url("https://github.com/flink-extended/flink-scala-api")),
+    sonatypeCredentialHost := "central.sonatype.com"
   )
 )
 
@@ -74,7 +77,7 @@ lazy val commonSettings = Seq(
     val Some((major, _)) = CrossVersion.partialVersion(scalaVersion.value)
     file(s"$dir-$major")
   },
-  scalacOptions ++= Seq (
+  scalacOptions ++= Seq(
     "-deprecation",
     "-feature",
     "-language:higherKinds",
