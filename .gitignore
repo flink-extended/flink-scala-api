@@ -16,3 +16,6 @@ metals.sbt
 *checkpoint
 sink-table
 *.iml
+modules/docs
+old-serializer-snapshot.dat
+click.dat
