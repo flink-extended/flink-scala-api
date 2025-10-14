@@ -14,6 +14,8 @@ import org.apache.flink.api.common.typeutils.base.{
   ShortSerializer
 }
 import org.apache.flink.api.common.typeutils.base.array._
+import org.apache.flink.api.java.typeutils.EnumTypeInfo
+import org.apache.flink.types.{Nothing => FlinkNothing}
 import org.apache.flinkx.api.mapper.{BigDecMapper, BigIntMapper, UuidMapper}
 import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
 import org.apache.flinkx.api.serializer._
@@ -29,8 +31,10 @@ import java.lang.{Integer => JInteger}
 import java.lang.{Character => JCharacter}
 import java.math.{BigInteger => JBigInteger}
 import java.math.{BigDecimal => JBigDecimal}
-import java.time.{Instant, LocalDate, LocalDateTime, LocalTime, OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
+import java.time._
 import java.util.UUID
+import scala.collection.immutable.{SortedSet, TreeSet}
+import scala.concurrent.duration.{Duration, FiniteDuration, TimeUnit}
 import scala.reflect.{ClassTag, classTag}
 
 trait serializers extends LowPrioImplicits {
@@ -89,6 +93,8 @@ trait serializers extends LowPrioImplicits {
   implicit lazy val jZoneOffsetSerializer: TypeSerializer[ZoneOffset]         = ZoneOffsetSerializer
   implicit lazy val jZonedDateTimeSerializer: TypeSerializer[ZonedDateTime]   = ZonedDateTimeSerializer
   implicit lazy val jOffsetDateTimeSerializer: TypeSerializer[OffsetDateTime] = OffsetDateTimeSerializer
+  implicit lazy val durationSerializer: TypeSerializer[Duration]              = DurationSerializer
+  implicit lazy val finiteDurationSerializer: TypeSerializer[FiniteDuration]  = FiniteDurationSerializer
 
   // type infos
   implicit lazy val stringInfo: TypeInformation[String] = BasicTypeInfo.STRING_TYPE_INFO
@@ -105,10 +111,18 @@ trait serializers extends LowPrioImplicits {
   implicit lazy val bigDecInfo: TypeInformation[scala.BigDecimal]       = mappedTypeInfo[scala.BigDecimal, JBigDecimal]
   implicit lazy val bigIntMapper: TypeMapper[scala.BigInt, JBigInteger] = new BigIntMapper()
   implicit lazy val bigIntInfo: TypeInformation[BigInt]                 = mappedTypeInfo[scala.BigInt, JBigInteger]
-  implicit lazy val uuidMapper: TypeMapper[UUID, Array[Byte]]           = new UuidMapper()
-  implicit lazy val uuidInfo: TypeInformation[UUID]                     = mappedTypeInfo[UUID, Array[Byte]]
+  implicit lazy val durationInfo: TypeInformation[Duration]             = SimpleTypeInfo(0, keyType = true)
+  implicit lazy val finiteDurationInfo: TypeInformation[FiniteDuration] = SimpleTypeInfo(2, 2, keyType = true)
+  implicit lazy val flinkNothingInfo: TypeInformation[FlinkNothing]     =
+    SimpleTypeInfo(0)(classTag[FlinkNothing], new NothingSerializer().asInstanceOf[TypeSerializer[FlinkNothing]])
+  implicit lazy val scalaNothingInfo: TypeInformation[scala.Nothing]  = ScalaNothingTypeInfo
+  implicit lazy val timeUnitInfo: TypeInformation[TimeUnit]           = new EnumTypeInfo(classOf[TimeUnit])
+  implicit lazy val uuidMapper: TypeMapper[UUID, Array[Byte]]         = new UuidMapper()
+  implicit lazy val uuidInfo: TypeInformation[UUID]                   = mappedTypeInfo[UUID, Array[Byte]]
+  implicit lazy val unitInfo: TypeInformation[Unit]                   = new UnitTypeInformation()
+  implicit lazy val UnitOrderingInfo: TypeInformation[Ordering[Unit]] =
+    SimpleTypeInfo(keyType = true)(classTag[Ordering[Unit]], UnitOrderingSerializer)
 
-  implicit lazy val unitInfo: TypeInformation[Unit] = new UnitTypeInformation()
   implicit def mappedTypeInfo[A: ClassTag, B](implicit
       mapper: TypeMapper[A, B],
       ti: TypeInformation[B]
@@ -177,6 +191,47 @@ trait serializers extends LowPrioImplicits {
       b: TypeInformation[B]
   ): TypeInformation[Either[A, B]] =
     new EitherTypeInfo(tag.runtimeClass.asInstanceOf[Class[Either[A, B]]], a, b)
+
+  /** Create a [[TypeInformation]] of `SortedSet[A]`. Given the fact ordering used by the `SortedSet` cannot be known,
+    * the `TypeInformation` of its ordering has to be available in the context.
+    * @param as
+    *   the serializer of `A`
+    * @param aos
+    *   the serializer of the `Ordering[A]` used by the `SortedSet`. Must be available in the context
+    * @tparam A
+    *   the type of the elements contained in the `SortedSet`
+    * @return
+    *   a `TypeInformation[SortedSet[A]]`
+    */
+  implicit def sortedSetInfo[A: ClassTag](implicit
+      as: TypeSerializer[A],
+      aos: TypeSerializer[Ordering[A]]
+  ): TypeInformation[SortedSet[A]] = {
+    implicit val sortedSetSerializer: SortedSetSerializer[A] =
+      new SortedSetSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]], aos)
+    SimpleTypeInfo[SortedSet[A]](0) // Traits don't have fields
+  }
+
+  /** Create a [[TypeInformation]] of `TreeSet[A]`. Given the fact ordering used by the `SortedSet` cannot be known, the
+    * `TypeInformation` of its ordering has to be available in the context.
+    * @param as
+    *   the serializer of `A`
+    * @param aos
+    *   the serializer of the `Ordering[A]` used by the `TreeSet`. Must be available in the context
+    * @tparam A
+    *   the type of the elements contained in the `TreeSet`
+    * @return
+    *   a `TypeInformation[TreeSet[A]]`
+    */
+  implicit def treeSetInfo[A: ClassTag](implicit
+      as: TypeSerializer[A],
+      aos: TypeSerializer[Ordering[A]]
+  ): TypeInformation[TreeSet[A]] = {
+    implicit val sortedSetSerializer: TypeSerializer[TreeSet[A]] =
+      new SortedSetSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]], aos)
+        .asInstanceOf[TypeSerializer[TreeSet[A]]]
+    SimpleTypeInfo[TreeSet[A]](2, 2)
+  }
 
 }
 

@@ -69,8 +69,9 @@ class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
       case "long"    => out.writeUTF("java.lang.Long")
       case "byte"    => out.writeUTF("java.lang.Byte")
       case "short"   => out.writeUTF("java.lang.Short")
-      case "char"    => out.writeUTF("java.lang.Char")
+      case "char"    => out.writeUTF("java.lang.Character")
       case "boolean" => out.writeUTF("java.lang.Boolean")
+      case "void"    => out.writeUTF("java.lang.Void")
       case other     => out.writeUTF(other)
     }
     TypeSerializerSnapshot.writeVersionedSnapshot(out, nestedSerializer.snapshotConfiguration())

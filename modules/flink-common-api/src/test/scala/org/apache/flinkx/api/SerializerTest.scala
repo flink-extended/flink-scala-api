@@ -8,14 +8,16 @@ import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
 import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.Egg
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 import org.apache.flinkx.api.SerializerTest._
-import org.apache.flinkx.api.serializer.{CaseClassSerializer, nullable}
+import org.apache.flinkx.api.serializer._
 import org.apache.flinkx.api.serializers._
 import org.scalatest.Inspectors
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
-import java.time.{Instant, LocalDate, LocalDateTime, OffsetDateTime, ZoneId, ZoneOffset, ZonedDateTime}
+import java.time._
 import java.util.UUID
+import scala.collection.immutable.{BitSet, SortedSet, TreeSet}
+import scala.concurrent.duration.Duration
 
 class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with TestUtils {
   val ec = new SerializerConfigImpl()
@@ -215,6 +217,144 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     testSerializer(ZonedDateTime.now())
   }
 
+  it should "serialize a Finite Duration" in {
+    testTypeInfoAndSerializer(Duration.Zero, nullable = false)
+  }
+
+  it should "serialize an Undefined Duration" in {
+    testTypeInfoAndSerializer[Duration](Duration.Undefined)
+  }
+
+  it should "serialize a positive Infinite Duration" in {
+    testTypeInfoAndSerializer[Duration](Duration.Inf)
+  }
+
+  it should "serialize a negative Infinite Duration" in {
+    testTypeInfoAndSerializer[Duration](Duration.MinusInf)
+  }
+
+  it should "serialize FiniteDuration" in {
+    testTypeInfoAndSerializer(Duration.Zero, nullable = false)
+  }
+
+  it should "serialize org.apache.flink.types.Nothing" in {
+    val info = implicitly[TypeInformation[org.apache.flink.types.Nothing]]
+    testTypeInfo(info)
+    val ser = infoToSer[org.apache.flink.types.Nothing](info)
+    noKryo(ser)
+    javaSerializable(ser)
+  }
+
+  it should "serialize scala.Nothing" in {
+    val info = implicitly[TypeInformation[Nothing]]
+    testTypeInfo(info)
+    val ser = infoToSer[Nothing](info)
+    noKryo(ser)
+    javaSerializable(ser)
+  }
+
+  it should "serialize SortedSet of Unit" in {
+    testTypeInfoAndSerializer[SortedSet[Unit]](SortedSet((), ()))
+  }
+
+  it should "serialize SortedSet of Booleans" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Boolean]] = OrderingTypeInfo.DefaultBooleanOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(true, false))
+  }
+
+  it should "serialize SortedSet of Bytes" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Byte]] = OrderingTypeInfo.DefaultByteOrderingInfo
+    testTypeInfoAndSerializer(SortedSet[Byte](3, 1, 2))
+  }
+
+  it should "serialize SortedSet of Chars" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Char]] = OrderingTypeInfo.DefaultCharOrderingInfo
+    testTypeInfoAndSerializer(SortedSet[Char]('3', '1', '2'))
+  }
+
+  it should "serialize SortedSet of Shorts" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Short]] = OrderingTypeInfo.DefaultShortOrderingInfo
+    testTypeInfoAndSerializer(SortedSet[Short](3, 1, 2))
+  }
+
+  it should "serialize SortedSet of Ints" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Int]] = OrderingTypeInfo.DefaultIntOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(3, 1, 2))
+  }
+
+  it should "serialize SortedSet of Longs" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Long]] = OrderingTypeInfo.DefaultLongOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(3L, 1L, 2L))
+  }
+
+  it should "serialize SortedSet of Floats" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Float]] = OrderingTypeInfo.DefaultFloatOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(3.0f, 1.0f, 2.0f))
+  }
+
+  it should "serialize SortedSet of Floats ordered by IeeeOrdering" in {
+    implicit val ordering: Ordering[Float]                      = Ordering.Float.IeeeOrdering
+    implicit val orderingInfo: TypeInformation[Ordering[Float]] = OrderingTypeInfo.FloatIeeeOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(3.0f, 1.0f, 2.0f))
+  }
+
+  it should "serialize SortedSet of Doubles" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Double]] = OrderingTypeInfo.DefaultDoubleOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(3.0, 1.0, 2.0))
+  }
+
+  it should "serialize SortedSet of Doubles ordered by IeeeOrdering" in {
+    implicit val ordering: Ordering[Double]                      = Ordering.Double.IeeeOrdering
+    implicit val orderingInfo: TypeInformation[Ordering[Double]] = OrderingTypeInfo.DoubleIeeeOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(3.0, 1.0, 2.0))
+  }
+
+  it should "serialize SortedSet of BigInts" in {
+    implicit val orderingInfo: TypeInformation[Ordering[BigInt]] = OrderingTypeInfo.DefaultBigIntOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(BigInt(3), BigInt(1), BigInt(2)))
+  }
+
+  it should "serialize SortedSet of BigDecimals" in {
+    implicit val orderingInfo: TypeInformation[Ordering[BigDecimal]] = OrderingTypeInfo.DefaultBigDecimalOrderingInfo
+    testTypeInfoAndSerializer(SortedSet(BigDecimal(3.0), BigDecimal(1.0), BigDecimal(2.0)))
+  }
+
+  it should "serialize SortedSet of Strings" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(SortedSet("3", "1", "2"))
+  }
+
+  it should "serialize SortedSet of Strings ordered by reverse" in {
+    implicit val ordering: Ordering[String]                      = Ordering.String.reverse
+    implicit val orderingInfo: TypeInformation[Ordering[String]] =
+      OrderingTypeInfo.reverse(OrderingTypeInfo.DefaultStringOrderingInfo)
+    testTypeInfoAndSerializer(SortedSet("3", "1", "2"))
+  }
+
+  it should "serialize SortedSet of optional Strings" in {
+    implicit val ordering: Ordering[Option[String]]                      = Ordering.Option(Ordering.String)
+    implicit val orderingInfo: TypeInformation[Ordering[Option[String]]] =
+      OrderingTypeInfo.Option(OrderingTypeInfo.DefaultStringOrderingInfo)
+    testTypeInfoAndSerializer(SortedSet(Some("3"), None, Some("2")))
+  }
+
+  it should "serialize SortedSet with complex ordering" in {
+    implicit val ordering: Ordering[Simple]                      = SimpleOrdering
+    implicit val orderingInfo: TypeInformation[Ordering[Simple]] =
+      OrderingTypeInfo.deriveOrdering[SimpleOrdering.type, Simple]
+    testTypeInfoAndSerializer(SortedSet(Simple(3, "3"), Simple(1, "1"), Simple(2, "2")))
+  }
+
+  it should "serialize TreeSet of Strings (default implementation of SortedSet)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(TreeSet("3", "1", "2"))
+  }
+
+  it should "serialize BitSet of Ints (a different implementation than the SortedSet default)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Int]] = OrderingTypeInfo.DefaultIntOrderingInfo
+    testTypeInfoAndSerializer[SortedSet[Int]](BitSet(3, 1, 2))
+  }
+
 }
 
 object SerializerTest {
@@ -296,5 +436,9 @@ object SerializerTest {
   final case class NullableFieldWithNoArity(var a: NoArity)
 
   final case class NullableFixedSizeCaseClass(@nullable javaTime: JavaTime)
+
+  case object SimpleOrdering extends Ordering[Simple] {
+    override def compare(x: Simple, y: Simple): Int = x.a.compare(y.a)
+  }
 
 }
