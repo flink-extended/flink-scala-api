@@ -15,7 +15,7 @@ final case class SimpleTypeInfo[T: ClassTag: TypeSerializer](
     keyType: Boolean = false
 ) extends TypeInformation[T] {
 
-  val typeClass: Class[T] = classTag[T].runtimeClass.asInstanceOf[Class[T]]
+  val typeClass: Class[T]           = classTag[T].runtimeClass.asInstanceOf[Class[T]]
   val serializer: TypeSerializer[T] = implicitly[TypeSerializer[T]]
 
   override def createSerializer(config: SerializerConfig): TypeSerializer[T] = serializer.duplicate()
