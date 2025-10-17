@@ -352,6 +352,56 @@ implicit val mapper2: TypeMapper[WrappedString, String] = new TypeMapper[Wrapped
 }  
 ```
 
+### Ordering
+
+`SortedSet` requires a type-information for its elements and also for the ordering of the elements. Type-information of default orderings are not implicitly available in the context because we cannot make the assumption the user wants to use the natural ordering or a custom one.
+
+Type-information of default ordering are available in `org.apache.flinkx.api.serializer.OrderingTypeInfo` and can be used as follows:
+```scala mdoc:reset-object
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flinkx.api._
+import org.apache.flinkx.api.serializer.OrderingTypeInfo
+import org.apache.flinkx.api.serializers._
+import scala.collection.immutable.SortedSet
+
+case class Foo(bars: SortedSet[String])
+
+object Foo {
+  implicit val fooInfo: TypeInformation[Foo] = {
+    // type-information for Ordering need to be explicitly put in the context
+    implicit val orderingStringInfo: TypeInformation[Ordering[String]] =
+      OrderingTypeInfo.DefaultStringOrderingInfo
+    deriveTypeInformation
+  }
+}
+```
+
+It's also possible to derive the type-information of a custom ordering if it's an ADT:
+```scala mdoc:reset-object
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flinkx.api._
+import org.apache.flinkx.api.serializer.OrderingTypeInfo
+import org.apache.flinkx.api.serializers._
+import scala.collection.immutable.SortedSet
+
+case class Bar(a: Int, b: String)
+
+case object BarOrdering extends Ordering[Bar] {
+  override def compare(x: Bar, y: Bar): Int = x.a.compare(y.a)
+}
+
+case class Foo(bar: SortedSet[Bar])
+
+object Foo {
+  implicit val fooInfo: TypeInformation[Foo] = {
+    // Derive the type-information of custom Bar ordering
+    implicit val barOrderingInfo: TypeInformation[Ordering[Bar]] =
+      OrderingTypeInfo.deriveOrdering[BarOrdering.type, Bar]
+    deriveTypeInformation
+  }
+}
+```
+
 ### Schema evolution
 
 #### ADT

@@ -50,7 +50,7 @@ class SchemaEvolutionTest extends AnyFlatSpec with Matchers {
     modifiedResult shouldBe modifiedExpected
   }
 
-  def generateBlobForEvent() =  {
+  def generateBlobForEvent() = {
     val buffer          = new ByteArrayOutputStream()
     val eventSerializer = createSerializer[Event]
     eventSerializer.serialize(Click("p1", clicks), new DataOutputViewStreamWrapper(buffer))

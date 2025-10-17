@@ -22,6 +22,7 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnap
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
+import org.apache.flinkx.api.{NullMarker, VariableLengthDataType}
 import org.apache.flinkx.api.serializer.CaseClassSerializer.EmptyByteArray
 import org.slf4j.{Logger, LoggerFactory}
 
@@ -103,11 +104,13 @@ class CaseClassSerializer[T <: Product](
       createInstance(fields)
     }
 
-  override val getLength: Int = if (super.getLength == -1) -1 else super.getLength + 4 // +4 bytes for the arity field
+  override val getLength: Int =
+    if (super.getLength == VariableLengthDataType) VariableLengthDataType
+    else super.getLength + 4 // +4 bytes for the arity field
 
   def serialize(value: T, target: DataOutputView): Unit = {
-    // Write an arity of -1 to indicate null value
-    val sourceArity = if (value == null) -1 else arity
+    // Write a negative arity to indicate null value
+    val sourceArity = if (value == null) NullMarker else arity
     target.writeInt(sourceArity)
     if (value == null) target.write(nullPadding)
 
@@ -129,7 +132,7 @@ class CaseClassSerializer[T <: Product](
 
   def deserialize(source: DataInputView): T = {
     val sourceArity = source.readInt()
-    if (sourceArity == -1) {
+    if (sourceArity < 0) {
       source.skipBytesToRead(nullPadding.length)
       null.asInstanceOf[T]
     } else {
@@ -146,7 +149,7 @@ class CaseClassSerializer[T <: Product](
   override def copy(source: DataInputView, target: DataOutputView): Unit = {
     val sourceArity = source.readInt()
     target.writeInt(sourceArity)
-    if (sourceArity == -1) {
+    if (sourceArity < 0) {
       source.skipBytesToRead(nullPadding.length)
       target.skipBytesToWrite(nullPadding.length)
     } else {

@@ -1,7 +1,7 @@
 # This workflow will build a Java project with Maven
 # For more information see: https://help.github.com/actions/language-and-framework-guides/building-and-testing-java-with-maven
 
-name: CI
+name: All Tests
 
 on:
   push:
@@ -15,7 +15,7 @@ jobs:
     strategy:
       matrix:
         java: [11, 17]
-        scala: [2.13.17, 3.3.6]
+        scala: [2.13.17, 3.3.7]
         flink: [1.19.3, 1.20.2]
         sbt-module: ['flink-1-api', 'scala-api-common']
         include:
@@ -23,7 +23,7 @@ jobs:
             java: 17
             flink: 2.0.0
             sbt-module: 'flink-2-api'
-          - scala: 3.3.6
+          - scala: 3.3.7
             java: 21
             flink: 2.0.0
             sbt-module: 'flink-2-api'
