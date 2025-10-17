@@ -496,28 +496,7 @@ You can disable this check with the `DISABLE_FAIL_FAST_ON_SCALA_TYPE_RESOLUTION_
 
 ## Release
 
-Create SBT file at ~/.sbt/1.0/sonatype.sbt with the following content:
-
-```bash
-credentials += Credentials("Sonatype Nexus Repository Manager",
-        "s01.oss.sonatype.org",
-        "<access token: user name>",
-        "<access token: password>")
-```
-
-replace values with your access token user name and password.
-
-Release new version:
-
-```bash
-sh release.sh
-```
-
-Increment to next SNAPSHOT version and push to Git server:
-
-```bash
-RELEASE_PUBLISH=true sbt "; release with-defaults"
-```
+Add new Git Tag and push to remote. Then watch GitHub Release Pipeline which publishes new artifacts to Sonatype.
 
 ## License
 
