@@ -1,5 +1,3 @@
-import sbtrelease.ReleaseStateTransformations.*
-
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
@@ -89,27 +87,7 @@ lazy val commonSettings = Seq(
     } else {
       Nil
     }
-  },
-  releaseProcess := Seq.empty[ReleaseStep],
-  releaseProcess ++= (if (sys.env.contains("RELEASE_VERSION_BUMP"))
-                        Seq[ReleaseStep](
-                          checkSnapshotDependencies,
-                          inquireVersions,
-                          setReleaseVersion,
-                          commitReleaseVersion,
-                          tagRelease
-                          // releaseStepCommandAndRemaining("+publishSigned"),
-                          // releaseStepCommand("sonatypeBundleRelease")
-                        )
-                      else Seq.empty[ReleaseStep]),
-  releaseProcess ++= (if (sys.env.contains("RELEASE_PUBLISH"))
-                        Seq[ReleaseStep](
-                          inquireVersions,
-                          setNextVersion,
-                          commitNextVersion,
-                          pushChanges
-                        )
-                      else Seq.empty[ReleaseStep])
+  }
 )
 
 lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
@@ -185,8 +163,6 @@ lazy val `examples` = (project in file("modules/examples"))
     crossScalaVersions := Seq(rootScalaVersion),
     Test / fork        := true,
     publish / skip     := true,
-    // Release process for the `examples` is not needed
-    releaseProcess := Seq.empty[ReleaseStep],
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-runtime-web"         % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-clients"             % flinkVersion1 % Provided,
