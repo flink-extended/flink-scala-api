@@ -17,6 +17,7 @@ import org.scalatest.matchers.should.Matchers
 import java.time._
 import java.util.UUID
 import scala.collection.immutable.{BitSet, SortedSet, TreeSet}
+import scala.collection.mutable
 import scala.concurrent.duration.Duration
 
 class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with TestUtils {
@@ -251,6 +252,54 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     val ser = infoToSer[Nothing](info)
     noKryo(ser)
     javaSerializable(ser)
+  }
+
+  it should "serialize mutable.ArrayDeque" in {
+    testTypeInfoAndSerializer(mutable.ArrayDeque("1", "2", "3"))
+  }
+
+  it should "serialize mutable.Buffer" in {
+    testTypeInfoAndSerializer(mutable.Buffer("1", "2", "3"))
+  }
+
+  it should "serialize mutable.ArrayBuffer (default implementation of mutable.Buffer)" in {
+    testTypeInfoAndSerializer(mutable.ArrayBuffer("1", "2", "3"))
+  }
+
+  it should "serialize mutable.ListBuffer (a different implementation than the mutable.Buffer default)" in {
+    testTypeInfoAndSerializer[mutable.Buffer[String]](mutable.ListBuffer("1", "2", "3"))
+  }
+
+  it should "serialize mutable.Queue" in {
+    testTypeInfoAndSerializer(mutable.Queue("1", "2", "3"))
+  }
+
+  it should "serialize mutable.Set" in {
+    testTypeInfoAndSerializer(mutable.Set("1", "2", "3"))
+  }
+
+  it should "serialize mutable.HashSet (default implementation of mutable.Set)" in {
+    testTypeInfoAndSerializer(mutable.HashSet("1", "2", "3"))
+  }
+
+  it should "serialize mutable.LinkedHashSet (a different implementation than the mutable.Set default)" in {
+    testTypeInfoAndSerializer[mutable.Set[String]](mutable.LinkedHashSet("1", "2", "3"))
+  }
+
+  it should "serialize mutable.Map of Int" in {
+    testTypeInfoAndSerializer(mutable.Map(1 -> 9, 2 -> 8, 3 -> 7))
+  }
+
+  it should "serialize mutable.Map" in {
+    testTypeInfoAndSerializer(mutable.Map("1" -> "a", "2" -> "b", "3" -> "c"))
+  }
+
+  it should "serialize mutable.HashMap (default implementation of mutable.Map)" in {
+    testTypeInfoAndSerializer(mutable.HashMap("1" -> "a", "2" -> "b", "3" -> "c"))
+  }
+
+  it should "serialize mutable.LinkedHashMap (a different implementation than the mutable.Map default)" in {
+    testTypeInfoAndSerializer[mutable.Map[String, String]](mutable.LinkedHashMap("1" -> "a", "2" -> "b", "3" -> "c"))
   }
 
   it should "serialize SortedSet of Unit" in {

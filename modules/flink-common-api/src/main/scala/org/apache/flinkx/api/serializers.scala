@@ -34,6 +34,7 @@ import java.math.{BigDecimal => JBigDecimal}
 import java.time._
 import java.util.UUID
 import scala.collection.immutable.{SortedSet, TreeSet}
+import scala.collection.mutable
 import scala.concurrent.duration.{Duration, FiniteDuration, TimeUnit}
 import scala.reflect.{ClassTag, classTag}
 
@@ -191,6 +192,73 @@ trait serializers extends LowPrioImplicits {
       b: TypeInformation[B]
   ): TypeInformation[Either[A, B]] =
     new EitherTypeInfo(tag.runtimeClass.asInstanceOf[Class[Either[A, B]]], a, b)
+
+  implicit def mutableArrayDequeInfo[A: ClassTag](implicit
+      as: TypeSerializer[A]
+  ): TypeInformation[mutable.ArrayDeque[A]] = {
+    implicit val mutableArrayDequeSerializer: MutableArrayDequeSerializer[A] =
+      new MutableArrayDequeSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]])
+    SimpleTypeInfo[mutable.ArrayDeque[A]](3, 3)
+  }
+
+  implicit def mutableBufferInfo[A: ClassTag](implicit
+      as: TypeSerializer[A]
+  ): TypeInformation[mutable.Buffer[A]] = {
+    implicit val mutableBufferSerializer: MutableBufferSerializer[A] =
+      new MutableBufferSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]])
+    SimpleTypeInfo[mutable.Buffer[A]](0) // Traits don't have fields
+  }
+
+  implicit def mutableArrayBufferInfo[A: ClassTag](implicit
+      as: TypeSerializer[A]
+  ): TypeInformation[mutable.ArrayBuffer[A]] = {
+    implicit val mutableBufferSerializer: TypeSerializer[mutable.ArrayBuffer[A]] =
+      new MutableBufferSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]])
+        .asInstanceOf[TypeSerializer[mutable.ArrayBuffer[A]]]
+    SimpleTypeInfo[mutable.ArrayBuffer[A]](3, 3)
+  }
+
+  implicit def mutableQueueInfo[A: ClassTag](implicit
+      as: TypeSerializer[A]
+  ): TypeInformation[mutable.Queue[A]] = {
+    implicit val mutableQueueSerializer: MutableQueueSerializer[A] =
+      new MutableQueueSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]])
+    SimpleTypeInfo[mutable.Queue[A]](3, 3)
+  }
+
+  implicit def mutableMapInfo[K, V](implicit
+      ks: TypeSerializer[K],
+      vs: TypeSerializer[V]
+  ): TypeInformation[mutable.Map[K, V]] = {
+    implicit val mutableMapSerializer: MutableMapSerializer[K, V] = new MutableMapSerializer[K, V](ks, vs)
+    SimpleTypeInfo[mutable.Map[K, V]](0) // Traits don't have fields
+  }
+
+  implicit def mutableHashMapInfo[K, V](implicit
+      ks: TypeSerializer[K],
+      vs: TypeSerializer[V]
+  ): TypeInformation[mutable.HashMap[K, V]] = {
+    implicit val mutableMapSerializer: TypeSerializer[mutable.HashMap[K, V]] = new MutableMapSerializer[K, V](ks, vs)
+      .asInstanceOf[TypeSerializer[mutable.HashMap[K, V]]]
+    SimpleTypeInfo[mutable.HashMap[K, V]](4, 4)
+  }
+
+  implicit def mutableSetInfo[A: ClassTag](implicit
+      as: TypeSerializer[A]
+  ): TypeInformation[mutable.Set[A]] = {
+    implicit val mutableSetSerializer: MutableSetSerializer[A] =
+      new MutableSetSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]])
+    SimpleTypeInfo[mutable.Set[A]](0) // Traits don't have fields
+  }
+
+  implicit def mutableHashSetInfo[A: ClassTag](implicit
+      as: TypeSerializer[A]
+  ): TypeInformation[mutable.HashSet[A]] = {
+    implicit val mutableHashSetSerializer: TypeSerializer[mutable.HashSet[A]] =
+      new MutableSetSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]])
+        .asInstanceOf[TypeSerializer[mutable.HashSet[A]]]
+    SimpleTypeInfo[mutable.HashSet[A]](4, 4)
+  }
 
   /** Create a [[TypeInformation]] of `SortedSet[A]`. Given the fact ordering used by the `SortedSet` cannot be known,
     * the `TypeInformation` of its ordering has to be available in the context.
