@@ -56,15 +56,15 @@ val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
 
 `flink-scala-api` is released to Maven-central for 2.13 and 3. For SBT, add this snippet to `build.sbt`:
 ```scala
-libraryDependencies += "org.flinkextended" %% "flink-scala-api-1" % "1.2.6"
+libraryDependencies += "org.flinkextended" %% "flink-scala-api-1" % "2.0.4"
 // or for Flink 2
-"org.flinkextended" %% "flink-scala-api-2" % "1.2.6"
+"org.flinkextended" %% "flink-scala-api-2" % "2.0.4"
 ```
 
 ## For Ammonite
 
 ```scala
-import $ivy.`org.flinkextended::flink-scala-api-1:1.2.6`
+import $ivy.`org.flinkextended::flink-scala-api-1:2.0.4`
 // you might need flink-client too in order to run in the REPL
 import $ivy.`org.apache.flink:flink-clients:1.20.1`
 ```
