@@ -102,7 +102,7 @@ lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
       ("org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Test).classifier("tests"),
       "org.typelevel"    %% "cats-core"            % "2.13.0"      % Test,
       "org.scalatest"    %% "scalatest"            % "3.2.19"      % Test,
-      "ch.qos.logback"    % "logback-classic"      % "1.5.23"      % Test
+      "ch.qos.logback"    % "logback-classic"      % "1.5.24"      % Test
     )
   )
 
@@ -114,7 +114,7 @@ def flinkDependencies(flinkVersion: String) =
     ("org.apache.flink" % "flink-streaming-java"        % flinkVersion % Test).classifier("tests"),
     "org.typelevel"    %% "cats-core"                   % "2.13.0"     % Test,
     "org.scalatest"    %% "scalatest"                   % "3.2.19"     % Test,
-    "ch.qos.logback"    % "logback-classic"             % "1.5.23"     % Test
+    "ch.qos.logback"    % "logback-classic"             % "1.5.24"     % Test
   )
 
 lazy val `flink-1-api` = (project in file("modules/flink-1-api"))
