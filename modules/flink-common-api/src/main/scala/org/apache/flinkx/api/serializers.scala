@@ -33,7 +33,7 @@ import java.math.{BigInteger => JBigInteger}
 import java.math.{BigDecimal => JBigDecimal}
 import java.time._
 import java.util.UUID
-import scala.collection.immutable.{SortedSet, TreeSet}
+import scala.collection.immutable.{SortedMap, SortedSet, TreeMap, TreeSet}
 import scala.collection.mutable
 import scala.concurrent.duration.{Duration, FiniteDuration, TimeUnit}
 import scala.reflect.{ClassTag, classTag}
@@ -260,6 +260,59 @@ trait serializers extends LowPrioImplicits {
     SimpleTypeInfo[mutable.HashSet[A]](4, 4)
   }
 
+  /** Create a [[TypeInformation]] of `SortedMap[K, V]`. Given the fact ordering used by the `SortedMap` cannot be
+    * known, the `TypeInformation` of its ordering has to be available in the context.
+    *
+    * @param ks
+    *   the serializer of `K`
+    * @param vs
+    *   the serializer of `V`
+    * @param kos
+    *   the serializer of the `Ordering[K]` used by the `SortedMap`. Must be available in the context
+    * @tparam K
+    *   the type of the `SortedMap` key
+    * @tparam V
+    *   the type of the `SortedMap` value
+    * @return
+    *   a `TypeInformation[SortedMap[K, V]]`
+    */
+  implicit def sortedMapInfo[K, V](implicit
+      ks: TypeSerializer[K],
+      vs: TypeSerializer[V],
+      kos: TypeSerializer[Ordering[K]]
+  ): TypeInformation[SortedMap[K, V]] = {
+    implicit val sortedMapSerializer: TypeSerializer[SortedMap[K, V]] = new SortedMapSerializer[K, V](ks, vs, kos)
+      .asInstanceOf[TypeSerializer[SortedMap[K, V]]]
+    SimpleTypeInfo[SortedMap[K, V]](0) // Traits don't have fields
+  }
+
+  /** Create a [[TypeInformation]] of `TreeMap[K, V]`. Given the fact ordering used by the `TreeMap` cannot be known,
+    * the `TypeInformation` of its ordering has to be available in the context.
+    *
+    * @param ks
+    *   the serializer of `K`
+    * @param vs
+    *   the serializer of `V`
+    * @param kos
+    *   the serializer of the `Ordering[K]` used by the `TreeMap`. Must be available in the context
+    * @tparam K
+    *   the type of the `TreeMap` key
+    * @tparam V
+    *   the type of the `TreeMap` value
+    * @return
+    *   a `TypeInformation[TreeMap[K, V]]`
+    */
+  implicit def treeMapInfo[K, V](implicit
+      ks: TypeSerializer[K],
+      vs: TypeSerializer[V],
+      kos: TypeSerializer[Ordering[K]]
+  ): TypeInformation[TreeMap[K, V]] = {
+    implicit val sortedMapSerializer: TypeSerializer[TreeMap[K, V]] =
+      new SortedMapSerializer[K, V](ks, vs, kos)
+        .asInstanceOf[TypeSerializer[TreeMap[K, V]]]
+    SimpleTypeInfo[TreeMap[K, V]](2, 2)
+  }
+
   /** Create a [[TypeInformation]] of `SortedSet[A]`. Given the fact ordering used by the `SortedSet` cannot be known,
     * the `TypeInformation` of its ordering has to be available in the context.
     * @param as
@@ -280,7 +333,7 @@ trait serializers extends LowPrioImplicits {
     SimpleTypeInfo[SortedSet[A]](0) // Traits don't have fields
   }
 
-  /** Create a [[TypeInformation]] of `TreeSet[A]`. Given the fact ordering used by the `SortedSet` cannot be known, the
+  /** Create a [[TypeInformation]] of `TreeSet[A]`. Given the fact ordering used by the `TreeSet` cannot be known, the
     * `TypeInformation` of its ordering has to be available in the context.
     * @param as
     *   the serializer of `A`
@@ -295,10 +348,104 @@ trait serializers extends LowPrioImplicits {
       as: TypeSerializer[A],
       aos: TypeSerializer[Ordering[A]]
   ): TypeInformation[TreeSet[A]] = {
-    implicit val sortedSetSerializer: TypeSerializer[TreeSet[A]] =
+    implicit val treeSetSerializer: TypeSerializer[TreeSet[A]] =
       new SortedSetSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]], aos)
         .asInstanceOf[TypeSerializer[TreeSet[A]]]
     SimpleTypeInfo[TreeSet[A]](2, 2)
+  }
+
+  /** Create a [[TypeInformation]] of `mutable.SortedMap[K, V]`. Given the fact ordering used by the `mutable.SortedMap`
+    * cannot be known, the `TypeInformation` of its ordering has to be available in the context.
+    *
+    * @param ks
+    *   the serializer of `K`
+    * @param vs
+    *   the serializer of `V`
+    * @param kos
+    *   the serializer of the `Ordering[K]` used by the `mutable.SortedMap`. Must be available in the context
+    * @tparam K
+    *   the type of the `mutable.SortedMap` key
+    * @tparam V
+    *   the type of the `mutable.SortedMap` value
+    * @return
+    *   a `TypeInformation[mutable.SortedMap[K, V]]`
+    */
+  implicit def mutableSortedMapInfo[K, V](implicit
+      ks: TypeSerializer[K],
+      vs: TypeSerializer[V],
+      kos: TypeSerializer[Ordering[K]]
+  ): TypeInformation[mutable.SortedMap[K, V]] = {
+    implicit val mutableSortedMapSerializer: MutableSortedMapSerializer[K, V] =
+      new MutableSortedMapSerializer[K, V](ks, vs, kos)
+    SimpleTypeInfo[mutable.SortedMap[K, V]](0) // Traits don't have fields
+  }
+
+  /** Create a [[TypeInformation]] of `mutable.TreeMap[K, V]`. Given the fact ordering used by the `mutable.TreeMap`
+    * cannot be known, the `TypeInformation` of its ordering has to be available in the context.
+    *
+    * @param ks
+    *   the serializer of `K`
+    * @param vs
+    *   the serializer of `V`
+    * @param kos
+    *   the serializer of the `Ordering[K]` used by the `mutable.TreeMap`. Must be available in the context
+    * @tparam K
+    *   the type of the `mutable.TreeMap` key
+    * @tparam V
+    *   the type of the `mutable.TreeMap` value
+    * @return
+    *   a `TypeInformation[mutable.TreeMap[K, V]]`
+    */
+  implicit def mutableTreeMapInfo[K, V](implicit
+      ks: TypeSerializer[K],
+      vs: TypeSerializer[V],
+      kos: TypeSerializer[Ordering[K]]
+  ): TypeInformation[mutable.TreeMap[K, V]] = {
+    implicit val mutableTreeMapSerializer: TypeSerializer[mutable.TreeMap[K, V]] =
+      new MutableSortedMapSerializer[K, V](ks, vs, kos)
+        .asInstanceOf[TypeSerializer[mutable.TreeMap[K, V]]]
+    SimpleTypeInfo[mutable.TreeMap[K, V]](2, 2)
+  }
+
+  /** Create a [[TypeInformation]] of `mutable.SortedSet[A]`. Given the fact ordering used by the `mutable.SortedSet`
+    * cannot be known, the `TypeInformation` of its ordering has to be available in the context.
+    * @param as
+    *   the serializer of `A`
+    * @param aos
+    *   the serializer of the `Ordering[A]` used by the `mutable.SortedSet`. Must be available in the context
+    * @tparam A
+    *   the type of the elements contained in the `mutable.SortedSet`
+    * @return
+    *   a `TypeInformation[mutable.SortedSet[A]]`
+    */
+  implicit def mutableSortedSetInfo[A: ClassTag](implicit
+      as: TypeSerializer[A],
+      aos: TypeSerializer[Ordering[A]]
+  ): TypeInformation[mutable.SortedSet[A]] = {
+    implicit val mutableSortedSetSerializer: MutableSortedSetSerializer[A] =
+      new MutableSortedSetSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]], aos)
+    SimpleTypeInfo[mutable.SortedSet[A]](0) // Traits don't have fields
+  }
+
+  /** Create a [[TypeInformation]] of `mutable.TreeSet[A]`. Given the fact ordering used by the `mutable.TreeSet` cannot
+    * be known, the `TypeInformation` of its ordering has to be available in the context.
+    * @param as
+    *   the serializer of `A`
+    * @param aos
+    *   the serializer of the `Ordering[A]` used by the `mutable.TreeSet`. Must be available in the context
+    * @tparam A
+    *   the type of the elements contained in the `mutable.TreeSet`
+    * @return
+    *   a `TypeInformation[mutable.TreeSet[A]]`
+    */
+  implicit def mutableTreeSetInfo[A: ClassTag](implicit
+      as: TypeSerializer[A],
+      aos: TypeSerializer[Ordering[A]]
+  ): TypeInformation[mutable.TreeSet[A]] = {
+    implicit val mutableTreeSetSerializer: TypeSerializer[mutable.TreeSet[A]] =
+      new MutableSortedSetSerializer[A](as, classTag[A].runtimeClass.asInstanceOf[Class[A]], aos)
+        .asInstanceOf[TypeSerializer[mutable.TreeSet[A]]]
+    SimpleTypeInfo[mutable.TreeSet[A]](2, 2)
   }
 
 }

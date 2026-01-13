@@ -5,30 +5,28 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flinkx.api.{NullMarker, VariableLengthDataType}
 
 import java.util.Objects
-import scala.collection.immutable.SortedSet
+import scala.collection.mutable
 
-/** Serializer for [[SortedSet]]. Handle nullable value. */
-class SortedSetSerializer[A](
+/** Serializer for [[mutable.SortedSet]]. Handle nullable value. */
+class MutableSortedSetSerializer[A](
     val aSerializer: TypeSerializer[A],
     val aClass: Class[A],
     val aOrderingSerializer: TypeSerializer[Ordering[A]]
-) extends MutableSerializer[SortedSet[A]] { // SortedSet is immutable, but its elements can be mutable
+) extends MutableSerializer[mutable.SortedSet[A]] {
 
-  override val isImmutableType: Boolean = aSerializer.isImmutableType && aOrderingSerializer.isImmutableType
-
-  override def duplicate(): SortedSetSerializer[A] = {
+  override def duplicate(): MutableSortedSetSerializer[A] = {
     val duplicatedASerializer         = aSerializer.duplicate()
     val duplicatedAOrderingSerializer = aOrderingSerializer.duplicate()
     if (duplicatedASerializer.eq(aSerializer) && duplicatedAOrderingSerializer.eq(aOrderingSerializer)) {
       this
     } else {
-      new SortedSetSerializer[A](duplicatedASerializer, aClass, duplicatedAOrderingSerializer)
+      new MutableSortedSetSerializer[A](duplicatedASerializer, aClass, duplicatedAOrderingSerializer)
     }
   }
 
-  override def createInstance(): SortedSet[A] = SortedSet.empty[A](aOrderingSerializer.createInstance())
+  override def createInstance(): mutable.SortedSet[A] = mutable.SortedSet.empty[A](aOrderingSerializer.createInstance())
 
-  override def copy(from: SortedSet[A]): SortedSet[A] =
+  override def copy(from: mutable.SortedSet[A]): mutable.SortedSet[A] =
     if (from == null || isImmutableType) {
       from
     } else {
@@ -38,7 +36,7 @@ class SortedSetSerializer[A](
 
   override def getLength: Int = VariableLengthDataType
 
-  override def serialize(records: SortedSet[A], target: DataOutputView): Unit =
+  override def serialize(records: mutable.SortedSet[A], target: DataOutputView): Unit =
     if (records == null) {
       target.writeInt(NullMarker)
     } else {
@@ -47,13 +45,13 @@ class SortedSetSerializer[A](
       records.foreach(element => aSerializer.serialize(element, target))
     }
 
-  override def deserialize(source: DataInputView): SortedSet[A] = {
+  override def deserialize(source: DataInputView): mutable.SortedSet[A] = {
     var remaining = source.readInt()
     if (remaining == NullMarker) {
       null
     } else {
       implicit val ordering: Ordering[A] = aOrderingSerializer.deserialize(source)
-      val builder = SortedSet.newBuilder
+      val builder                        = mutable.SortedSet.newBuilder
       builder.sizeHint(remaining)
       while (remaining > 0) {
         builder.addOne(aSerializer.deserialize(source))
@@ -75,10 +73,10 @@ class SortedSetSerializer[A](
     }
   }
 
-  override def snapshotConfiguration(): TypeSerializerSnapshot[SortedSet[A]] =
-    new SortedCollectionSerializerSnapshot[SortedSet, A, SortedSetSerializer[A]](
+  override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.SortedSet[A]] =
+    new SortedCollectionSerializerSnapshot[mutable.SortedSet, A, MutableSortedSetSerializer[A]](
       aSerializer,
-      classOf[SortedSetSerializer[A]],
+      classOf[MutableSortedSetSerializer[A]],
       aClass,
       aOrderingSerializer
     )
@@ -87,7 +85,7 @@ class SortedSetSerializer[A](
 
   override def equals(obj: Any): Boolean =
     obj match {
-      case other: SortedSetSerializer[_] =>
+      case other: MutableSortedSetSerializer[_] =>
         aSerializer == other.aSerializer && aClass == other.aClass && aOrderingSerializer == other.aOrderingSerializer
       case _ => false
     }
