@@ -72,11 +72,13 @@ class SortedMapSerializer[K, V](
   override def copy(source: DataInputView, target: DataOutputView): Unit = {
     var remaining = source.readInt()
     target.writeInt(remaining)
-    kOrderingSerializer.copy(source, target)
-    while (remaining > 0) {
-      keySerializer.copy(source, target)
-      valueSerializer.copy(source, target)
-      remaining -= 1
+    if (remaining != NullMarker) {
+      kOrderingSerializer.copy(source, target)
+      while (remaining > 0) {
+        keySerializer.copy(source, target)
+        valueSerializer.copy(source, target)
+        remaining -= 1
+      }
     }
   }
 

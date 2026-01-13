@@ -64,12 +64,12 @@ class MutableSortedSetSerializer[A](
   override def copy(source: DataInputView, target: DataOutputView): Unit = {
     var remaining = source.readInt()
     target.writeInt(remaining)
-    if (remaining >= 0) {
+    if (remaining != NullMarker) {
+      aOrderingSerializer.copy(source, target)
       while (remaining > 0) {
         aSerializer.copy(source, target)
         remaining -= 1
       }
-      aOrderingSerializer.copy(source, target)
     }
   }
 
