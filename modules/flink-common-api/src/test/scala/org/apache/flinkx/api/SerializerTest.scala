@@ -16,7 +16,7 @@ import org.scalatest.matchers.should.Matchers
 
 import java.time._
 import java.util.UUID
-import scala.collection.immutable.{BitSet, SortedSet, TreeSet}
+import scala.collection.immutable.{BitSet, SortedMap, SortedSet, TreeMap, TreeSet}
 import scala.collection.mutable
 import scala.concurrent.duration.Duration
 
@@ -402,6 +402,53 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   it should "serialize BitSet of Ints (a different implementation than the SortedSet default)" in {
     implicit val orderingInfo: TypeInformation[Ordering[Int]] = OrderingTypeInfo.DefaultIntOrderingInfo
     testTypeInfoAndSerializer[SortedSet[Int]](BitSet(3, 1, 2))
+  }
+
+  it should "serialize SortedMap" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(SortedMap("3" -> "c", "1" -> "a", "2" -> "b"))
+  }
+
+  it should "serialize TreeMap (default implementation of SortedMap)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(TreeMap("3" -> "c", "1" -> "a", "2" -> "b"))
+  }
+
+  it should "serialize SortedMap.WithDefault (a different implementation than the SortedMap default)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    // Works but WithDefault behavior is lost at deserialization
+    testTypeInfoAndSerializer(SortedMap("3" -> "c", "1" -> "a", "2" -> "b").withDefaultValue("0"))
+  }
+
+  it should "serialize mutable.SortedMap" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(mutable.SortedMap("3" -> "c", "1" -> "a", "2" -> "b"))
+  }
+
+  it should "serialize mutable.TreeMap (default implementation of SortedMap)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(mutable.TreeMap("3" -> "c", "1" -> "a", "2" -> "b"))
+  }
+
+  it should "serialize mutable.SortedMap.WithDefault (a different implementation than the SortedMap default)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    // Works but WithDefault behavior is lost at deserialization
+    testTypeInfoAndSerializer(mutable.SortedMap("3" -> "c", "1" -> "a", "2" -> "b").withDefaultValue("0"))
+  }
+
+  it should "serialize mutable.SortedSet" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(mutable.SortedSet("3", "1", "2"))
+  }
+
+  it should "serialize mutable.TreeSet (default implementation of SortedSet)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[String]] = OrderingTypeInfo.DefaultStringOrderingInfo
+    testTypeInfoAndSerializer(mutable.TreeSet("3", "1", "2"))
+  }
+
+  it should "serialize mutable.BitSet (a different implementation than the SortedSet default)" in {
+    implicit val orderingInfo: TypeInformation[Ordering[Int]] = OrderingTypeInfo.DefaultIntOrderingInfo
+    testTypeInfoAndSerializer[mutable.SortedSet[Int]](mutable.BitSet(3, 1, 2))
   }
 
 }
