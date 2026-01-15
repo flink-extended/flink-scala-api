@@ -10,40 +10,70 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
+  # Job 1: Full test coverage (all projects)
+  full-test:
     runs-on: ubuntu-22.04
-    strategy:
-      matrix:
-        java: [11, 17]
-        scala: [2.13.18, 3.3.7]
-        flink: [1.19.3, 1.20.2]
-        sbt-module: ['flink-1-api', 'scala-api-common']
-        include:
-          - scala: 2.13.18
-            java: 17
-            flink: 2.0.0
-            sbt-module: 'flink-2-api'
-          - scala: 3.3.7
-            java: 21
-            flink: 2.0.0
-            sbt-module: 'flink-2-api'
     env:
       JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
     steps:
-      - uses: actions/checkout@v3
+      - uses: actions/checkout@v4
         with:
           fetch-depth: 0
-      - name: Set up JDK
-        uses: actions/setup-java@v3
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+          cache: sbt
+      - name: Run all tests
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt test
+      - name: Compile Scala 2.13 docs
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt docs/mdoc
+      - name: Compile Scala 3 docs
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt docs3/mdoc
+
+  # Job 2: Matrix builds for Java version compatibility (Java 17 is already tested in full-test)
+  java-compat:
+    runs-on: ubuntu-22.04
+    strategy:
+      matrix:
+        include:
+          - java: 11
+            sbt-module: 'flink-1-api-common'
+          - java: 11
+            sbt-module: 'flink-1-api-common3'
+          - java: 11
+            sbt-module: 'flink-1-api'
+          - java: 11
+            sbt-module: 'flink-1-api3'
+          - java: 21
+            sbt-module: 'flink-2-api-common'
+          - java: 21
+            sbt-module: 'flink-2-api-common3'
+          - java: 21
+            sbt-module: 'flink-2-api'
+          - java: 21
+            sbt-module: 'flink-2-api3'
+    env:
+      JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Set up JDK ${{ matrix.java }}
+        uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: ${{ matrix.java }}
           cache: sbt
-      - name: Compile Docs
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt "++ ${{ matrix.scala }} docs/mdoc"
+      - name: Compile Scala 2.13 Docs
+        if: matrix.sbt-module == 'flink-1-api'
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt "docs/mdoc"
+      - name: Compile Scala 3 Docs
+        if: matrix.sbt-module == 'flink-1-api3'
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt "docs3/mdoc"
+      - name: Run tests on ${{ matrix.sbt-module }}
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt "project ${{ matrix.sbt-module }}; test"
       - name: Run tests on examples
-        # always running on Scala 3.x version by default
-        if: ${{ !startsWith(matrix.flink, '2.') }}
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt -DflinkVersion1=${{ matrix.flink }} "project examples; test"
-      - name: Run tests on Flink API         
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt -DflinkVersion1=${{ matrix.flink }} -DflinkVersion2=${{ matrix.flink }} "++ ${{ matrix.scala }}; project ${{ matrix.sbt-module }}; test"
+        if: matrix.sbt-module == 'flink-1-api3'
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt "project examples; test"

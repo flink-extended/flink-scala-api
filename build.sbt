@@ -4,7 +4,7 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
 lazy val rootScalaVersion = "3.3.7"
-lazy val crossVersions    = Seq("2.13.17", rootScalaVersion)
+lazy val crossVersions    = Seq("2.13.18", rootScalaVersion)
 lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
 
@@ -146,18 +146,16 @@ lazy val `flink-2-api` = (projectMatrix in file("modules/flink-2-api"))
     libraryDependencies ++= flinkDependencies(flinkVersion2)
   )
 
-lazy val docs = project
-  .in(file("modules/docs")) // important: it must not be docs/
+lazy val docs = (projectMatrix in file("modules/docs")) // important: it must not be docs/
+  .dependsOn(`flink-1-api`)
+  .jvmPlatform(crossVersions)
   .settings(
-    scalaVersion       := rootScalaVersion,
-    crossScalaVersions := crossVersions,
     mdocIn             := new File("README.md"),
     publish / skip     := true,
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-streaming-java" % flinkVersion1
     )
   )
-  .dependsOn(LocalProject("flink-1-api3"))
   .enablePlugins(MdocPlugin)
 
 val flinkMajorAndMinorVersion =
