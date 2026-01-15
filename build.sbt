@@ -46,7 +46,7 @@ inThisBuild(
 
 lazy val root = (project in file("."))
   .aggregate(
-    `scala-api-common`.projectRefs ++
+    `flink`.projectRefs ++
       `flink-1-api`.projectRefs ++
       `flink-2-api`.projectRefs ++
       Seq(`examples`.project): _*
@@ -106,7 +106,8 @@ def flinkDependencies(flinkVersion: String) =
     "ch.qos.logback"    % "logback-classic"             % "1.5.24"     % Test
   )
 
-lazy val `scala-api-common` = (projectMatrix in file("modules/flink-common-api"))
+// val has to be named `flink` in order to generate `flink-1-api-common` and `flink-2-api-common` project ids
+lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
   .settings(commonSettings)
   .customRow(
     scalaVersions = crossVersions,
@@ -126,7 +127,7 @@ lazy val `scala-api-common` = (projectMatrix in file("modules/flink-common-api")
   )
 
 lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
-  .dependsOn(`scala-api-common`)
+  .dependsOn(`flink`)
   .settings(commonSettings)
   .jvmPlatform(crossVersions)
   .settings(
@@ -137,7 +138,7 @@ lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
   )
 
 lazy val `flink-2-api` = (projectMatrix in file("modules/flink-2-api"))
-  .dependsOn(`scala-api-common`)
+  .dependsOn(`flink`)
   .settings(commonSettings)
   .jvmPlatform(crossVersions)
   .settings(
@@ -163,7 +164,7 @@ val flinkMajorAndMinorVersion =
   flinkVersion1.split("\\.").toList.take(2).mkString(".")
 
 lazy val `examples` = (project in file("modules/examples"))
-  .dependsOn(LocalProject("flink-1-api3"), LocalProject("scala-api-common-13"))
+  .dependsOn(LocalProject("flink-1-api3"), LocalProject("flink-1-api-common3"))
   .settings(
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq(rootScalaVersion),
