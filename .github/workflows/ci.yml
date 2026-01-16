@@ -11,7 +11,7 @@ on:
 
 jobs:
   # Job 1: Full test coverage (all projects)
-  full-test:
+  java-17-full:
     runs-on: ubuntu-22.04
     env:
       JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
@@ -32,20 +32,14 @@ jobs:
       - name: Compile Scala 3 docs
         run: JAVA_OPTS=$JAVA_OPTIONS sbt docs3/mdoc
 
-  # Job 2: Matrix builds for Java version compatibility (Java 17 is already tested in full-test)
+  # Job 2: Matrix builds for Java version compatibility (Java 17 is already tested with java-17-full)
   java-compat:
     runs-on: ubuntu-22.04
     strategy:
       matrix:
+        java: [11]
+        sbt-module: ['flink-1-api-common', 'flink-1-api-common3', 'flink-1-api', 'flink-1-api3']
         include:
-          - java: 11
-            sbt-module: 'flink-1-api-common'
-          - java: 11
-            sbt-module: 'flink-1-api-common3'
-          - java: 11
-            sbt-module: 'flink-1-api'
-          - java: 11
-            sbt-module: 'flink-1-api3'
           - java: 21
             sbt-module: 'flink-2-api-common'
           - java: 21
