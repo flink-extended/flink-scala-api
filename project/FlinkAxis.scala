@@ -1,5 +1,3 @@
-import sbt.*
-
 // Custom axis for Flink major version
 case class FlinkAxis(flinkMajor: String) extends sbt.VirtualAxis.WeakAxis {
   override def directorySuffix: String = s"-flink$flinkMajor"
