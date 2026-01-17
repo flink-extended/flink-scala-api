@@ -103,7 +103,7 @@ def flinkDependencies(flinkVersion: String) =
     ("org.apache.flink" % "flink-streaming-java"        % flinkVersion % Test).classifier("tests"),
     "org.typelevel"    %% "cats-core"                   % "2.13.0"     % Test,
     "org.scalatest"    %% "scalatest"                   % "3.2.19"     % Test,
-    "ch.qos.logback"    % "logback-classic"             % "1.5.24"     % Test
+    "ch.qos.logback"    % "logback-classic"             % "1.5.25"     % Test
   )
 
 // val has to be named `flink` in order to generate `flink-1-api-common` and `flink-2-api-common` project ids
@@ -150,8 +150,8 @@ lazy val docs = (projectMatrix in file("modules/docs")) // important: it must no
   .dependsOn(`flink-1-api`)
   .jvmPlatform(crossVersions)
   .settings(
-    mdocIn             := new File("README.md"),
-    publish / skip     := true,
+    mdocIn         := new File("README.md"),
+    publish / skip := true,
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-streaming-java" % flinkVersion1
     )
