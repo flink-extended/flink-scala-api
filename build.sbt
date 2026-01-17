@@ -1,8 +1,10 @@
+import FlinkAxis._
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
 lazy val rootScalaVersion = "3.3.7"
-lazy val crossVersions    = Seq("2.13.17", rootScalaVersion)
+lazy val crossVersions    = Seq("2.13.18", rootScalaVersion)
 lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
 
@@ -43,7 +45,12 @@ inThisBuild(
 )
 
 lazy val root = (project in file("."))
-  .aggregate(`scala-api-common`, `flink-1-api`, `flink-2-api`, `examples`)
+  .aggregate(
+    `flink`.projectRefs ++
+      `flink-1-api`.projectRefs ++
+      `flink-2-api`.projectRefs ++
+      Seq(`examples`.project): _*
+  )
   .settings(commonSettings)
   .settings(
     scalaVersion       := rootScalaVersion,
@@ -52,8 +59,6 @@ lazy val root = (project in file("."))
   )
 
 lazy val commonSettings = Seq(
-  scalaVersion       := rootScalaVersion,
-  crossScalaVersions := crossVersions,
   libraryDependencies ++= {
     if (scalaBinaryVersion.value.startsWith("2")) {
       Seq(
@@ -90,22 +95,6 @@ lazy val commonSettings = Seq(
   }
 )
 
-lazy val `scala-api-common` = (project in file("modules/flink-common-api"))
-  .settings(commonSettings)
-  .settings(
-    name               := "flink-scala-api-common",
-    scalaVersion       := rootScalaVersion,
-    crossScalaVersions := crossVersions,
-    libraryDependencies ++= Seq(
-      "org.apache.flink"  % "flink-streaming-java" % flinkVersion1 % Provided,
-      "org.apache.flink"  % "flink-test-utils"     % flinkVersion1 % Test,
-      ("org.apache.flink" % "flink-streaming-java" % flinkVersion1 % Test).classifier("tests"),
-      "org.typelevel"    %% "cats-core"            % "2.13.0"      % Test,
-      "org.scalatest"    %% "scalatest"            % "3.2.19"      % Test,
-      "ch.qos.logback"    % "logback-classic"      % "1.5.24"      % Test
-    )
-  )
-
 def flinkDependencies(flinkVersion: String) =
   Seq(
     "org.apache.flink"  % "flink-streaming-java"        % flinkVersion % Provided,
@@ -117,47 +106,63 @@ def flinkDependencies(flinkVersion: String) =
     "ch.qos.logback"    % "logback-classic"             % "1.5.24"     % Test
   )
 
-lazy val `flink-1-api` = (project in file("modules/flink-1-api"))
-  .dependsOn(`scala-api-common`)
+// val has to be named `flink` in order to generate `flink-1-api-common` and `flink-2-api-common` project ids
+lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
   .settings(commonSettings)
+  .customRow(
+    scalaVersions = crossVersions,
+    axisValues = Seq(Flink1, VirtualAxis.jvm),
+    settings = Seq(
+      name := "flink-scala-api-common-1",
+      libraryDependencies ++= flinkDependencies(flinkVersion1)
+    )
+  )
+  .customRow(
+    scalaVersions = crossVersions,
+    axisValues = Seq(Flink2, VirtualAxis.jvm),
+    settings = Seq(
+      name := "flink-scala-api-common-2",
+      libraryDependencies ++= flinkDependencies(flinkVersion2)
+    )
+  )
+
+lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
+  .dependsOn(`flink`)
+  .settings(commonSettings)
+  .jvmPlatform(crossVersions)
   .settings(
-    name               := "flink-scala-api-1",
-    scalaVersion       := rootScalaVersion,
-    crossScalaVersions := crossVersions,
+    name := "flink-scala-api-1",
     libraryDependencies ++= (flinkDependencies(
       flinkVersion1
     ) :+ "org.apache.flink" % "flink-java" % flinkVersion1 % Provided)
   )
 
-lazy val `flink-2-api` = (project in file("modules/flink-2-api"))
-  .dependsOn(`scala-api-common`)
+lazy val `flink-2-api` = (projectMatrix in file("modules/flink-2-api"))
+  .dependsOn(`flink`)
   .settings(commonSettings)
+  .jvmPlatform(crossVersions)
   .settings(
-    name               := "flink-scala-api-2",
-    scalaVersion       := rootScalaVersion,
-    crossScalaVersions := crossVersions,
+    name := "flink-scala-api-2",
     libraryDependencies ++= flinkDependencies(flinkVersion2)
   )
 
-lazy val docs = project
-  .in(file("modules/docs")) // important: it must not be docs/
+lazy val docs = (projectMatrix in file("modules/docs")) // important: it must not be docs/
+  .dependsOn(`flink-1-api`)
+  .jvmPlatform(crossVersions)
   .settings(
-    scalaVersion       := rootScalaVersion,
-    crossScalaVersions := crossVersions,
     mdocIn             := new File("README.md"),
     publish / skip     := true,
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-streaming-java" % flinkVersion1
     )
   )
-  .dependsOn(`flink-1-api`)
   .enablePlugins(MdocPlugin)
 
 val flinkMajorAndMinorVersion =
   flinkVersion1.split("\\.").toList.take(2).mkString(".")
 
 lazy val `examples` = (project in file("modules/examples"))
-  .dependsOn(`flink-1-api`, `scala-api-common`)
+  .dependsOn(LocalProject("flink-1-api3"), LocalProject("flink-1-api-common3"))
   .settings(
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq(rootScalaVersion),
