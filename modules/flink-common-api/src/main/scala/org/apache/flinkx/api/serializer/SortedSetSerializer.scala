@@ -53,7 +53,7 @@ class SortedSetSerializer[A](
       null
     } else {
       implicit val ordering: Ordering[A] = aOrderingSerializer.deserialize(source)
-      val builder = SortedSet.newBuilder
+      val builder                        = SortedSet.newBuilder
       builder.sizeHint(remaining)
       while (remaining > 0) {
         builder.addOne(aSerializer.deserialize(source))
