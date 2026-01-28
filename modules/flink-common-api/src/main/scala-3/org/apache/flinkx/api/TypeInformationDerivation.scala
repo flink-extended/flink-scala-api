@@ -14,7 +14,7 @@ import scala.compiletime.summonInline
 import scala.deriving.Mirror
 import scala.reflect.ClassTag
 
-private[api] trait LowPrioImplicits extends TaggedDerivation[TypeInformation]:
+private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInformation]:
 
   private[api] type Typeclass[T] = TypeInformation[T]
 

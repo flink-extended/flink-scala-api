@@ -14,7 +14,7 @@ import scala.language.experimental.macros
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 import scala.reflect.{ClassTag, classTag}
 
-private[api] trait LowPrioImplicits {
+private[api] trait TypeInformationDerivation {
 
   private[api] type Typeclass[T] = TypeInformation[T]
 
