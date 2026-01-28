@@ -9,7 +9,7 @@ import org.apache.flinkx.api.SerializerTest.DeeplyNested.ModeNested.SuperNested.
 import org.apache.flinkx.api.SerializerTest.NestedRoot.NestedMiddle.NestedBottom
 import org.apache.flinkx.api.SerializerTest._
 import org.apache.flinkx.api.serializer._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.scalatest.Inspectors
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

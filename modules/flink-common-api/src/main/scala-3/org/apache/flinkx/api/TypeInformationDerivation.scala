@@ -1,7 +1,7 @@
 package org.apache.flinkx.api
 
 import magnolia1.{CaseClass, SealedTrait}
-import org.apache.flink.api.common.serialization.SerializerConfig
+import org.apache.flink.api.common.serialization.{SerializerConfig, SerializerConfigImpl}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
@@ -11,14 +11,13 @@ import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 import scala.collection.mutable
 import scala.compiletime.summonInline
-import scala.deriving.Mirror
 import scala.reflect.ClassTag
 
 private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInformation]:
 
   private[api] type Typeclass[T] = TypeInformation[T]
 
-  protected def config: SerializerConfig
+  private val config: SerializerConfig = new SerializerConfigImpl()
 
   protected val cache: mutable.Map[String, TypeInformation[?]] = mutable.Map.empty
 
@@ -79,9 +78,3 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
         if useCache then cache.put(cacheKey, ti)
         ti
-
-  final inline implicit def deriveTypeInformation[T](implicit
-      m: Mirror.Of[T],
-      classTag: ClassTag[T],
-      typeTag: TypeTag[T]
-  ): TypeInformation[T] = derived

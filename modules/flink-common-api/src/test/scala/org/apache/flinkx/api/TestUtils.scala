@@ -7,7 +7,7 @@ import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
 import org.apache.flink.api.java.typeutils.runtime.kryo.KryoSerializer
 import org.apache.flink.core.memory._
 import org.apache.flinkx.api.serializer.CaseClassSerializer
-import org.apache.flinkx.api.serializers.infoToSer
+import org.apache.flinkx.api.semiauto.infoToSer
 import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, MappedTypeInformation}
 import org.scalatest.matchers.should.Matchers
 import org.scalatest.{Assertion, Inspectors}

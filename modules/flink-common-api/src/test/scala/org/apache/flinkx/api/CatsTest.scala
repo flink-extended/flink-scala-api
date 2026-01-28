@@ -1,7 +1,7 @@
 package org.apache.flinkx.api
 
 import cats.data.NonEmptyList
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

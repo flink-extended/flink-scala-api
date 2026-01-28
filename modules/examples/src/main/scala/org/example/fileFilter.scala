@@ -1,7 +1,7 @@
 package org.example
 
 import org.apache.flinkx.api.*
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.semiauto.*
 
 import org.apache.flink.connector.file.src.FileSource
 import org.apache.flink.connector.file.src.reader.TextLineInputFormat

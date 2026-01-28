@@ -24,7 +24,7 @@ class StreamExecutionEnvironmentTest extends AnyFlatSpec with Matchers with Inte
   }
 
   it should "create a stream from a sequence" in {
-    import org.apache.flinkx.api.serializers._
+    import org.apache.flinkx.api.semiauto._
     val typeInfo = implicitly[TypeInformation[Long]]
 
     val stream = env.fromSequence(1, 100)

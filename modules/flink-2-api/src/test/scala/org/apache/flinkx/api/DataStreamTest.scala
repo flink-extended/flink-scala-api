@@ -12,7 +12,7 @@ import org.apache.flink.streaming.api.windowing.triggers.{CountTrigger, PurgingT
 import org.apache.flink.streaming.api.windowing.windows.GlobalWindow
 import org.apache.flink.streaming.runtime.partitioner._
 import org.apache.flink.util.Collector
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.semiauto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
@@ -634,4 +634,6 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
 
 object DataStreamTest {
   case class CustomCaseClass(id: Int, name: String)
+  
+  implicit val CustomCaseClassInfo: TypeInformation[CustomCaseClass] = deriveTypeInformation
 }

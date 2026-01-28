@@ -5,7 +5,7 @@ import org.apache.flink.util.Collector
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.state.{ValueState, ValueStateDescriptor}
 import org.apache.flinkx.api.*
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.semiauto.*
 
 @main def ConnectedStreams =
   val env = StreamExecutionEnvironment.getExecutionEnvironment
