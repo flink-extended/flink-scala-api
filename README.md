@@ -23,7 +23,7 @@ import org.apache.flink.streaming.api.scala._
 ```scala mdoc
 // flink-scala-api imports
 import org.apache.flinkx.api._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 ```
 
 ### State
@@ -37,11 +37,11 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 val eventStateDescriptor = new ValueStateDescriptor[Option[String]]("event",
   classOf[Option[String]])
 ```
-Although `flink-scala-api` does not fallback to Kryo silently for Scala types, above code example will eventually use Kryo. This happens when official flink-scala-api (deprecated) is already disabled, but this Flink Scala API is not yet properly used: no serializers are used/imported from `org.apache.flinkx.api.serializers._`.
+Although `flink-scala-api` does not fallback to Kryo silently for Scala types, above code example will eventually use Kryo. This happens when official flink-scala-api (deprecated) is already disabled, but this Flink Scala API is not yet properly used: no serializers are used/imported from `org.apache.flinkx.api.auto._`.
 Below code example is the right way to use Scala serializers coming from this Scala API: it completely prevents Kryo from being used. Even if `implicitly` cannot find an appropriate TypeInformation instance for your type `T`, it will fail in compile time.
 
 ```scala mdoc:reset-object
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.apache.flink.api.common.state.ValueStateDescriptor
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
@@ -158,7 +158,7 @@ classes the compile times are quite high.
 
 ### Using a POJO-only Flink serialization framework
 
-If you don't want to use built-in Scala serializers for some reasons, you can always fall back to the Flink
+If you don't want to use built-in Scala serializers for some reason, you can always fall back to the Flink
 [POJO serializer](https://nightlies.apache.org/flink/flink-docs-release-1.19/docs/dev/datastream/fault-tolerance/serialization/types_serialization/#rules-for-pojo-types),
 explicitly calling it:
 ```scala mdoc:reset-object
@@ -212,7 +212,7 @@ From Flink 1.19, a check is done to detect this misusage. To disable it, see [Di
 To derive a TypeInformation for a case class or sealed trait, you can do:
 
 ```scala mdoc:reset-object
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.semiauto._
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
 sealed trait Event extends Product with Serializable
@@ -222,10 +222,60 @@ object Event {
   final case class Purchase(price: Double) extends Event
 
   implicit val eventTypeInfo: TypeInformation[Event] = deriveTypeInformation
-}  
+}
 ```
 
 Be careful with a wildcard import of import `org.apache.flink.api.scala._`: it has a `createTypeInformation` implicit function, which may happily generate you a kryo-based serializer in a place you never expected. So in a case if you want to do this type of wildcard import, make sure that you explicitly called `deriveTypeInformation` for all the sealed traits in the current scope.
+
+#### Auto and semi-auto derivation
+
+This library provides two approaches for deriving TypeInformation: **automatic** (`auto`) and **semi-automatic** (`semiauto`).
+
+##### Automatic derivation
+
+Import `org.apache.flinkx.api.auto._` when you want TypeInformation to be derived automatically:
+
+```scala mdoc:reset-object
+import org.apache.flinkx.api._
+import org.apache.flinkx.api.auto._ // Automatic derivation
+
+case class User(id: String, age: Int)
+
+val env = StreamExecutionEnvironment.getExecutionEnvironment
+
+// TypeInformation is derived automatically
+env.fromElements(User("alice", 30), User("bob", 25))
+```
+
+Auto TypeInformation derivation is called implicitly whenever needed. This automatic behavior is easier and more convenient when you don't need a fine control over derivation.
+
+##### Semi-automatic derivation
+
+Import `org.apache.flinkx.api.semiauto._` when you want explicit control over TypeInformation derivation:
+
+```scala mdoc:reset-object
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flinkx.api._
+import org.apache.flinkx.api.semiauto._ // Manual derivation
+
+case class User(id: String, age: Int)
+
+object User {
+  // Explicitly derive and cache TypeInformation
+  implicit val userInfo: TypeInformation[User] = deriveTypeInformation[User]
+}
+
+val env = StreamExecutionEnvironment.getExecutionEnvironment
+
+// Uses pre-derived TypeInformation found in User companion object
+env.fromElements(User("alice", 30), User("bob", 25))
+```
+
+A good practice is to declare the type-information as implicit val in the companion object of the case class, it's derived once, cached, and will be available in the implicit context wherever the case class is used.
+
+Benefits of `semiauto`:
+- Control: Choose exactly which types have TypeInformation
+- Better compile times: TypeInformation is derived once and cached
 
 #### Null value handling
 
@@ -238,7 +288,7 @@ A case class field can also be null, either:
 In any cases, it can be a good hint to use `@nullable` annotation to indicate when fields are meant to be nullable.
 
 ```scala mdoc:reset-object
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.apache.flinkx.api.serializer.nullable
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
@@ -291,7 +341,7 @@ of non-serializable types to existing serializers. For example:
 ```scala mdoc
 import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 
 class WrappedMapper extends TypeMapper[WrappedString, String] {
   override def map(a: WrappedString): String = a.get
@@ -361,7 +411,7 @@ Type-information of default ordering are available in `org.apache.flinkx.api.ser
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api._
 import org.apache.flinkx.api.serializer.OrderingTypeInfo
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import scala.collection.immutable.SortedSet
 
 case class Foo(bars: SortedSet[String])
@@ -381,7 +431,7 @@ It's also possible to derive the type-information of a custom ordering if it's a
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api._
 import org.apache.flinkx.api.serializer.OrderingTypeInfo
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import scala.collection.immutable.SortedSet
 
 case class Bar(a: Int, b: String)
@@ -443,11 +493,11 @@ so quite easy to reproduce. If you have issues with this library not deriving `T
 
 ## Compile times
 
-They may be quite bad for rich nested case classes due to compile-time serializer derivation. 
-Derivation happens each time `flink-scala-api` needs an instance of the `TypeInformation[T]` implicit/type class:
+Automatic TypeInformation derivation may be quite bad for compilation times of rich nested case classes. 
+Automatic derivation happens each time `flink-scala-api` needs an instance of the `TypeInformation[T]` implicit type class:
 ```scala mdoc:reset-object
 import org.apache.flinkx.api._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 
 case class Foo(x: Int) {
   def inc(a: Int) = copy(x = x + a)
@@ -460,17 +510,19 @@ env
   .map(x => x.inc(2)) // generated one more time again
 ```
 
-If you're using the same instances of data structures in multiple jobs (or in multiple tests), consider caching the
-derived serializer in a separate compile unit and just importing it when needed:
+### Caching derivations
+
+If you're using the same instances of data structures in multiple operations (or in multiple tests), consider caching
+the derived serializer in a separate compile unit and just importing it when needed:
 
 ```scala mdoc:reset-object
 import org.apache.flinkx.api._
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 
 // file FooTypeInfo.scala
 object FooTypeInfo {
-  lazy val fooTypeInfo: TypeInformation[Foo] = deriveTypeInformation[Foo]
+  lazy implicit val fooTypeInfo: TypeInformation[Foo] = deriveTypeInformation[Foo]
 }
 // file SomeJob.scala
 case class Foo(x: Int) {
@@ -485,6 +537,36 @@ env
   .map(x => x.inc(1)) // taken as an implicit
   .map(x => x.inc(2)) // again, no re-derivation
 ```
+
+Explicit import of `FooTypeInfo` is important to give `fooTypeInfo` cached val a higher priority in implicit context than `deriveTypeInformation`. Declaring cached val in the companion object of `Foo` won't give it a high enough priority.
+
+### Using semi-automatic derivation
+
+Another possibility to improve compilation times is to cache semi-automatic derivation in the companion object of the case class or sealed trait:
+
+```scala mdoc:reset-object
+import org.apache.flinkx.api._
+import org.apache.flink.api.common.typeinfo.TypeInformation
+import org.apache.flinkx.api.semiauto._
+
+// file SomeJob.scala
+case class Foo(x: Int) {
+  def inc(a: Int) = copy(x = x + a)
+}
+
+object Foo {
+  lazy implicit val fooTypeInfo: TypeInformation[Foo] = deriveTypeInformation[Foo]
+}
+
+val env = StreamExecutionEnvironment.getExecutionEnvironment
+env
+  .fromElements(Foo(1),Foo(2),Foo(3))
+  .map(x => x.inc(1)) // taken as an implicit
+  .map(x => x.inc(2)) // again, no re-derivation
+```
+
+Note there is no need to import the companion object, the cached implicit TypeInformation is found when using the case class.
+See [Semi-automatic derivation section](#semi-automatic-derivation) for more details.
 
 ## Feature Flags
 

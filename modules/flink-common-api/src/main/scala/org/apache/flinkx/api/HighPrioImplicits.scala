@@ -38,9 +38,10 @@ import scala.collection.mutable
 import scala.concurrent.duration.{Duration, FiniteDuration, TimeUnit}
 import scala.reflect.{ClassTag, classTag}
 
-trait serializers extends LowPrioImplicits {
+trait HighPrioImplicits {
+  // Declare here implicit def that must have a higher priority than implicit def in LowPrioImplicits
 
-  override protected val config: SerializerConfig = new SerializerConfigImpl()
+  private val config: SerializerConfig = new SerializerConfigImpl()
 
   implicit def infoToSer[T](implicit ti: TypeInformation[T]): TypeSerializer[T] = ti.createSerializer(config)
 
@@ -449,5 +450,3 @@ trait serializers extends LowPrioImplicits {
   }
 
 }
-
-object serializers extends serializers

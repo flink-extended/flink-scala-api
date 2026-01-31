@@ -70,4 +70,4 @@ jobs:
         run: JAVA_OPTS=$JAVA_OPTIONS sbt "project ${{ matrix.sbt-module }}; test"
       - name: Run tests on examples
         if: matrix.sbt-module == 'flink-1-api3'
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt "project examples; test"
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt "project examples3; test"

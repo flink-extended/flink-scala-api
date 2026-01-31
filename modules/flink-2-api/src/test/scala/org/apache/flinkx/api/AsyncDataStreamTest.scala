@@ -3,7 +3,7 @@ package org.apache.flinkx.api
 import org.apache.flink.api.common.functions.OpenContext
 import org.apache.flink.streaming.util.retryable.AsyncRetryStrategies
 import org.apache.flinkx.api.async._
-import org.apache.flinkx.api.serializers.intInfo
+import org.apache.flinkx.api.semiauto.intInfo
 import org.scalatest.BeforeAndAfter
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

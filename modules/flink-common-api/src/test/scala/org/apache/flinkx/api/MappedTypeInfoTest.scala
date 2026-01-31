@@ -2,7 +2,7 @@ package org.apache.flinkx.api
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api.serializer.MappedSerializer.TypeMapper
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

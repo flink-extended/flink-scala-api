@@ -2,7 +2,8 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{SimpleTypeSerializerSnapshot, TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
-import org.apache.flinkx.api.{VariableLengthDataType, serializers}
+import org.apache.flinkx.api.VariableLengthDataType
+import org.apache.flinkx.api.semiauto.{infoToSer, timeUnitInfo}
 
 import java.lang.Long.{BYTES => LongBytes}
 import scala.concurrent.duration.{Duration, FiniteDuration, TimeUnit}
@@ -61,7 +62,7 @@ class DurationSerializerSnapshot extends SimpleTypeSerializerSnapshot[Duration](
   */
 object FiniteDurationSerializer extends ImmutableSerializer[FiniteDuration] {
 
-  private val timeUnitSerializer: TypeSerializer[TimeUnit] = serializers.infoToSer(serializers.timeUnitInfo)
+  private val timeUnitSerializer: TypeSerializer[TimeUnit] = infoToSer(timeUnitInfo)
 
   override def createInstance: FiniteDuration = Duration.Zero
 

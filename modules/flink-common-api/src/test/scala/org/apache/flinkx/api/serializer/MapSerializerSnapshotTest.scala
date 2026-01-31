@@ -4,7 +4,7 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSche
 import org.apache.flink.core.memory.{DataInputDeserializer, DataInputView, DataOutputSerializer, DataOutputView}
 import org.apache.flinkx.api.serializer.MapSerializer.MapSerializerSnapshot
 import org.apache.flinkx.api.serializer.MapSerializerSnapshotTest._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.semiauto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

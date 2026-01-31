@@ -1,7 +1,7 @@
 package org.apache.flinkx.api
 
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.auto.*
 import org.apache.flinkx.api.typeinfo.CaseClassTypeInfo
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should

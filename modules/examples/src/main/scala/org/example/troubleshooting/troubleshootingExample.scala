@@ -3,7 +3,7 @@ package org.example
 import java.time.Duration
 
 import org.apache.flinkx.api._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.apache.flinkx.api.function.ProcessWindowFunction
 
 import org.apache.commons.lang3.RandomStringUtils

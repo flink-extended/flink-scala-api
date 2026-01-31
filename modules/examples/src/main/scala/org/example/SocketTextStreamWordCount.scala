@@ -19,7 +19,7 @@ package org.example
  */
 
 import org.apache.flinkx.api.*
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.semiauto.*
 import org.apache.flink.configuration.Configuration
 import org.apache.flink.configuration.ConfigConstants
 import org.apache.flink.configuration.RestOptions.BIND_PORT

@@ -1,7 +1,7 @@
 package org.example
 
 import org.apache.flinkx.api.*
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.semiauto.*
 
 @main def wordCountExample =
   val env  = StreamExecutionEnvironment.getExecutionEnvironment

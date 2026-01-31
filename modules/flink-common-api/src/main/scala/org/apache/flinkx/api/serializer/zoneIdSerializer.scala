@@ -1,15 +1,14 @@
 package org.apache.flinkx.api.serializer
 
-import org.apache.flink.api.common.typeutils.{SimpleTypeSerializerSnapshot, TypeSerializer, TypeSerializerSnapshot}
+import org.apache.flink.api.common.typeutils.{SimpleTypeSerializerSnapshot, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flinkx.api.VariableLengthDataType
+import org.apache.flinkx.api.semiauto.stringSerializer
 
 import java.time.ZoneId
 
 /** Serializer for [[ZoneId]]. Handle null value. */
 object ZoneIdSerializer extends ImmutableSerializer[ZoneId] {
-
-  private val stringSerializer: TypeSerializer[String] = org.apache.flinkx.api.serializers.stringSerializer
 
   override def createInstance: ZoneId = ZoneId.systemDefault()
 

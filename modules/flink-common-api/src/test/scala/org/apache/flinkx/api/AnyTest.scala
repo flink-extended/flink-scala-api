@@ -5,7 +5,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flinkx.api.AnyTest.FAny.FValueAny.FTerm
 import org.apache.flinkx.api.AnyTest.FAny.FValueAny.FTerm.StringTerm
 import org.apache.flinkx.api.AnyTest._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

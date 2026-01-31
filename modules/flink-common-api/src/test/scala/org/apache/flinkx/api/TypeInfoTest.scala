@@ -1,7 +1,7 @@
 package org.apache.flinkx.api
 
 import org.apache.flinkx.api.TypeInfoTest._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.semiauto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

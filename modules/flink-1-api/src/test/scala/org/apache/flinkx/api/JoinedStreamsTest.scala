@@ -2,7 +2,7 @@ package org.apache.flinkx.api
 
 import org.apache.flink.streaming.api.windowing.assigners.TumblingEventTimeWindows
 import org.apache.flink.streaming.api.windowing.time.Time
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.semiauto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
