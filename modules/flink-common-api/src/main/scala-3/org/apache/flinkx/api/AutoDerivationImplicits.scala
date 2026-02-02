@@ -6,7 +6,7 @@ import scala.deriving.Mirror
 import scala.reflect.ClassTag
 
 private[api] trait AutoDerivationImplicits extends TypeInformationDerivation:
-  // Declare here implicit def that must have a lower priority than implicit def in HighPrioImplicits
+  // Declare here implicit def that must have a lower priority than implicit def in Implicits
 
   /** Automatically derives TypeInformation for ADT (case classes, sealed traits) using a Scala 3's mirror-based
     * derivation and Magnolia.

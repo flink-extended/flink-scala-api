@@ -38,8 +38,8 @@ import scala.collection.mutable
 import scala.concurrent.duration.{Duration, FiniteDuration, TimeUnit}
 import scala.reflect.{ClassTag, classTag}
 
-trait HighPrioImplicits {
-  // Declare here implicit def that must have a higher priority than implicit def in LowPrioImplicits
+trait Implicits {
+  // Declare here implicit def that must have a higher priority than implicit def in AutoDerivationImplicits
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 

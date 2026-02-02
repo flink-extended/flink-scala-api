@@ -28,9 +28,9 @@ import scala.reflect.ClassTag
   * @see
   *   [[deriveTypeInformation]] for the explicit derivation method
   */
-// Implicits priority order (linearization): semiauto > HighPrioImplicits
-// Scala 3 doesn't allow to override implicit def so we cannot extend LowPrioImplicits
-object semiauto extends TypeInformationDerivation with HighPrioImplicits {
+// Implicits priority order (linearization): semiauto > Implicits
+// Scala 3 doesn't allow to override implicit method so we cannot extend AutoDerivationImplicits
+object semiauto extends TypeInformationDerivation with Implicits {
 
   /** Explicitly derives TypeInformation for the given type T.
     *

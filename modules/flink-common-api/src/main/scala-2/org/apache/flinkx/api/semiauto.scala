@@ -29,8 +29,8 @@ import scala.language.experimental.macros
   * @see
   *   [[deriveTypeInformation]] for the explicit derivation method
   */
-// Implicits priority order (linearization): semiauto > HighPrioImplicits
-object semiauto extends TypeInformationDerivation with HighPrioImplicits {
+// Implicits priority order (linearization): semiauto > Implicits
+object semiauto extends TypeInformationDerivation with Implicits {
 
   /** Explicitly derives TypeInformation for the given type T.
     *

@@ -6,7 +6,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import scala.language.experimental.macros
 
 private[api] trait AutoDerivationImplicits extends TypeInformationDerivation {
-  // Declare here implicit def that must have a lower priority than implicit def in HighPrioImplicits
+  // Declare here implicit def that must have a lower priority than implicit def in Implicits
 
   /** Automatically derives TypeInformation for ADT (case classes, sealed traits) using a Magnolia macro.
     *

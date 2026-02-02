@@ -8,7 +8,7 @@ import org.apache.flinkx.api.typeinfo.OptionTypeInfo
 import scala.compiletime.testing.typeCheckErrors
 
 /** Test that verifies implicit priority ordering:
-  *  - HighPrioImplicits (specific types like primitives, collections) have higher priority
+  *  - Implicits (specific types like primitives, collections) have higher priority
   *  - deriveTypeInformation has lower priority
   */
 class ImplicitPriorityTest extends AnyFlatSpec with should.Matchers {

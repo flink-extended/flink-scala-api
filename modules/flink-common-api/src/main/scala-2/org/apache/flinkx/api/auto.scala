@@ -24,6 +24,6 @@ package org.apache.flinkx.api
   * @see
   * [[AutoDerivationImplicits.deriveTypeInformation]] for the automatic derivation method
   */
-// Implicits priority order (linearization): auto > HighPrioImplicits > AutoDerivationImplicits. deriveTypeInformation
-// implicit method is declared in AutoDerivationImplicits to have a lower priority than implicits in HighPrioImplicits
-object auto extends AutoDerivationImplicits with HighPrioImplicits
+// Implicits priority order (linearization): auto > Implicits > AutoDerivationImplicits. deriveTypeInformation implicit
+// method is declared in AutoDerivationImplicits to have a lower priority than implicits in Implicits
+object auto extends AutoDerivationImplicits with Implicits

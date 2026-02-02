@@ -7,7 +7,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should
 
 /** Test that verifies implicit priority ordering:
-  *   - HighPrioImplicits (specific types like tuples, collections) have higher priority
+  *   - Implicits (specific types like tuples, collections) have higher priority
   *   - deriveTypeInformation has lower priority
   */
 class ImplicitPriorityTest extends AnyFlatSpec with should.Matchers {
