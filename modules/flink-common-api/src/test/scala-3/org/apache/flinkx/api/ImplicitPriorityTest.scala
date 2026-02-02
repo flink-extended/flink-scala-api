@@ -17,7 +17,7 @@ class ImplicitPriorityTest extends AnyFlatSpec with should.Matchers {
     import org.apache.flinkx.api.auto.{*, given}
 
     // This should use optionInfo from HighPrioImplicits, not deriveTypeInformation
-    val ti: TypeInformation[Option[String]] = implicitly[TypeInformation[Option[String]]]
+    val ti: TypeInformation[Option[String]] = summon[TypeInformation[Option[String]]]
 
     ti shouldBe a[OptionTypeInfo[String, Option[String]]]
   }
@@ -30,7 +30,7 @@ class ImplicitPriorityTest extends AnyFlatSpec with should.Matchers {
       case class TestCase(name: String, value: Int)
 
       // This should fail because deriveTypeInformation is not implicit in semiauto
-      val ti: TypeInformation[TestCase] = implicitly[TypeInformation[TestCase]]
+      val ti: TypeInformation[TestCase] = summon[TypeInformation[TestCase]]
     """)
 
     // Should have a compilation error about missing implicit
@@ -40,7 +40,6 @@ class ImplicitPriorityTest extends AnyFlatSpec with should.Matchers {
 
   it should "work when called explicitly" in {
     import org.apache.flinkx.api.semiauto.{*, given}
-    import scala.deriving.Mirror
     import scala.reflect.ClassTag
 
     case class TestCase(name: String, value: Int)
@@ -57,7 +56,7 @@ class ImplicitPriorityTest extends AnyFlatSpec with should.Matchers {
     case class TestCase(name: String, value: Int)
 
     // This should work because deriveTypeInformation is implicit in auto
-    val ti: TypeInformation[TestCase] = implicitly[TypeInformation[TestCase]]
+    val ti: TypeInformation[TestCase] = summon[TypeInformation[TestCase]]
 
     ti should not be null
   }

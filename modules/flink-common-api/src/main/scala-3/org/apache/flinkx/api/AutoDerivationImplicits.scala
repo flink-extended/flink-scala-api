@@ -24,7 +24,7 @@ private[api] trait AutoDerivationImplicits extends TypeInformationDerivation:
     * case class Event(id: String, timestamp: Long)
     *
     * // deriveTypeInformation is called implicitly for Event
-    * val eventInfo: TypeInformation[Event] = implicitly[TypeInformation[Event]]
+    * val eventInfo: TypeInformation[Event] = summon[TypeInformation[Event]]
     * }}}
     *
     * @tparam T
@@ -35,7 +35,7 @@ private[api] trait AutoDerivationImplicits extends TypeInformationDerivation:
     *   [[semiauto.deriveTypeInformation]] for explicit derivation
     */
   // Must have a lower priority than more specific type-infos
-  final inline implicit def deriveTypeInformation[T](implicit
+  final inline implicit def deriveTypeInformation[T](using
       m: Mirror.Of[T],
       classTag: ClassTag[T],
       typeTag: TypeTag[T]

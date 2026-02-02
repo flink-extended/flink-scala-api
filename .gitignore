@@ -19,3 +19,4 @@ sink-table
 modules/docs
 */old-serializer-snapshot.dat
 */click.dat
+/.sbt/

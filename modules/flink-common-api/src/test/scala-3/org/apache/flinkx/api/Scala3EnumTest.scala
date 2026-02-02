@@ -10,7 +10,7 @@ class Scala3EnumTest extends AnyFlatSpec with Matchers {
   import Scala3EnumTest.Example
 
   it should "derive type information for a Scala 3 enum" in {
-    implicitly[TypeInformation[Example]] shouldNot be(null)
+    summon[TypeInformation[Example]] shouldNot be(null)
   }
 }
 

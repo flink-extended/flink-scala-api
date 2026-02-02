@@ -45,7 +45,7 @@ object semiauto extends TypeInformationDerivation with HighPrioImplicits {
     *
     * object User {
     *   // Explicitly derive and cache TypeInformation
-    *   implicit val userInfo: TypeInformation[User] = deriveTypeInformation[User]
+    *   given TypeInformation[User] = deriveTypeInformation[User]
     * }
     * }}}
     *
@@ -57,7 +57,7 @@ object semiauto extends TypeInformationDerivation with HighPrioImplicits {
     * @return
     *   the derived TypeInformation[T]
     */
-  final inline def deriveTypeInformation[T](implicit
+  final inline def deriveTypeInformation[T](using
       m: Mirror.Of[T],
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
