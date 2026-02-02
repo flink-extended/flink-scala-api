@@ -24,8 +24,8 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
   * @see
   *   [[semiauto]] for explicit/manual derivation
   * @see
-  *   [[AutoDerivationImplicits.deriveTypeInformation]] for the automatic derivation method
+  *   [[AutoImplicits.deriveTypeInformation]] for the automatic derivation method
   */
-// Implicits priority order (linearization): auto > Implicits > AutoDerivationImplicits. deriveTypeInformation implicit
-// method is declared in AutoDerivationImplicits to have a lower priority than implicits in Implicits
-object auto extends AutoDerivationImplicits with Implicits
+// Implicits priority order (linearization): auto > Implicits > AutoImplicits. deriveTypeInformation implicit
+// method is declared in AutoImplicits to have a lower priority than implicits in Implicits
+object auto extends AutoImplicits with Implicits

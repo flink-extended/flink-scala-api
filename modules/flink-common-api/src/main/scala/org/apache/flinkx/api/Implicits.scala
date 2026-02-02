@@ -39,7 +39,7 @@ import scala.concurrent.duration.{Duration, FiniteDuration, TimeUnit}
 import scala.reflect.{ClassTag, classTag}
 
 trait Implicits {
-  // Declare here implicit def that must have a higher priority than implicit def in AutoDerivationImplicits
+  // Declare here implicit def that must have a higher priority than implicit def in AutoImplicits
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 

@@ -1,14 +1,15 @@
 package org.apache.flinkx.api
 
-import magnolia1.Magnolia
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
-import scala.language.experimental.macros
+import scala.deriving.Mirror
+import scala.reflect.ClassTag
 
-private[api] trait AutoDerivationImplicits extends TypeInformationDerivation {
+private[api] trait AutoImplicits extends TypeInformationDerivation:
   // Declare here implicit def that must have a lower priority than implicit def in Implicits
 
-  /** Automatically derives TypeInformation for ADT (case classes, sealed traits) using a Magnolia macro.
+  /** Automatically derives TypeInformation for ADT (case classes, sealed traits) using a Scala 3's mirror-based
+    * derivation and Magnolia.
     *
     * This method is implicit, so it will be automatically invoked by the compiler when a TypeInformation[T] is needed
     * and T is an ADT.
@@ -23,7 +24,7 @@ private[api] trait AutoDerivationImplicits extends TypeInformationDerivation {
     * case class Event(id: String, timestamp: Long)
     *
     * // deriveTypeInformation is called implicitly for Event
-    * val eventInfo: TypeInformation[Event] = implicitly[TypeInformation[Event]]
+    * val eventInfo: TypeInformation[Event] = summon[TypeInformation[Event]]
     * }}}
     *
     * @tparam T
@@ -34,6 +35,8 @@ private[api] trait AutoDerivationImplicits extends TypeInformationDerivation {
     *   [[semiauto.deriveTypeInformation]] for explicit derivation
     */
   // Must have a lower priority than more specific type-infos
-  implicit def deriveTypeInformation[T]: TypeInformation[T] = macro Magnolia.gen[T]
-
-}
+  final inline implicit def deriveTypeInformation[T](using
+      m: Mirror.Of[T],
+      classTag: ClassTag[T],
+      typeTag: TypeTag[T]
+  ): TypeInformation[T] = derived
