@@ -2,9 +2,9 @@ package org.apache.flinkx.api
 
 import magnolia1.Magnolia
 import org.apache.flink.api.common.typeinfo.TypeInformation
-import scala.reflect.runtime.universe.TypeTag
 
 import scala.language.experimental.macros
+import scala.reflect.runtime.universe.TypeTag
 
 /** Provides semi-automatic (explicit) derivation of TypeInformation for Scala types.
   *
@@ -16,8 +16,8 @@ import scala.language.experimental.macros
   *
   * ===Benefits of Explicit Derivation===
   *
-  *  - '''Control''': Choose exactly which types have TypeInformation
-  *  - '''Better compile times''': TypeInformation is derived once and cached
+  *   - '''Control''': Choose exactly which types have TypeInformation
+  *   - '''Better compile times''': TypeInformation is derived once and cached
   *
   * ==Tuples==
   *
@@ -30,7 +30,7 @@ import scala.language.experimental.macros
   *   [[deriveTypeInformation]] for the explicit derivation method
   */
 // Implicits priority order (linearization): semiauto > Implicits
-object semiauto extends TypeInformationDerivation with Implicits {
+trait semiauto extends TypeInformationDerivation with Implicits {
 
   /** Explicitly derives TypeInformation for the given type T.
     *
@@ -80,3 +80,5 @@ object semiauto extends TypeInformationDerivation with Implicits {
   ]: TypeInformation[(A, B, C, D)] = deriveTypeInformation
 
 }
+
+object semiauto extends semiauto

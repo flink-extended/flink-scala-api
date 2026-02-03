@@ -1,7 +1,5 @@
 package org.apache.flinkx.api
 
-import org.apache.flink.api.common.typeinfo.TypeInformation
-
 /** Provides automatic derivation of TypeInformation for Scala types.
   *
   * Import this object to enable automatic type-information derivation for ADT (case classes, sealed traits) and have
@@ -28,4 +26,6 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
   */
 // Implicits priority order (linearization): auto > Implicits > AutoImplicits. deriveTypeInformation implicit
 // method is declared in AutoImplicits to have a lower priority than implicits in Implicits
-object auto extends AutoImplicits with Implicits
+trait auto extends AutoImplicits with Implicits
+
+object auto extends auto

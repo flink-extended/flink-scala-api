@@ -26,4 +26,6 @@ package org.apache.flinkx.api
   */
 // Implicits priority order (linearization): auto > Implicits > AutoImplicits. deriveTypeInformation implicit method is
 // declared in AutoImplicits to have a lower priority than implicits in Implicits
-object auto extends AutoImplicits with Implicits
+trait auto extends AutoImplicits with Implicits
+
+object auto extends auto

@@ -15,8 +15,8 @@ import scala.reflect.ClassTag
   *
   * ===Benefits of Explicit Derivation===
   *
-  *  - '''Control''': Choose exactly which types have TypeInformation
-  *  - '''Better compile times''': TypeInformation is derived once and cached
+  *   - '''Control''': Choose exactly which types have TypeInformation
+  *   - '''Better compile times''': TypeInformation is derived once and cached
   *
   * ==Tuples==
   *
@@ -30,7 +30,7 @@ import scala.reflect.ClassTag
   */
 // Implicits priority order (linearization): semiauto > Implicits
 // Scala 3 doesn't allow to override implicit method so we cannot override AutoImplicits.deriveTypeInformation
-object semiauto extends TypeInformationDerivation with Implicits {
+trait semiauto extends TypeInformationDerivation with Implicits {
 
   /** Explicitly derives TypeInformation for the given type T.
     *
@@ -84,3 +84,5 @@ object semiauto extends TypeInformationDerivation with Implicits {
   ]: TypeInformation[(A, B, C, D)] = deriveTypeInformation
 
 }
+
+object semiauto extends semiauto
