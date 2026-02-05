@@ -44,12 +44,12 @@ inThisBuild(
   )
 )
 
-lazy val root = (project in file("."))
+lazy val `flink-scala-api` = (project in file("."))
   .aggregate(
     `flink`.projectRefs ++
       `flink-1-api`.projectRefs ++
       `flink-2-api`.projectRefs ++
-      Seq(`examples`.project): _*
+      `examples`.projectRefs: _*
   )
   .settings(commonSettings)
   .settings(
@@ -161,8 +161,9 @@ lazy val docs = (projectMatrix in file("modules/docs")) // important: it must no
 val flinkMajorAndMinorVersion =
   flinkVersion1.split("\\.").toList.take(2).mkString(".")
 
-lazy val `examples` = (project in file("modules/examples"))
-  .dependsOn(LocalProject("flink-1-api3"), LocalProject("flink-1-api-common3"))
+lazy val `examples` = (projectMatrix in file("modules/examples"))
+  .dependsOn(`flink-1-api`)
+  .jvmPlatform(Seq(rootScalaVersion))
   .settings(
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := Seq(rootScalaVersion),

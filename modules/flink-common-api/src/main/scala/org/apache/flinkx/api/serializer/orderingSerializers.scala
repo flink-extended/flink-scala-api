@@ -3,7 +3,7 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
-import org.apache.flinkx.api.serializers.infoToSer
+import org.apache.flinkx.api.semiauto.infoToSer
 import org.apache.flinkx.api.typeinfo.SimpleTypeInfo
 
 import scala.math.Ordering.OptionOrdering

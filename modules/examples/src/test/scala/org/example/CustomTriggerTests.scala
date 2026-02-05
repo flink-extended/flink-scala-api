@@ -9,7 +9,7 @@ import org.scalatest.time.Span
 import org.scalatest.time.Millis
 import org.scalatest.Inspectors
 import org.apache.flinkx.api.*
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.semiauto.*
 import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness
 import org.apache.flink.streaming.api.operators.KeyedProcessOperator
 import org.apache.flink.streaming.api.functions.KeyedProcessFunction

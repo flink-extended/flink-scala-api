@@ -3,7 +3,7 @@ package org.apache.flinkx.api
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.util.FlinkRuntimeException
 import org.apache.flinkx.api.RecursiveTest.Node
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.auto._
 import org.scalatest.Inspectors
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers

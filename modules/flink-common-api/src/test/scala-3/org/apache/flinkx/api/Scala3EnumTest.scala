@@ -4,13 +4,13 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 import org.apache.flink.api.common.typeinfo.TypeInformation
 
-import org.apache.flinkx.api.serializers.*
+import org.apache.flinkx.api.semiauto.*
 
 class Scala3EnumTest extends AnyFlatSpec with Matchers {
   import Scala3EnumTest.Example
 
   it should "derive type information for a Scala 3 enum" in {
-    implicitly[TypeInformation[Example]] shouldNot be(null)
+    summon[TypeInformation[Example]] shouldNot be(null)
   }
 }
 

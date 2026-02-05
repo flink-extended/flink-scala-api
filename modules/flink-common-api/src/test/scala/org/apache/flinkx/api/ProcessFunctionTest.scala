@@ -8,7 +8,7 @@ import org.apache.flink.streaming.api.operators.KeyedProcessOperator
 import org.apache.flink.streaming.util.KeyedOneInputStreamOperatorTestHarness
 import org.apache.flink.util.Collector
 import org.apache.flinkx.api.ProcessFunctionTest._
-import org.apache.flinkx.api.serializers._
+import org.apache.flinkx.api.semiauto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 

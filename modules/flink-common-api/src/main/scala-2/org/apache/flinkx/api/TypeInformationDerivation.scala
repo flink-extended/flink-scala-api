@@ -1,7 +1,7 @@
 package org.apache.flinkx.api
 
-import magnolia1.{CaseClass, Magnolia, SealedTrait}
-import org.apache.flink.api.common.serialization.SerializerConfig
+import magnolia1.{CaseClass, SealedTrait}
+import org.apache.flink.api.common.serialization.{SerializerConfig, SerializerConfigImpl}
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
 import org.apache.flink.util.FlinkRuntimeException
@@ -10,15 +10,14 @@ import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformati
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 import scala.collection.mutable
-import scala.language.experimental.macros
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 import scala.reflect.{ClassTag, classTag}
 
-private[api] trait LowPrioImplicits {
+private[api] trait TypeInformationDerivation {
 
   private[api] type Typeclass[T] = TypeInformation[T]
 
-  protected def config: SerializerConfig
+  private val config: SerializerConfig = new SerializerConfigImpl()
 
   protected val cache: mutable.Map[String, TypeInformation[_]] = mutable.Map.empty
 
@@ -76,5 +75,4 @@ private[api] trait LowPrioImplicits {
 
   private def typeName[T: TypeTag]: String = typeOf[T].toString
 
-  implicit def deriveTypeInformation[T]: TypeInformation[T] = macro Magnolia.gen[T]
 }
