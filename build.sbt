@@ -103,7 +103,7 @@ def flinkDependencies(flinkVersion: String) =
     ("org.apache.flink" % "flink-streaming-java"        % flinkVersion % Test).classifier("tests"),
     "org.typelevel"    %% "cats-core"                   % "2.13.0"     % Test,
     "org.scalatest"    %% "scalatest"                   % "3.2.19"     % Test,
-    "ch.qos.logback"    % "logback-classic"             % "1.5.28"     % Test
+    "ch.qos.logback"    % "logback-classic"             % "1.5.29"     % Test
   )
 
 // val has to be named `flink` in order to generate `flink-1-api-common` and `flink-2-api-common` project ids
