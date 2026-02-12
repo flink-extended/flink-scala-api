@@ -18,7 +18,7 @@ class ArraySerializerTest extends AnyFlatSpec with Matchers {
   }
 
   it should "copy to new array with a copy of mutable elements" in {
-    val intArraySerializer = new ArraySerializer[Int](intSerializer, classOf[Int])
+    val intArraySerializer        = new ArraySerializer[Int](intSerializer, classOf[Int])
     val arrayOfIntArraySerializer = new ArraySerializer[Array[Int]](intArraySerializer, classOf[Array[Int]])
     val expectedData              = Array(Array(1, 2), Array(3, 4))
 
