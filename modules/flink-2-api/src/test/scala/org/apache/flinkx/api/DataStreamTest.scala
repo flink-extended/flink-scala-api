@@ -634,6 +634,6 @@ class DataStreamTest extends AnyFlatSpec with Matchers with IntegrationTest {
 
 object DataStreamTest {
   case class CustomCaseClass(id: Int, name: String)
-  
+
   implicit val CustomCaseClassInfo: TypeInformation[CustomCaseClass] = deriveTypeInformation
 }

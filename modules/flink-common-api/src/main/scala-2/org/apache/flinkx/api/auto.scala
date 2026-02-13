@@ -20,9 +20,9 @@ package org.apache.flinkx.api
   * }}}
   *
   * @see
-  * [[semiauto]] for explicit/manual derivation
+  *   [[semiauto]] for explicit/manual derivation
   * @see
-  * [[AutoImplicits.deriveTypeInformation]] for the automatic derivation method
+  *   [[AutoImplicits.deriveTypeInformation]] for the automatic derivation method
   */
 // Implicits priority order (linearization): auto > Implicits > AutoImplicits. deriveTypeInformation implicit method is
 // declared in AutoImplicits to have a lower priority than implicits in Implicits

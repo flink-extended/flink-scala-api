@@ -6,9 +6,9 @@ import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
 
 package object api {
 
-  /**
-   * @deprecated Use [[auto]] for a direct replacement, or [[semiauto]] for semi-auto derivation.
-   */
+  /** @deprecated
+    *   Use [[auto]] for a direct replacement, or [[semiauto]] for semi-auto derivation.
+    */
   @deprecated(since = "2.2.0", message = "Use `auto` for a direct replacement or `semiauto` for semi-auto derivation.")
   // Implicits priority order (linearization): serializers > Implicits > AutoImplicits
   object serializers extends AutoImplicits with Implicits
