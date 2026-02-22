@@ -129,21 +129,26 @@ lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
 lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
   .dependsOn(`flink`)
   .settings(commonSettings)
-  .jvmPlatform(crossVersions)
-  .settings(
-    name := "flink-scala-api-1",
-    libraryDependencies ++= (flinkDependencies(
-      flinkVersion1
-    ) :+ "org.apache.flink" % "flink-java" % flinkVersion1 % Provided)
+  .customRow(
+    scalaVersions = crossVersions,
+    axisValues = Seq(Flink1, VirtualAxis.jvm),
+    settings = Seq(
+      name := "flink-scala-api-1",
+      libraryDependencies ++= (flinkDependencies(flinkVersion1) :+
+        "org.apache.flink" % "flink-java" % flinkVersion1 % Provided)
+    )
   )
 
 lazy val `flink-2-api` = (projectMatrix in file("modules/flink-2-api"))
   .dependsOn(`flink`)
   .settings(commonSettings)
-  .jvmPlatform(crossVersions)
-  .settings(
-    name := "flink-scala-api-2",
-    libraryDependencies ++= flinkDependencies(flinkVersion2)
+  .customRow(
+    scalaVersions = crossVersions,
+    axisValues = Seq(Flink2, VirtualAxis.jvm),
+    settings = Seq(
+      name := "flink-scala-api-2",
+      libraryDependencies ++= flinkDependencies(flinkVersion2)
+    )
   )
 
 lazy val docs = (projectMatrix in file("modules/docs")) // important: it must not be docs/
