@@ -1,7 +1,7 @@
 // Custom axis for Flink major version
 case class FlinkAxis(flinkMajor: String) extends sbt.VirtualAxis.WeakAxis {
   override def directorySuffix: String = s"-flink$flinkMajor"
-  override def idSuffix: String        = s"-$flinkMajor-api-common"
+  override def idSuffix: String        = s"-$flinkMajor"
 }
 
 object FlinkAxis {
