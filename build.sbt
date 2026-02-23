@@ -1,5 +1,3 @@
-import FlinkAxis._
-
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
@@ -111,7 +109,7 @@ lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
   .settings(commonSettings)
   .customRow(
     scalaVersions = crossVersions,
-    axisValues = Seq(Flink1, VirtualAxis.jvm),
+    axisValues = Seq(FlinkAxis.Flink1Common, VirtualAxis.jvm),
     settings = Seq(
       name := "flink-scala-api-common-1",
       libraryDependencies ++= flinkDependencies(flinkVersion1)
@@ -119,7 +117,7 @@ lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
   )
   .customRow(
     scalaVersions = crossVersions,
-    axisValues = Seq(Flink2, VirtualAxis.jvm),
+    axisValues = Seq(FlinkAxis.Flink2Common, VirtualAxis.jvm),
     settings = Seq(
       name := "flink-scala-api-common-2",
       libraryDependencies ++= flinkDependencies(flinkVersion2)
@@ -129,21 +127,26 @@ lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
 lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
   .dependsOn(`flink`)
   .settings(commonSettings)
-  .jvmPlatform(crossVersions)
-  .settings(
-    name := "flink-scala-api-1",
-    libraryDependencies ++= (flinkDependencies(
-      flinkVersion1
-    ) :+ "org.apache.flink" % "flink-java" % flinkVersion1 % Provided)
+  .customRow(
+    scalaVersions = crossVersions,
+    axisValues = Seq(FlinkAxis.Flink1Api, VirtualAxis.jvm),
+    settings = Seq(
+      name := "flink-scala-api-1",
+      libraryDependencies ++= (flinkDependencies(flinkVersion1) :+
+        "org.apache.flink" % "flink-java" % flinkVersion1 % Provided)
+    )
   )
 
 lazy val `flink-2-api` = (projectMatrix in file("modules/flink-2-api"))
   .dependsOn(`flink`)
   .settings(commonSettings)
-  .jvmPlatform(crossVersions)
-  .settings(
-    name := "flink-scala-api-2",
-    libraryDependencies ++= flinkDependencies(flinkVersion2)
+  .customRow(
+    scalaVersions = crossVersions,
+    axisValues = Seq(FlinkAxis.Flink2Api, VirtualAxis.jvm),
+    settings = Seq(
+      name := "flink-scala-api-2",
+      libraryDependencies ++= flinkDependencies(flinkVersion2)
+    )
   )
 
 lazy val docs = (projectMatrix in file("modules/docs")) // important: it must not be docs/
