@@ -38,16 +38,16 @@ jobs:
     strategy:
       matrix:
         java: [11]
-        sbt-module: ['flink-common-api-1', 'flink-common-api-13', 'flink-1-api-1', 'flink-1-api-13']
+        sbt-module: ['flink-1-api-common', 'flink-1-api-common3', 'flink-1-api', 'flink-1-api3']
         include:
           - java: 21
-            sbt-module: 'flink-common-api-2'
+            sbt-module: 'flink-2-api-common'
           - java: 21
-            sbt-module: 'flink-common-api-23'
+            sbt-module: 'flink-2-api-common3'
           - java: 21
-            sbt-module: 'flink-2-api-2'
+            sbt-module: 'flink-2-api'
           - java: 21
-            sbt-module: 'flink-2-api-23'
+            sbt-module: 'flink-2-api3'
     env:
       JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
     steps:
@@ -61,13 +61,13 @@ jobs:
           java-version: ${{ matrix.java }}
           cache: sbt
       - name: Compile Scala 2.13 Docs
-        if: matrix.sbt-module == 'flink-1-api-1'
+        if: matrix.sbt-module == 'flink-1-api'
         run: JAVA_OPTS=$JAVA_OPTIONS sbt "docs/mdoc"
       - name: Compile Scala 3 Docs
-        if: matrix.sbt-module == 'flink-1-api-13'
+        if: matrix.sbt-module == 'flink-1-api3'
         run: JAVA_OPTS=$JAVA_OPTIONS sbt "docs3/mdoc"
       - name: Run tests on ${{ matrix.sbt-module }}
         run: JAVA_OPTS=$JAVA_OPTIONS sbt "project ${{ matrix.sbt-module }}; test"
       - name: Run tests on examples
-        if: matrix.sbt-module == 'flink-1-api-13'
+        if: matrix.sbt-module == 'flink-1-api3'
         run: JAVA_OPTS=$JAVA_OPTIONS sbt "project examples3; test"

@@ -1,5 +1,3 @@
-import FlinkAxis._
-
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
@@ -46,7 +44,7 @@ inThisBuild(
 
 lazy val `flink-scala-api` = (project in file("."))
   .aggregate(
-    `flink-common-api`.projectRefs ++
+    `flink`.projectRefs ++
       `flink-1-api`.projectRefs ++
       `flink-2-api`.projectRefs ++
       `examples`.projectRefs: _*
@@ -106,11 +104,12 @@ def flinkDependencies(flinkVersion: String) =
     "ch.qos.logback"    % "logback-classic"             % "1.5.32"     % Test
   )
 
-lazy val `flink-common-api` = (projectMatrix in file("modules/flink-common-api"))
+// val has to be named `flink` in order to generate `flink-1-api-common` and `flink-2-api-common` project ids
+lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
   .settings(commonSettings)
   .customRow(
     scalaVersions = crossVersions,
-    axisValues = Seq(Flink1, VirtualAxis.jvm),
+    axisValues = Seq(FlinkAxis.Flink1Common, VirtualAxis.jvm),
     settings = Seq(
       name := "flink-scala-api-common-1",
       libraryDependencies ++= flinkDependencies(flinkVersion1)
@@ -118,7 +117,7 @@ lazy val `flink-common-api` = (projectMatrix in file("modules/flink-common-api")
   )
   .customRow(
     scalaVersions = crossVersions,
-    axisValues = Seq(Flink2, VirtualAxis.jvm),
+    axisValues = Seq(FlinkAxis.Flink2Common, VirtualAxis.jvm),
     settings = Seq(
       name := "flink-scala-api-common-2",
       libraryDependencies ++= flinkDependencies(flinkVersion2)
@@ -126,11 +125,11 @@ lazy val `flink-common-api` = (projectMatrix in file("modules/flink-common-api")
   )
 
 lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
-  .dependsOn(`flink-common-api`)
+  .dependsOn(`flink`)
   .settings(commonSettings)
   .customRow(
     scalaVersions = crossVersions,
-    axisValues = Seq(Flink1, VirtualAxis.jvm),
+    axisValues = Seq(FlinkAxis.Flink1Api, VirtualAxis.jvm),
     settings = Seq(
       name := "flink-scala-api-1",
       libraryDependencies ++= (flinkDependencies(flinkVersion1) :+
@@ -139,11 +138,11 @@ lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
   )
 
 lazy val `flink-2-api` = (projectMatrix in file("modules/flink-2-api"))
-  .dependsOn(`flink-common-api`)
+  .dependsOn(`flink`)
   .settings(commonSettings)
   .customRow(
     scalaVersions = crossVersions,
-    axisValues = Seq(Flink2, VirtualAxis.jvm),
+    axisValues = Seq(FlinkAxis.Flink2Api, VirtualAxis.jvm),
     settings = Seq(
       name := "flink-scala-api-2",
       libraryDependencies ++= flinkDependencies(flinkVersion2)
