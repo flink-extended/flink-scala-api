@@ -100,7 +100,7 @@ def flinkDependencies(flinkVersion: String) =
     "org.apache.flink"  % "flink-test-utils"            % flinkVersion % Test,
     ("org.apache.flink" % "flink-streaming-java"        % flinkVersion % Test).classifier("tests"),
     "org.typelevel"    %% "cats-core"                   % "2.13.0"     % Test,
-    "org.scalatest"    %% "scalatest"                   % "3.2.19"     % Test,
+    "org.scalatest"    %% "scalatest"                   % "3.2.20"     % Test,
     "ch.qos.logback"    % "logback-classic"             % "1.5.32"     % Test
   )
 
