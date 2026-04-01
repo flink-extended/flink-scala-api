@@ -176,7 +176,7 @@ object CaseClassSerializer {
 
 /** [[TypeSerializerSnapshot]] for [[CaseClassSerializer]]. */
 final class ScalaCaseClassSerializerSnapshot[T <: scala.Product](
-    serializer: Option[CaseClassSerializer[T]] = None
+    serializer: Option[CaseClassSerializer[T]]
 ) extends CompositeTypeSerializerSnapshot[T, CaseClassSerializer[T]] {
 
   // Empty constructor is required to instantiate this class during deserialization.

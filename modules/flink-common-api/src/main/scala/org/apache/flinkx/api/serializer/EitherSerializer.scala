@@ -122,7 +122,7 @@ class EitherSerializer[A, B](
 
 /** [[CompositeTypeSerializerSnapshot]] for [[EitherSerializer]]. */
 class ScalaEitherSerializerSnapshot[A, B](
-    serializer: Option[EitherSerializer[A, B]] = None
+    serializer: Option[EitherSerializer[A, B]]
 ) extends CompositeTypeSerializerSnapshot[Either[A, B], EitherSerializer[A, B]] {
 
   // Empty constructor is required to instantiate this class during deserialization.

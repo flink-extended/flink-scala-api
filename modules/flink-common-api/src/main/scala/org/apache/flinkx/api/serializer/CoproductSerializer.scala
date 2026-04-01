@@ -8,7 +8,6 @@ import org.apache.flink.api.common.typeutils.{
   TypeSerializerSnapshot
 }
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
-import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.VariableLengthDataType
 import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerSnapshot
 
@@ -129,8 +128,7 @@ object CoproductSerializer {
         val len = in.readInt()
 
         // Unused
-        (0 until len)
-          .map(_ => InstantiationUtil.resolveClassByName(in, userCodeClassLoader))
+        (0 until len).foreach(_ => in.readUTF())
 
         subtypeSerializers = (0 until len)
           .map(_ => TypeSerializerSnapshot.readVersionedSnapshot(in, userCodeClassLoader).restoreSerializer())

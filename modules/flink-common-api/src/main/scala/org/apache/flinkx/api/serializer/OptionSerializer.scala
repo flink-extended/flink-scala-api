@@ -98,7 +98,7 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends Mutable
 
 /** [[CompositeTypeSerializerSnapshot]] for [[OptionSerializer]]. */
 final class ScalaOptionSerializerSnapshot[A](
-    serializer: Option[OptionSerializer[A]] = None
+    serializer: Option[OptionSerializer[A]]
 ) extends CompositeTypeSerializerSnapshot[Option[A], OptionSerializer[A]] {
 
   // Empty constructor is required to instantiate this class during deserialization.
