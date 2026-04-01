@@ -3,6 +3,7 @@ package org.apache.flinkx.api.serializer
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
+import org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.CurrentVersion
 
 /** Generic serializer snapshot for collection.
   *
@@ -28,39 +29,15 @@ class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
   // Empty constructor is required to instantiate this class during deserialization.
   def this() = this(null, null, null)
 
-  private var currentVersionCalled = false
-  private var writeSnapshotCalled  = false
-
-  override def getCurrentVersion: Int = {
-    currentVersionCalled = true
-    2
-  }
+  override def getCurrentVersion: Int = CurrentVersion
 
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
     clazz = InstantiationUtil.resolveClassByName[S](in, userCodeClassLoader)
     vclazz = InstantiationUtil.resolveClassByName[T](in, userCodeClassLoader)
-    if (
-      /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
-           If only getCurrentVersion() is called, we know we must deserialize with old behavior.
-         - The new code calls getCurrentVersion() only before calling writeSnapshot().
-           getCurrentVersion() is not called before calling readSnapshot()
-           or both getCurrentVersion() and writeSnapshot() are called,
-           so in these cases we know the readVersion parameter is trustable to determine which behavior to apply. */
-      (!currentVersionCalled || writeSnapshotCalled) &&
-      // readVersion is trustable
-      readVersion == 2
-    ) {
-      nestedSerializer = TypeSerializerSnapshot.readVersionedSnapshot[T](in, userCodeClassLoader).restoreSerializer()
-    } else {
-      val snapClass      = InstantiationUtil.resolveClassByName[TypeSerializerSnapshot[T]](in, userCodeClassLoader)
-      val nestedSnapshot = InstantiationUtil.instantiate(snapClass)
-      nestedSnapshot.readSnapshot(nestedSnapshot.getCurrentVersion, in, userCodeClassLoader)
-      nestedSerializer = nestedSnapshot.restoreSerializer()
-    }
+    nestedSerializer = TypeSerializerSnapshot.readVersionedSnapshot[T](in, userCodeClassLoader).restoreSerializer()
   }
 
   override def writeSnapshot(out: DataOutputView): Unit = {
-    writeSnapshotCalled = true
     out.writeUTF(clazz.getName)
     vclazz.getName match {
       case "double"  => out.writeUTF("java.lang.Double")
@@ -86,4 +63,8 @@ class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
     constructor.newInstance(nestedSerializer, vclazz).asInstanceOf[TypeSerializer[F[T]]]
   }
 
+}
+
+object CollectionSerializerSnapshot {
+  private val CurrentVersion = 2
 }

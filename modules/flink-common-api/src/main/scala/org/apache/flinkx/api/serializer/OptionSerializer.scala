@@ -18,9 +18,11 @@
 package org.apache.flinkx.api.serializer
 
 import org.apache.flink.annotation.Internal
+import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flinkx.api.VariableLengthDataType
+import org.apache.flinkx.api.serializer.ScalaOptionSerializerSnapshot.CurrentVersion
 
 /** Serializer for [[Option]].
   */
@@ -90,5 +92,35 @@ class OptionSerializer[A](val elemSerializer: TypeSerializer[A]) extends Mutable
   // --------------------------------------------------------------------------------------------
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[Option[A]] =
-    new ScalaOptionSerializerSnapshot[A](this)
+    new ScalaOptionSerializerSnapshot[A](Some(this))
+
+}
+
+/** [[CompositeTypeSerializerSnapshot]] for [[OptionSerializer]]. */
+final class ScalaOptionSerializerSnapshot[A](
+    serializer: Option[OptionSerializer[A]] = None
+) extends CompositeTypeSerializerSnapshot[Option[A], OptionSerializer[A]] {
+
+  // Empty constructor is required to instantiate this class during deserialization.
+  def this() = this(None)
+
+  serializer.foreach { s =>
+    // Scala limitation: can't call parent constructor used for writing the snapshot, reproduce its behavior instead
+    setNestedSerializersSnapshots(this, getNestedSerializers(s).map(_.snapshotConfiguration()): _*)
+  }
+
+  override protected def getCurrentOuterSnapshotVersion: Int = CurrentVersion
+
+  override protected def getNestedSerializers(outerSerializer: OptionSerializer[A]): Array[TypeSerializer[_]] =
+    Array[TypeSerializer[_]](outerSerializer.elemSerializer)
+
+  override protected def createOuterSerializerWithNestedSerializers(
+      nestedSerializers: Array[TypeSerializer[_]]
+  ): OptionSerializer[A] =
+    new OptionSerializer[A](nestedSerializers(0).asInstanceOf[TypeSerializer[A]])
+
+}
+
+object ScalaOptionSerializerSnapshot {
+  private val CurrentVersion: Int = 2
 }

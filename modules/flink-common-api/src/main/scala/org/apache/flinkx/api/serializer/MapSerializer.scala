@@ -2,7 +2,6 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
-import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.VariableLengthDataType
 import org.apache.flinkx.api.serializer.MapSerializer._
 
@@ -64,48 +63,22 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
 }
 
 object MapSerializer {
+
+  private val CurrentVersion = 2
+
   case class MapSerializerSnapshot[K, V](var keySerializer: TypeSerializer[K], var valueSerializer: TypeSerializer[V])
       extends TypeSerializerSnapshot[Map[K, V]] {
 
     def this() = this(null, null)
 
-    private var currentVersionCalled = false
-    private var writeSnapshotCalled  = false
-
-    override def getCurrentVersion: Int = {
-      currentVersionCalled = true
-      2
-    }
+    override def getCurrentVersion: Int = CurrentVersion
 
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-      if (
-        /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
-           If only getCurrentVersion() is called, we know we must deserialize with old behavior.
-         - The new code calls getCurrentVersion() only before calling writeSnapshot().
-           getCurrentVersion() is not called before calling readSnapshot()
-           or both getCurrentVersion() and writeSnapshot() are called,
-           so in these cases we know the readVersion parameter is trustable to determine which behavior to apply. */
-        (!currentVersionCalled || writeSnapshotCalled) &&
-        // readVersion is trustable
-        readVersion == 2
-      ) {
-        keySerializer = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader).restoreSerializer()
-        valueSerializer = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader).restoreSerializer()
-      } else {
-        keySerializer = readSerializer[K](in, userCodeClassLoader)
-        valueSerializer = readSerializer[V](in, userCodeClassLoader)
-      }
-    }
-
-    def readSerializer[T](in: DataInputView, userCodeClassLoader: ClassLoader): TypeSerializer[T] = {
-      val snapClass      = InstantiationUtil.resolveClassByName[TypeSerializerSnapshot[T]](in, userCodeClassLoader)
-      val nestedSnapshot = InstantiationUtil.instantiate(snapClass)
-      nestedSnapshot.readSnapshot(nestedSnapshot.getCurrentVersion, in, userCodeClassLoader)
-      nestedSnapshot.restoreSerializer()
+      keySerializer = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader).restoreSerializer()
+      valueSerializer = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader).restoreSerializer()
     }
 
     override def writeSnapshot(out: DataOutputView): Unit = {
-      writeSnapshotCalled = true
       TypeSerializerSnapshot.writeVersionedSnapshot(out, keySerializer.snapshotConfiguration())
       TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSerializer.snapshotConfiguration())
     }
@@ -116,6 +89,7 @@ object MapSerializer {
       TypeSerializerSchemaCompatibility.compatibleAsIs()
 
     override def restoreSerializer(): TypeSerializer[Map[K, V]] = new MapSerializer(keySerializer, valueSerializer)
+
   }
 
 }
