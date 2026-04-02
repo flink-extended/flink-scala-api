@@ -112,7 +112,7 @@ final class ScalaOptionSerializerSnapshot[A](
   override protected def getCurrentOuterSnapshotVersion: Int = CurrentVersion
 
   override protected def getNestedSerializers(outerSerializer: OptionSerializer[A]): Array[TypeSerializer[_]] =
-    Array[TypeSerializer[_]](outerSerializer.elemSerializer)
+    Array(outerSerializer.elemSerializer)
 
   override protected def createOuterSerializerWithNestedSerializers(
       nestedSerializers: Array[TypeSerializer[_]]

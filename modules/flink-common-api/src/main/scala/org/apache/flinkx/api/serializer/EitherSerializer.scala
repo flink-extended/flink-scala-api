@@ -135,6 +135,9 @@ class ScalaEitherSerializerSnapshot[A, B](
 
   override def getCurrentOuterSnapshotVersion: Int = CurrentVersion
 
+  override protected def getNestedSerializers(outerSerializer: EitherSerializer[A, B]): Array[TypeSerializer[_]] =
+    Array(outerSerializer.getLeftSerializer, outerSerializer.getRightSerializer)
+
   override protected def createOuterSerializerWithNestedSerializers(
       nestedSerializers: Array[TypeSerializer[_]]
   ): EitherSerializer[A, B] = {
@@ -142,9 +145,6 @@ class ScalaEitherSerializerSnapshot[A, B](
     val rightSerializer = nestedSerializers(1).asInstanceOf[TypeSerializer[B]]
     new EitherSerializer[A, B](leftSerializer, rightSerializer)
   }
-
-  override protected def getNestedSerializers(outerSerializer: EitherSerializer[A, B]): Array[TypeSerializer[_]] =
-    Array(outerSerializer.getLeftSerializer, outerSerializer.getRightSerializer)
 
 }
 
