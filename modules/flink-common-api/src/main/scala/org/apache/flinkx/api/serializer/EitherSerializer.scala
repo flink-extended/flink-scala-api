@@ -18,9 +18,11 @@
 package org.apache.flinkx.api.serializer
 
 import org.apache.flink.annotation.Internal
-import org.apache.flink.api.common.typeutils._
+import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
+import org.apache.flink.api.common.typeutils.{CompositeTypeSerializerSnapshot, TypeSerializer}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flinkx.api.VariableLengthDataType
+import org.apache.flinkx.api.serializer.ScalaEitherSerializerSnapshot.CurrentVersion
 
 /** Serializer for [[Either]]. Copied from Flink 1.14.
   */
@@ -113,7 +115,39 @@ class EitherSerializer[A, B](
   // Serializer configuration snapshotting & compatibility
   // --------------------------------------------------------------------------------------------
 
-  override def snapshotConfiguration(): ScalaEitherSerializerSnapshot[A, B] = {
-    new ScalaEitherSerializerSnapshot[A, B](this)
+  override def snapshotConfiguration(): ScalaEitherSerializerSnapshot[A, B] =
+    new ScalaEitherSerializerSnapshot[A, B](Some(this))
+
+}
+
+/** [[CompositeTypeSerializerSnapshot]] for [[EitherSerializer]]. */
+class ScalaEitherSerializerSnapshot[A, B](
+    serializer: Option[EitherSerializer[A, B]]
+) extends CompositeTypeSerializerSnapshot[Either[A, B], EitherSerializer[A, B]] {
+
+  // Empty constructor is required to instantiate this class during deserialization.
+  def this() = this(None)
+
+  serializer.foreach { s =>
+    // Scala limitation: can't call parent constructor used for writing the snapshot, reproduce its behavior instead
+    setNestedSerializersSnapshots(this, getNestedSerializers(s).map(_.snapshotConfiguration()): _*)
   }
+
+  override def getCurrentOuterSnapshotVersion: Int = CurrentVersion
+
+  override protected def getNestedSerializers(outerSerializer: EitherSerializer[A, B]): Array[TypeSerializer[_]] =
+    Array(outerSerializer.getLeftSerializer, outerSerializer.getRightSerializer)
+
+  override protected def createOuterSerializerWithNestedSerializers(
+      nestedSerializers: Array[TypeSerializer[_]]
+  ): EitherSerializer[A, B] = {
+    val leftSerializer  = nestedSerializers(0).asInstanceOf[TypeSerializer[A]]
+    val rightSerializer = nestedSerializers(1).asInstanceOf[TypeSerializer[B]]
+    new EitherSerializer[A, B](leftSerializer, rightSerializer)
+  }
+
+}
+
+object ScalaEitherSerializerSnapshot {
+  private val CurrentVersion: Int = 1
 }

@@ -18,12 +18,16 @@
 package org.apache.flinkx.api.serializer
 
 import org.apache.flink.annotation.Internal
-import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnapshot}
+import org.apache.flink.api.common.typeutils.CompositeTypeSerializerSnapshot.OuterSchemaCompatibility
+import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
+import org.apache.flink.api.common.typeutils.{CompositeTypeSerializerSnapshot, TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
-import org.apache.flinkx.api.{NullMarker, VariableLengthDataType}
+import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.serializer.CaseClassSerializer.EmptyByteArray
+import org.apache.flinkx.api.serializer.ScalaCaseClassSerializerSnapshot.CurrentVersion
+import org.apache.flinkx.api.{NullMarker, VariableLengthDataType}
 import org.slf4j.{Logger, LoggerFactory}
 
 /** Serializer for Case Classes. Creation and access is different from our Java Tuples so we have to treat them
@@ -162,10 +166,79 @@ class CaseClassSerializer[T <: Product](
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
-    new ScalaCaseClassSerializerSnapshot[T](this)
+    new ScalaCaseClassSerializerSnapshot[T](Some(this))
 
 }
 
 object CaseClassSerializer {
   private val EmptyByteArray: Array[Byte] = new Array(0)
+}
+
+/** [[TypeSerializerSnapshot]] for [[CaseClassSerializer]]. */
+final class ScalaCaseClassSerializerSnapshot[T <: scala.Product](
+    serializer: Option[CaseClassSerializer[T]]
+) extends CompositeTypeSerializerSnapshot[T, CaseClassSerializer[T]] {
+
+  // Empty constructor is required to instantiate this class during deserialization.
+  def this() = this(None)
+
+  private var serializedClass: Option[Class[T]] = None
+  private var isCaseClassImmutable: Boolean     = false
+
+  serializer.foreach { s =>
+    // Scala limitation: can't call parent constructor used for writing the snapshot, reproduce its behavior instead
+    setNestedSerializersSnapshots(this, getNestedSerializers(s).map(_.snapshotConfiguration()): _*)
+    serializedClass = Some(s.getTupleClass)
+    isCaseClassImmutable = s.isCaseClassImmutable
+  }
+
+  override protected def getCurrentOuterSnapshotVersion: Int = CurrentVersion
+
+  override protected def getNestedSerializers(outerSerializer: CaseClassSerializer[T]): Array[TypeSerializer[_]] =
+    outerSerializer.getFieldSerializers.asInstanceOf[Array[TypeSerializer[_]]]
+
+  override protected def createOuterSerializerWithNestedSerializers(
+      nestedSerializers: Array[TypeSerializer[_]]
+  ): CaseClassSerializer[T] = serializedClass match {
+    case Some(clazz) => new CaseClassSerializer[T](clazz, nestedSerializers, isCaseClassImmutable)
+    case None        => throw new IllegalStateException("type can not be NULL")
+  }
+
+  override protected def writeOuterSnapshot(out: DataOutputView): Unit = serializedClass match {
+    case Some(clazz) =>
+      out.writeUTF(clazz.getName)
+      out.writeBoolean(isCaseClassImmutable)
+    case None => throw new IllegalStateException("type can not be NULL")
+  }
+
+  override protected def readOuterSnapshot(
+      readOuterSnapshotVersion: Int,
+      in: DataInputView,
+      userCodeClassLoader: ClassLoader
+  ): Unit = {
+    serializedClass = Some(InstantiationUtil.resolveClassByName(in, userCodeClassLoader))
+    // If reading a version of 2 or below, don't read the boolean and set isCaseClassImmutable to false
+    isCaseClassImmutable = readOuterSnapshotVersion > 2 && in.readBoolean
+  }
+
+  override protected def resolveOuterSchemaCompatibility(
+      oldSerializerSnapshot: TypeSerializerSnapshot[T]
+  ): CompositeTypeSerializerSnapshot.OuterSchemaCompatibility = {
+    if (!oldSerializerSnapshot.isInstanceOf[ScalaCaseClassSerializerSnapshot[T]]) {
+      return OuterSchemaCompatibility.INCOMPATIBLE
+    }
+    val caseClassSerializerSnapshot = oldSerializerSnapshot.asInstanceOf[ScalaCaseClassSerializerSnapshot[T]]
+    val currentTypeName             = serializedClass.map(_.getName)
+    val newTypeName                 = caseClassSerializerSnapshot.serializedClass.map(_.getName)
+    if (currentTypeName == newTypeName) {
+      OuterSchemaCompatibility.COMPATIBLE_AS_IS
+    } else {
+      OuterSchemaCompatibility.INCOMPATIBLE
+    }
+  }
+
+}
+
+object ScalaCaseClassSerializerSnapshot {
+  private val CurrentVersion = 3
 }

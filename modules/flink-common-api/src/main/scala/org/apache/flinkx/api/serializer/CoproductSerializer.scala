@@ -1,12 +1,17 @@
 package org.apache.flinkx.api.serializer
 
-import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
+import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
+import org.apache.flink.api.common.typeutils.{
+  CompositeTypeSerializerSnapshot,
+  TypeSerializer,
+  TypeSerializerSchemaCompatibility,
+  TypeSerializerSnapshot
+}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
-import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.VariableLengthDataType
 import org.apache.flinkx.api.serializer.CoproductSerializer.CoproductSerializerSnapshot
 
-class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers: Array[TypeSerializer[_]])
+class CoproductSerializer[T](subtypeClasses: Array[Class[_]], val subtypeSerializers: Array[TypeSerializer[_]])
     extends MutableSerializer[T] {
 
   override val isImmutableType: Boolean = subtypeSerializers.forall(_.isImmutableType)
@@ -74,71 +79,75 @@ class CoproductSerializer[T](subtypeClasses: Array[Class[_]], subtypeSerializers
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] =
-    new CoproductSerializerSnapshot(subtypeClasses, subtypeSerializers)
+    new CoproductSerializerSnapshot(Some(this))
 }
 
 object CoproductSerializer {
+
+  private val CurrentVersion = 3
+
   class CoproductSerializerSnapshot[T](
-      var subtypeClasses: Array[Class[_]],
-      var subtypeSerializers: Array[TypeSerializer[_]]
+      serializer: Option[CoproductSerializer[T]]
   ) extends TypeSerializerSnapshot[T] {
 
     // Empty constructor is required to instantiate this class during deserialization.
-    def this() = this(Array.empty[Class[_]], Array.empty[TypeSerializer[_]])
+    def this() = this(None)
 
-    private var currentVersionCalled = false
-    private var writeSnapshotCalled  = false
+    private var subtypeSerializers: Array[TypeSerializer[_]] = Array.empty
 
-    override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-      val len = in.readInt()
+    // An adapter is mandatory to keep the compatibility during the transition to a CompositeTypeSerializerSnapshot
+    // because its readSnapshot() method is final
+    private val adapter: CompositeTypeSerializerSnapshot[T, CoproductSerializer[T]] =
+      new CompositeTypeSerializerSnapshot[T, CoproductSerializer[T]] {
 
-      subtypeClasses = (0 until len)
-        .map(_ => InstantiationUtil.resolveClassByName(in, userCodeClassLoader))
-        .toArray
+        private var nestedSerializers: Array[TypeSerializer[_]] = Array.empty
 
-      subtypeSerializers = (0 until len).map { _ =>
-        if (
-          /* - The old code was calling getCurrentVersion() just before calling readSnapshot().
-             If only getCurrentVersion() is called, we know we must deserialize with old behavior.
-           - The new code calls getCurrentVersion() only before calling writeSnapshot().
-             getCurrentVersion() is not called before calling readSnapshot()
-             or both getCurrentVersion() and writeSnapshot() are called,
-             so in these cases we know the readVersion parameter is trustable to determine which behavior to apply. */
-          (!currentVersionCalled || writeSnapshotCalled) &&
-          // readVersion is trustable
-          readVersion == 2
-        ) {
-          TypeSerializerSnapshot.readVersionedSnapshot(in, userCodeClassLoader).restoreSerializer()
-        } else {
-          val clazz      = InstantiationUtil.resolveClassByName(in, userCodeClassLoader)
-          val serializer = InstantiationUtil.instantiate(clazz).asInstanceOf[TypeSerializerSnapshot[_]]
-          serializer.readSnapshot(serializer.getCurrentVersion, in, userCodeClassLoader)
-          serializer.restoreSerializer()
+        serializer.foreach { s =>
+          // Scala limitation: can't call parent constructor used for writing the snapshot, reproduce its behavior instead
+          this.nestedSerializers = s.subtypeSerializers
+          setNestedSerializersSnapshots(this, getNestedSerializers(s).map(_.snapshotConfiguration()): _*)
         }
-      }.toArray
-    }
 
-    override def getCurrentVersion: Int = {
-      currentVersionCalled = true
-      2
-    }
+        override def getCurrentOuterSnapshotVersion: Int = CurrentVersion
 
-    override def writeSnapshot(out: DataOutputView): Unit = {
-      writeSnapshotCalled = true
-      out.writeInt(subtypeClasses.length)
-      subtypeClasses.foreach(c => out.writeUTF(c.getName))
-      subtypeSerializers.foreach(s => {
-        TypeSerializerSnapshot.writeVersionedSnapshot(out, s.snapshotConfiguration())
-      })
-    }
+        override def getNestedSerializers(outerSerializer: CoproductSerializer[T]): Array[TypeSerializer[_]] =
+          this.nestedSerializers
+
+        override def createOuterSerializerWithNestedSerializers(
+            nestedSerializers: Array[TypeSerializer[_]]
+        ): CoproductSerializer[T] =
+          new CoproductSerializer[T](Array.empty, nestedSerializers)
+      }
+
+    override def getCurrentVersion: Int = adapter.getCurrentVersion
+
+    override def writeSnapshot(out: DataOutputView): Unit = adapter.writeSnapshot(out)
+
+    override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit =
+      if (readVersion == 2) {
+        val len = in.readInt()
+
+        // Unused
+        (0 until len).foreach(_ => in.readUTF())
+
+        subtypeSerializers = (0 until len)
+          .map(_ => TypeSerializerSnapshot.readVersionedSnapshot(in, userCodeClassLoader).restoreSerializer())
+          .toArray
+      } else {
+        adapter.readSnapshot(readVersion, in, userCodeClassLoader)
+      }
 
     override def resolveSchemaCompatibility(
-        oldSerializer: TypeSerializerSnapshot[T]
-    ): TypeSerializerSchemaCompatibility[T] =
-      TypeSerializerSchemaCompatibility.compatibleAsIs()
+        oldSerializerSnapshot: TypeSerializerSnapshot[T]
+    ): TypeSerializerSchemaCompatibility[T] = adapter.resolveSchemaCompatibility(oldSerializerSnapshot)
 
     override def restoreSerializer(): TypeSerializer[T] =
-      new CoproductSerializer[T](subtypeClasses, subtypeSerializers)
+      if (subtypeSerializers.isEmpty) {
+        adapter.restoreSerializer() // Restore from adapter
+      } else {
+        new CoproductSerializer[T](Array.empty, subtypeSerializers) // Restore from readSnapshot
+      }
+
   }
 
 }

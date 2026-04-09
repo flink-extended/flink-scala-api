@@ -17,7 +17,9 @@ class CoproductSerializerSnapshotTest extends AnyFlatSpec with Matchers {
       implicitly[TypeSerializer[Bar]]
     )
     val serializerSnapshot: CoproductSerializer.CoproductSerializerSnapshot[ADT] =
-      new CoproductSerializer.CoproductSerializerSnapshot(subtypeClasses, subtypeSerializers)
+      new CoproductSerializer.CoproductSerializerSnapshot(
+        Some(new CoproductSerializer[ADT](subtypeClasses, subtypeSerializers))
+      )
 
     val expectedSerializer = serializerSnapshot.restoreSerializer()
 
