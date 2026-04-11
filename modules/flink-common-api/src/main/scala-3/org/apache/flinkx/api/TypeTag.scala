@@ -1,12 +1,15 @@
 package org.apache.flinkx.api
 
 import scala.quoted.*
+import scala.reflect.ClassTag
 
 // A basic replacement for `TypeTag`, which is absent in Scala 3.
 trait TypeTag[A]:
   // Is the type a module, i.e. is it a case object?
   def isModule: Boolean
   def isCachable: Boolean
+  def isEnum: Boolean
+  def companion: Option[ClassTag[?]]
   def toString: String
 
 object TypeTag:
