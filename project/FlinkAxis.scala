@@ -16,6 +16,6 @@ case class FlinkAxis(flinkMajor: String, suffix: String) extends sbt.VirtualAxis
 object FlinkAxis {
   val Flink1Common = FlinkAxis("1", "-1-api-common")
   val Flink2Common = FlinkAxis("2", "-2-api-common")
-  val Flink1Api = FlinkAxis("1", "")
-  val Flink2Api = FlinkAxis("2", "")
+  val Flink1Api    = FlinkAxis("1", "")
+  val Flink2Api    = FlinkAxis("2", "")
 }
