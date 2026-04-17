@@ -1,13 +1,14 @@
 package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
+import org.apache.flink.api.common.typeutils.base.array.StringArraySerializer
 import org.apache.flink.api.common.typeutils.{CompositeTypeSerializerSnapshot, TypeSerializer, TypeSerializerSnapshot}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flinkx.api.{NullMarkerByte, VariableLengthDataType}
 
 /** Serializer for Scala 3 enum. Handle nullable value. */
 class Scala3EnumSerializer[T <: Product](
-    enumValueNames: Array[String],
+    val enumValueNames: Array[String],
     val enumValueSerializers: Array[TypeSerializer[_]]
 ) extends MutableSerializer[T] {
 
@@ -69,9 +70,11 @@ class Scala3EnumSerializer[T <: Product](
 
   override def copy(source: DataInputView, target: DataOutputView): Unit = {
     val index   = source.readByte()
-    val subtype = enumValueSerializers(index.toInt)
     target.writeByte(index)
-    subtype.asInstanceOf[TypeSerializer[T]].copy(source, target)
+    if (index != NullMarkerByte) {
+      val subtype = enumValueSerializers(index.toInt)
+      subtype.asInstanceOf[TypeSerializer[T]].copy(source, target)
+    }
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[T] = new Scala3EnumSerializerSnapshot(Some(this))
@@ -86,9 +89,12 @@ class Scala3EnumSerializerSnapshot[T <: Product](
   // Empty constructor is required to instantiate this class during deserialization.
   def this() = this(None)
 
+  private var enumValueNames: Array[String] = Array.empty
+
   serializer.foreach { s =>
     // Scala limitation: can't call parent constructor used for writing the snapshot, reproduce its behavior instead
     setNestedSerializersSnapshots(this, getNestedSerializers(s).map(_.snapshotConfiguration()): _*)
+    enumValueNames = s.enumValueNames
   }
 
   override def getCurrentOuterSnapshotVersion: Int = Scala3EnumSerializerSnapshot.CurrentVersion
@@ -99,8 +105,14 @@ class Scala3EnumSerializerSnapshot[T <: Product](
   override protected def createOuterSerializerWithNestedSerializers(
       nestedSerializers: Array[TypeSerializer[_]]
   ): Scala3EnumSerializer[T] =
-    // Serializer created by snapshot is only used to deserialize: first parameter is useless
-    new Scala3EnumSerializer(Array.empty, nestedSerializers)
+    new Scala3EnumSerializer(enumValueNames, nestedSerializers)
+
+  override def writeOuterSnapshot(out: DataOutputView): Unit =
+    StringArraySerializer.INSTANCE.serialize(enumValueNames, out)
+
+  override def readOuterSnapshot(readOuterSnapshotVersion: Int, in: DataInputView, cl: ClassLoader): Unit = {
+    enumValueNames = StringArraySerializer.INSTANCE.deserialize(in)
+  }
 
 }
 

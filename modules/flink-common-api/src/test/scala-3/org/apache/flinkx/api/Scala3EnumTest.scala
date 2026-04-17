@@ -37,19 +37,19 @@ class Scala3EnumTest extends AnyFlatSpec with Matchers with TestUtils {
   }
 
   it should "roundtrip an enum with a case with parameters" in {
-    testTypeInfoAndSerializer[Example](Foo("a", 2), false)
+    testTypeInfoAndSerializer[Example](Foo("a", 2))
   }
 
   it should "roundtrip an enum value with parameters" in {
-    testTypeInfoAndSerializer[Foo](Foo("a", 2), false)
+    testTypeInfoAndSerializer[Foo](Foo("a", 2))
   }
 
   it should "roundtrip a case class declaring an enum" in {
-    testTypeInfoAndSerializer(FailureEvent("a", PARSING), false)
+    testTypeInfoAndSerializer(FailureEvent("a", PARSING))
   }
 
   it should "roundtrip a case class declaring an enum value" in {
-    testTypeInfoAndSerializer(FooEvent("a", Foo("a", 2)), false)
+    testTypeInfoAndSerializer(FooEvent("a", Foo("a", 2)))
   }
 
 }

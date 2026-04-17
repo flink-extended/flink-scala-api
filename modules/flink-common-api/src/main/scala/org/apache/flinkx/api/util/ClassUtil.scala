@@ -1,5 +1,7 @@
 package org.apache.flinkx.api.util
 
+import org.apache.flink.util.FlinkRuntimeException
+
 import java.lang.reflect.{Field, Modifier}
 
 object ClassUtil {
@@ -22,6 +24,14 @@ object ClassUtil {
         // return true if the field isn't found in the class: case classes can only override val from parent classes
         .forall(field => Modifier.isFinal(field.getModifiers))
     )
+  }
+
+  def resolveClassByName[T](className: String, cl: ClassLoader): Class[T] = {
+    try {
+      Class.forName(className, false, cl).asInstanceOf[Class[T]]
+    } catch {
+      case e: ClassNotFoundException => throw new FlinkRuntimeException(e)
+    }
   }
 
 }
