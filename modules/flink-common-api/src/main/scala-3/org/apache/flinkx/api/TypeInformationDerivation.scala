@@ -16,7 +16,7 @@ import org.apache.flinkx.api.serializer.{
 import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformation}
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
-import scala.IArray.given
+import scala.IArray.genericWrapArray
 import scala.collection.mutable
 import scala.reflect.ClassTag
 

@@ -2,7 +2,12 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
 import org.apache.flink.api.common.typeutils.base.array.StringArraySerializer
-import org.apache.flink.api.common.typeutils.{CompositeTypeSerializerSnapshot, TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
+import org.apache.flink.api.common.typeutils.{
+  CompositeTypeSerializerSnapshot,
+  TypeSerializer,
+  TypeSerializerSchemaCompatibility,
+  TypeSerializerSnapshot
+}
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.VariableLengthDataType
@@ -91,7 +96,7 @@ object CoproductSerializer {
     // Empty constructor is required to instantiate this class during deserialization.
     def this() = this(None)
 
-    private var subtypeClasses: Array[Class[_]] = Array.empty
+    private var subtypeClasses: Array[Class[_]]              = Array.empty
     private var subtypeSerializers: Array[TypeSerializer[_]] = Array.empty
 
     // An adapter is mandatory to keep the compatibility during the transition to a CompositeTypeSerializerSnapshot
