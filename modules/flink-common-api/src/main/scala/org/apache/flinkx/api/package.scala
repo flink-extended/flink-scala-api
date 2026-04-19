@@ -28,5 +28,6 @@ package object api {
     * [[NullableSerializer]].
     */
   private[api] val NullMarker: Int = Int.MinValue
+  private[api] val NullMarkerByte: Byte = Byte.MinValue
 
 }

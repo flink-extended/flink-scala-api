@@ -137,6 +137,7 @@ trait TestUtils extends Matchers with Inspectors {
     if (nullable) {
       withClue("The serializer must handle null but didn't:") {
         NullableSerializer.checkIfNullSupported(ser) shouldBe true
+        checkDataViewCopy(ser, null.asInstanceOf[T], assertion)
       }
     }
   }

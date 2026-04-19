@@ -5,12 +5,19 @@ import org.apache.flink.api.common.serialization.{SerializerConfig, SerializerCo
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
-import org.apache.flinkx.api.serializer.{CaseClassSerializer, CoproductSerializer, ScalaCaseObjectSerializer, nullable}
+import org.apache.flinkx.api.serializer.{
+  CaseClassSerializer,
+  CoproductSerializer,
+  Scala3EnumSerializer,
+  Scala3EnumValueSerializer,
+  ScalaCaseObjectSerializer,
+  nullable
+}
 import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformation}
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
+import scala.IArray.genericWrapArray
 import scala.collection.mutable
-import scala.compiletime.summonInline
 import scala.reflect.ClassTag
 
 private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInformation]:
@@ -36,18 +43,18 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
       case None =>
         val clazz      = classTag.runtimeClass.asInstanceOf[Class[T & Product]]
         val serializer =
-          if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
+          if typeTag.isEnum then
+            new Scala3EnumValueSerializer[T & Product](typeTag.companion.get.runtimeClass, ctx.typeInfo.short)
+          else if typeTag.isModule then new ScalaCaseObjectSerializer[T & Product](clazz)
           else
             new CaseClassSerializer[T & Product](
               clazz = clazz,
-              scalaFieldSerializers = IArray
-                .genericWrapArray(ctx.params.map { p =>
-                  val ser = p.typeclass.createSerializer(config)
-                  if (p.annotations.exists(_.isInstanceOf[nullable])) {
-                    NullableSerializer.wrapIfNullIsNotSupported(ser, true)
-                  } else ser
-                })
-                .toArray,
+              scalaFieldSerializers = ctx.params.map { p =>
+                val ser = p.typeclass.createSerializer(config)
+                if (p.annotations.exists(_.isInstanceOf[nullable])) {
+                  NullableSerializer.wrapIfNullIsNotSupported(ser, true)
+                } else ser
+              }.toArray,
               isCaseClassImmutable = isCaseClassImmutable(clazz, ctx.params.map(_.label))
             )
         val ti = new CaseClassTypeInfo[T & Product](
@@ -70,10 +77,17 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
         cached.asInstanceOf[TypeInformation[T]]
 
       case None =>
-        val serializer = new CoproductSerializer[T](
-          subtypeClasses = IArray.genericWrapArray(ctx.subtypes.map(_.typeclass.getTypeClass)).toArray,
-          subtypeSerializers = IArray.genericWrapArray(ctx.subtypes.map(_.typeclass.createSerializer(config))).toArray
-        )
+        val serializer =
+          if typeTag.isEnum then
+            new Scala3EnumSerializer[T & Product](
+              enumValueNames = ctx.subtypes.map(_.typeInfo.short).toArray,
+              enumValueSerializers = ctx.subtypes.map(_.typeclass.createSerializer(config)).toArray
+            ).asInstanceOf[TypeSerializer[T]]
+          else
+            new CoproductSerializer[T](
+              subtypeClasses = ctx.subtypes.map(_.typeclass.getTypeClass).toArray,
+              subtypeSerializers = ctx.subtypes.map(_.typeclass.createSerializer(config)).toArray
+            )
         val clazz = classTag.runtimeClass.asInstanceOf[Class[T]]
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
         if useCache then cache.put(cacheKey, ti)
