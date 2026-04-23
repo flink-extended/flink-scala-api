@@ -1,7 +1,7 @@
 # Scala 2.13/3.x API for Apache Flink
 
 [![CI Status](https://github.com/flink-extended/flink-scala-api/workflows/CI/badge.svg)](https://github.com/flinkextended/flink-scala-api/actions)
-[![Maven Central](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api-1_2.13/badge.svg?style=plastic)](https://maven-badges.herokuapp.com/maven-central/org.flinkextended/flink-scala-api-1_2.13)
+[![Maven Central](https://img.shields.io/maven-central/v/org.flinkextended/flink-scala-api-2_3)](https://search.maven.org/artifact/org.flinkextended/flink-scala-api-2_3)   
 [![License: Apache 2](https://img.shields.io/badge/License-Apache2-green.svg)](https://opensource.org/licenses/Apache-2.0)
 ![Last commit](https://img.shields.io/github/last-commit/flink-extended/flink-scala-api)
 ![Last release](https://img.shields.io/github/release/flink-extended/flink-scala-api)
