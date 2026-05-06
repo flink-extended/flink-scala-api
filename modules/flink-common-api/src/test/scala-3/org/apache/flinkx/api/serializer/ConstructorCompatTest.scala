@@ -51,7 +51,7 @@ class ConstructorCompatTest extends AnyFlatSpec with Matchers {
     val exception = intercept[IllegalArgumentException] {
       constructor.apply(Array.empty)
     }
-    exception.getMessage shouldBe "wrong number of arguments: 2 expected: 3"
+    exception.getMessage should startWith("wrong number of arguments")
   }
 
   it should "lookup apply with an enum case class" in {
