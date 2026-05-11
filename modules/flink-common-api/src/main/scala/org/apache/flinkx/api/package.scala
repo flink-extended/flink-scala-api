@@ -27,7 +27,7 @@ package object api {
     * If one of these conditions is not met, consider using another marker or wrap your serializer into a
     * [[NullableSerializer]].
     */
-  private[api] val NullMarker: Int = Int.MinValue
+  private[api] val NullMarker: Int      = Int.MinValue
   private[api] val NullMarkerByte: Byte = Byte.MinValue
 
 }

@@ -63,7 +63,7 @@ object Scala3EnumTest {
   enum FailureCategory(a: Int) {
     case MISSING extends FailureCategory(1)
     case PARSING extends FailureCategory(2)
-    case OTHER extends FailureCategory(3)
+    case OTHER   extends FailureCategory(3)
   }
 
   enum Example {

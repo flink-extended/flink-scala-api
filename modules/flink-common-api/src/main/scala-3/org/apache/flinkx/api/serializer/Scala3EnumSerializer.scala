@@ -69,7 +69,7 @@ class Scala3EnumSerializer[T <: Product](
   }
 
   override def copy(source: DataInputView, target: DataOutputView): Unit = {
-    val index   = source.readByte()
+    val index = source.readByte()
     target.writeByte(index)
     if (index != NullMarkerByte) {
       val subtype = enumValueSerializers(index.toInt)
