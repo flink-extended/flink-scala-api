@@ -1,7 +1,7 @@
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
-lazy val rootScalaVersion = "3.3.7"
+lazy val rootScalaVersion = "3.3.8"
 lazy val crossVersions    = Seq("2.13.18", rootScalaVersion)
 lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
