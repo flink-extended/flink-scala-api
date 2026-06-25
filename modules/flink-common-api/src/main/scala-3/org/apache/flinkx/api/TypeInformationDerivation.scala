@@ -17,7 +17,7 @@ import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformati
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 import scala.IArray.genericWrapArray
-import scala.collection.mutable
+import scala.collection.concurrent.TrieMap
 import scala.reflect.ClassTag
 
 private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInformation]:
@@ -26,7 +26,7 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 
-  protected val cache: mutable.Map[String, TypeInformation[?]] = mutable.Map.empty
+  protected[api] val cache: TrieMap[String, TypeInformation[?]] = TrieMap.empty
 
   // We cannot add a constraint of `T <: Product`, even though `join` is always called on products.
   // Need to mix in via `& Product`.
@@ -63,8 +63,8 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
           fieldNames = ctx.params.map(_.label),
           ser = serializer
         ).asInstanceOf[TypeInformation[T]]
-        if useCache then cache.put(cacheKey, ti)
-        ti
+        if useCache then cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
+        else ti
 
   override def split[T](ctx: SealedTrait[Typeclass, T])(using
       classTag: ClassTag[T],
@@ -90,5 +90,5 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
             )
         val clazz = classTag.runtimeClass.asInstanceOf[Class[T]]
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
-        if useCache then cache.put(cacheKey, ti)
-        ti
+        if useCache then cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
+        else ti

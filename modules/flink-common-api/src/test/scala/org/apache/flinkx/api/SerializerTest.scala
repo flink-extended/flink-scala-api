@@ -76,11 +76,6 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
     testSerializer(Nil, nullable = false)
   }
 
-  it should "derive recursively" in {
-    // recursive is broken
-    // val ti = implicitly[TypeInformation[Node]]
-  }
-
   it should "derive list" in {
     testTypeInfoAndSerializer(List(Simple(1, "a")), nullable = false)
   }
@@ -505,8 +500,6 @@ object SerializerTest {
   }
   case class P1(a: String) extends Param[String]
   case class P2(a: Int)    extends Param[Int]
-
-  case class Node(left: Option[Node], right: Option[Node])
 
   case class SimpleOption(a: Option[String])
 
