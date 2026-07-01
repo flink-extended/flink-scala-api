@@ -8,7 +8,7 @@ import org.apache.flinkx.api.serializer.{CaseClassSerializer, CoproductSerialize
 import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformation}
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
-import scala.collection.mutable
+import scala.collection.concurrent.TrieMap
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 import scala.reflect.{ClassTag, classTag}
 
@@ -18,7 +18,7 @@ private[api] trait TypeInformationDerivation {
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 
-  protected val cache: mutable.Map[String, TypeInformation[_]] = mutable.Map.empty
+  protected[api] val cache: TrieMap[String, TypeInformation[_]] = TrieMap.empty
 
   def join[T <: Product: ClassTag: TypeTag](
       ctx: CaseClass[TypeInformation, T]
@@ -48,8 +48,7 @@ private[api] trait TypeInformationDerivation {
           fieldNames = ctx.parameters.map(_.label),
           ser = serializer
         )
-        cache.put(cacheKey, ti)
-        ti
+        cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
     }
   }
 
@@ -64,8 +63,7 @@ private[api] trait TypeInformationDerivation {
         )
         val clazz = classTag[T].runtimeClass.asInstanceOf[Class[T]]
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
-        cache.put(cacheKey, ti)
-        ti
+        cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
     }
   }
 
