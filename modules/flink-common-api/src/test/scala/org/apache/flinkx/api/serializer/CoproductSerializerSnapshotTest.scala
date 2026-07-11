@@ -29,8 +29,11 @@ class CoproductSerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val snapshotInput = new DataInputDeserializer(snapshotOutput.getSharedBuffer)
 
     // Deserialize SerializerSnapshot
-    val deserializedSnapshot = TypeSerializerSnapshot
-      .readVersionedSnapshot[SetSerializer[String]](snapshotInput, getClass.getClassLoader)
+    val deserializedSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[ADT](snapshotInput, getClass.getClassLoader)
+
+    // Check the compatibility of the current snapshot with the restored snapshot
+    val compatibility = serializerSnapshot.resolveSchemaCompatibility(deserializedSnapshot)
+    compatibility.isIncompatible shouldBe false
 
     val deserializedSerializer = deserializedSnapshot.restoreSerializer()
     deserializedSerializer shouldNot be theSameInstanceAs expectedSerializer
