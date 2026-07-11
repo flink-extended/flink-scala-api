@@ -9,7 +9,7 @@ import org.scalatest.matchers.should.Matchers
 
 class CoproductSerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
-  it should "serialize then deserialize" in {
+  it should "serialize v3 then deserialize v3" in {
     // Create SerializerSnapshot
     val subtypeClasses: Array[Class[?]]              = Array(classOf[Foo], classOf[Bar])
     val subtypeSerializers: Array[TypeSerializer[?]] = Array(
@@ -38,6 +38,32 @@ class CoproductSerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val deserializedSerializer = deserializedSnapshot.restoreSerializer()
     deserializedSerializer shouldNot be theSameInstanceAs expectedSerializer
     deserializedSerializer should be(expectedSerializer)
+  }
+
+  it should "serialize v2 then deserialize v3" in {
+    val subtypeClasses: Array[Class[?]]              = Array(classOf[Foo], classOf[Bar])
+    val subtypeSerializers: Array[TypeSerializer[?]] = Array(
+      implicitly[TypeSerializer[Foo]],
+      implicitly[TypeSerializer[Bar]]
+    )
+
+    // Write a v2 snapshot payload (as CoproductSerializerSnapshot#writeSnapshot did when v2 was current)
+    val out = new DataOutputSerializer(1024 * 1024)
+    out.writeInt(subtypeClasses.length)
+    subtypeClasses.foreach(c => out.writeUTF(c.getName))
+    subtypeSerializers.foreach(s => TypeSerializerSnapshot.writeVersionedSnapshot(out, s.snapshotConfiguration()))
+
+    // Restore the v2 snapshot as Flink would: no-arg constructor then readSnapshot with the persisted version
+    val oldSnapshot = new CoproductSerializer.CoproductSerializerSnapshot[ADT]()
+    oldSnapshot.readSnapshot(2, new DataInputDeserializer(out.getSharedBuffer), getClass.getClassLoader)
+
+    // Current (v3) snapshot for the same schema
+    val newSnapshot = new CoproductSerializer.CoproductSerializerSnapshot[ADT](
+      Some(new CoproductSerializer[ADT](subtypeClasses, subtypeSerializers))
+    )
+
+    val compatibility = newSnapshot.resolveSchemaCompatibility(oldSnapshot)
+    compatibility.isIncompatible shouldBe false
   }
 
 }

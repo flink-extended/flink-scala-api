@@ -97,8 +97,7 @@ object CoproductSerializer {
     // Empty constructor is required to instantiate this class during deserialization.
     def this() = this(None)
 
-    private var subtypeClasses: Array[Class[_]]              = Array.empty
-    private var subtypeSerializers: Array[TypeSerializer[_]] = Array.empty
+    private var subtypeClasses: Array[Class[_]] = Array.empty
 
     // An adapter is mandatory to keep the compatibility during the transition to a CompositeTypeSerializerSnapshot
     // because its readSnapshot() method is final
@@ -108,14 +107,13 @@ object CoproductSerializer {
         serializer.foreach { s =>
           // Scala limitation: can't call parent constructor used for writing the snapshot, reproduce its behavior instead
           subtypeClasses = s.subtypeClasses
-          subtypeSerializers = s.subtypeSerializers
           setNestedSerializersSnapshots(this, getNestedSerializers(s).map(_.snapshotConfiguration()): _*)
         }
 
         override def getCurrentOuterSnapshotVersion: Int = CurrentVersion
 
         override def getNestedSerializers(outerSerializer: CoproductSerializer[T]): Array[TypeSerializer[_]] =
-          subtypeSerializers
+          outerSerializer.subtypeSerializers
 
         override def createOuterSerializerWithNestedSerializers(
             nestedSerializers: Array[TypeSerializer[_]]
@@ -143,9 +141,11 @@ object CoproductSerializer {
           .map(_ => InstantiationUtil.resolveClassByName(in, userCodeClassLoader))
           .toArray
 
-        subtypeSerializers = (0 until len)
+        val subtypeSerializers = (0 until len)
           .map(_ => TypeSerializerSnapshot.readVersionedSnapshot(in, userCodeClassLoader).restoreSerializer())
           .toArray
+
+        setNestedSerializersSnapshots(adapter, subtypeSerializers.map(_.snapshotConfiguration()): _*)
       } else {
         adapter.readSnapshot(readVersion, in, userCodeClassLoader)
       }
@@ -157,12 +157,7 @@ object CoproductSerializer {
       case _                                   => TypeSerializerSchemaCompatibility.incompatible()
     }
 
-    override def restoreSerializer(): TypeSerializer[T] =
-      if (subtypeSerializers.isEmpty) {
-        adapter.restoreSerializer() // Restore from adapter
-      } else {
-        new CoproductSerializer[T](subtypeClasses, subtypeSerializers) // Restore from readSnapshot
-      }
+    override def restoreSerializer(): TypeSerializer[T] = adapter.restoreSerializer()
 
   }
 
