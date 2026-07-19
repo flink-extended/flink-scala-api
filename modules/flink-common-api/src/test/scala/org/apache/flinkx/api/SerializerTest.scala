@@ -40,8 +40,8 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "derive for ADTs" in {
-    testTypeInfoAndSerializer(Foo("a"), nullable = false)
-    testTypeInfoAndSerializer(Bar(1), nullable = false)
+    testTypeInfoAndSerializer(Foo("a"))
+    testTypeInfoAndSerializer(Bar(1))
   }
 
   it should "derive for ADTs with case objects" in {
@@ -54,7 +54,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "derive for deeply nested adts" in {
-    testTypeInfoAndSerializer(Egg(1), nullable = false)
+    testTypeInfoAndSerializer(Egg(1))
   }
 
   it should "derive for nested ADTs" in {
@@ -63,7 +63,7 @@ class SerializerTest extends AnyFlatSpec with Matchers with Inspectors with Test
   }
 
   it should "derive for generic ADTs" in {
-    testTypeInfoAndSerializer(P2(1), nullable = false)
+    testTypeInfoAndSerializer(P2(1))
   }
 
   it should "derive seq" in {
