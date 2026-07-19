@@ -1,257 +1,85 @@
-# Implementation Plan: RowData to Scala Case Class Converter
+# RowData ↔ Case Class Converter — Design Notes
 
-## Executive Summary
+Status: **implemented**. This document records what was built and, where it diverges, why. It replaces an earlier
+forward-looking plan whose central assumptions did not survive contact with the Flink API — those divergences are
+called out below so the reasoning is not lost.
 
-Add functionality to convert Flink `RowData` records to user Scala case classes using Scala 3's `derives` macro, with support for custom per-field conversion functions. Position-based field mapping ensures RowData column indices match case class field declaration order.
+## What it does
 
-**Key Innovation**: Support implicit `FieldConverter[T]` overrides per field, allowing users to define custom logic (enum conversion, unit conversion, etc.) while the macro handles the plumbing.
+Converts between Flink's internal `org.apache.flink.table.data.RowData` format and Scala 3 case classes, deriving the
+conversion at compile time:
 
----
+```scala
+import org.apache.flinkx.api.rowdata.*
 
-## Design Pattern (Following Existing Codebase)
+case class User(id: String, name: String, age: Int) derives RowDataConverter
 
-This implementation mirrors the existing `TypeInformation` derivation pattern:
-
-```
-TypeInformationDerivation (uses Magnolia)
-    ├─ auto.scala (automatic via given)
-    └─ semiauto.scala (explicit deriveTypeInformation)
-
-RowDataConverterDerivation (will use inline + Mirror)
-    ├─ auto.scala (automatic via derives or given)
-    └─ semiauto.scala (explicit deriveRowDataConverter)
+val user: User    = row.toScala[User]
+val back: RowData = user.toRowData
 ```
 
-**Why not pure Magnolia?** The `derives` clause requires inline support for compile-time field extraction and custom converter resolution. Inline macros provide cleaner implementation than wrapping Magnolia.
+Fields map **by position**: column `i` of the `RowData` is the `i`-th field in declaration order. This is unchecked
+against any table schema — a mismatched declaration order reads wrong data rather than failing.
 
----
+## Files
 
-## Phase 1: Foundation (Core Data Structures)
+Main sources — `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/`:
 
-### 1.1 `FieldConverter[T]` Trait
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/FieldConverter.scala`
+| File | Role |
+|------|------|
+| `FieldConverter.scala` | Per-field conversion trait + built-in givens (primitives, `String`, `Array[Byte]`, `Option`, nested case class) + `decimal`/`instant`/`localDateTime` factories |
+| `RowDataConverter.scala` | Public trait (`fromRowData`, `toRowData`, `arity`) + `inline def derived` supporting `derives` |
+| `auto.scala` / `semiauto.scala` | Automatic (`given`) and explicit (`deriveRowDataConverter`) derivation, mirroring the `TypeInformation` convention |
+| `extensions.scala` | `row.toScala[T]` and `value.toRowData` syntax |
 
-Represents conversion logic for a single field at a specific RowData position.
+Tests: `modules/flink-common-api/src/test/scala-3/org/apache/flinkx/api/rowdata/RowDataConverterTest.scala` (17 cases,
+run against both Flink 1.20 and 2.0).
 
-**Key Design Decisions**:
-- ✅ Serializable for distributed execution (checkpointing)
-- ✅ Index parameter enables advanced use cases (cross-field conversions)
-- ✅ Simple, focused interface
-- ✅ Mirrors `MappedSerializer.TypeMapper` pattern
+Examples: `modules/examples/src/main/scala/org/example/rowdata/` — `basicRowData` (full DataStream job),
+`customConverter` (opaque-type override), `nestedAndNullable` (nested ROW, `Option`, `DECIMAL`).
 
-**Testing**:
-- [ ] Trait is compilable
-- [ ] Can be extended by user code
-- [ ] Serialization works
+## Divergences from the original plan
 
----
+The original plan was written against an assumed API and needed three substantive corrections.
 
-### 1.2 `DefaultFieldConverter[T]` Implementation
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/DefaultFieldConverter.scala`
+### 1. No generic field access — hence per-type givens, not `DefaultFieldConverter`
 
-Fallback converter when no custom implementation provided.
+`RowData` has **no `getField(index)`**. It exposes only typed accessors (`getInt`, `getLong`, `getString: StringData`,
+`getRow(pos, arity)`, `getDecimal(pos, precision, scale)`, …). The planned `DefaultFieldConverter[T](typeInfo)` — a
+single converter parameterised by a `TypeInformation[T]` — was therefore unbuildable: there is no type-agnostic way to
+read a column.
 
-**Key Points**:
-- ✅ Handles null fields correctly via `isNullAt()`
-- ✅ Calls type-specific accessor methods (getInt, getLong, getString, etc.)
-- ✅ No transformation overhead
-- ✅ Reuses existing TypeInformation from implicit scope
+Instead each supported type has its own `given FieldConverter`, and the derivation summons one per field by type. This
+also decided the customisation model (below).
 
-**Testing**:
-- [ ] Primitives (Int, String, Long, Double, Boolean)
-- [ ] Collections (List, Set, Map)
-- [ ] Null field handling
-- [ ] Case class fields
+### 2. Custom converters are resolved by type, not by field name
 
----
+The plan's headline feature — `implicit val timestampConverter: FieldConverter[Long]` in the companion to customise the
+`timestamp` field — does not work: it would apply to **every** `Long` field in scope, and the enum example's
+`FieldConverter[String]` would have hijacked `orderId` alongside `status`.
 
-### 1.3 `RowDataConverter[T]` Main Trait
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/RowDataConverter.scala`
+Resolution is **by field type**. To customise one field, give it a distinct type (an `opaque type` costs nothing at
+runtime) and provide a `given` for that type. Documented gotcha: the opaque type must be declared *outside* the scope
+that declares the case class, because within its own defining scope it is transparent and the derivation sees the
+underlying type. Three failing tests caught this during implementation.
 
-The public API that users depend on.
+### 3. `typeInfo` dropped from the trait
 
-**Key Design Decisions**:
-- ✅ Serializable for checkpointing
-- ✅ Three methods: from/to RowData, typeInfo
-- ✅ Focuses on the conversion contract
-- ✅ Macro handles implementation generation
+The planned `typeInfo: TypeInformation[T]` returning a `RowTypeInfo` was wrong twice over: `RowTypeInfo` describes
+`org.apache.flink.types.Row`, not `RowData`, and a correct `InternalTypeInfo` of a `RowType` would have pulled a
+`flink-table-runtime` dependency into `flink-common-api` plus a full Scala-type-to-`LogicalType` mapping. Conversion and
+type-info are separate concerns and the project already derives `TypeInformation[T]` via Magnolia, so the trait was left
+minimal. The examples show how to supply `InternalTypeInfo` at the use site when a `DataStream[RowData]` needs it.
 
-**Testing**:
-- [ ] Round-trip: RowData → T → RowData
-- [ ] Null handling
-- [ ] Collection fields
+## Implementation choice: inline, not a quoted macro
 
----
+The plan called for a quoted macro emitting unrolled per-field code. The implementation is a plain `inline def` that
+resolves one `FieldConverter` per field into an `Array` and iterates it in a `while` loop. Trade-off: one array load and
+one monomorphic virtual call per field (both JIT-friendly) in exchange for far simpler, more maintainable code and no
+`scala.quoted` surface. Still zero reflection. The trait boundary is unchanged, so swapping in a quoted macro later — if
+a benchmark ever justifies it — is a contained change.
 
-## Phase 2: Macro Engine (Core Derivation)
+## Not done
 
-### 2.1 `RowDataConverterDerivation` Inline Macro
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/RowDataConverterDerivation.scala`
-
-This is the complex part. Generates optimized converter implementations at compile time.
-
-**Implementation Strategy**:
-- Use `scala.compiletime.summonInline` to resolve `FieldConverter[T]` per field
-- Use `scala.deriving.Mirror` for field extraction
-- Generate **type-specific accessor calls** (getInt, getLong, getString, etc.) based on compile-time type info
-- Generate unrolled code (not loops) for best performance
-- Use `GenericRowData` for RowData creation
-
-**Key Challenges**:
-1. **Field Extraction**: Map Mirror labels to actual field names and types
-2. **Tuple Unpacking**: Extract individual field types from `MirroredElemTypes`
-3. **Type-Specific Accessors**: Generate the right accessor call for each field type
-4. **Error Messages**: Make compile errors clear when RowDataConverter can't be derived
-
-**Testing**:
-- [ ] Single field case class compiles and works
-- [ ] Multi-field case class works
-- [ ] Custom converter overrides default
-- [ ] Multiple custom converters work
-- [ ] Null fields handled
-- [ ] Compile errors are clear
-- [ ] Type-specific accessors are called (not generic getField)
-
----
-
-### 2.2 Auto/SemiAuto Derivation Traits
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/auto.scala`
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/semiauto.scala`
-
-Following the existing `TypeInformation` pattern.
-
-**Key Points**:
-- ✅ Follows existing TypeInformation pattern
-- ✅ auto: implicit `given` for automatic resolution
-- ✅ semiauto: explicit method for caching in companion object
-- ✅ Both delegate to same `RowDataConverterDerivation.derived`
-
-**Testing**:
-- [ ] auto derivation with derives clause
-- [ ] semiauto with explicit call in companion
-- [ ] Both work identically
-- [ ] Custom converters available in both modes
-
----
-
-## Phase 3: User Experience (Extensions & Exports)
-
-### 3.1 Extension Methods
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/extensions.scala`
-
-**Testing**:
-- [ ] Extension methods resolve correctly
-- [ ] Type inference works
-- [ ] Chaining operations
-
-### 3.2 Package Exports
-**File**: `modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/package.scala`
-
-**Testing**:
-- [ ] All exports resolve
-- [ ] No circular dependencies
-
----
-
-## Phase 4: Real-World Examples
-
-See DETAILED_DESIGN_REFERENCE.md for example code.
-
----
-
-## Phase 5: Testing Strategy
-
-### Unit Tests
-**File**: `modules/flink-common-api/src/test/scala-3/org/apache/flinkx/api/rowdata/RowDataConverterSpec.scala`
-
-### Integration Tests
-**File**: `modules/flink-common-api/src/test/scala-3/org/apache/flinkx/api/rowdata/RowDataConverterIntegrationSpec.scala`
-
----
-
-## Implementation Checklist
-
-### Phase 1 (Week 1)
-- [ ] Create `FieldConverter` trait
-- [ ] Create `DefaultFieldConverter` implementation
-- [ ] Create `RowDataConverter` trait
-- [ ] Write unit tests for each
-- [ ] Verify serialization
-
-### Phase 2 (Week 2)
-- [ ] Design inline macro algorithm
-- [ ] Implement `RowDataConverterDerivation.derived`
-- [ ] Implement field converter summoning
-- [ ] Handle implicit resolution precedence
-- [ ] Generate type-specific accessor calls
-- [ ] Write comprehensive macro tests
-- [ ] Test error messages
-
-### Phase 3 (Week 2.5)
-- [ ] Create `auto.scala`
-- [ ] Create `semiauto.scala`
-- [ ] Create extension methods
-- [ ] Create package exports
-- [ ] Integration tests
-
-### Phase 4 (Week 3)
-- [ ] Write 4 code examples
-- [ ] Test all examples compile and run
-- [ ] Document example usage
-
-### Phase 5 (Week 3.5)
-- [ ] Full test suite
-- [ ] Performance benchmarks
-- [ ] Edge case testing
-- [ ] Null handling verification
-
-### Documentation (Week 4)
-- [ ] Update main README
-- [ ] Add scaladoc comments
-- [ ] Create migration guide
-- [ ] Performance tuning tips
-
----
-
-## File Structure
-
-```
-modules/flink-common-api/src/main/scala-3/org/apache/flinkx/api/rowdata/
-├── FieldConverter.scala                    # Core trait
-├── DefaultFieldConverter.scala             # Default implementation
-├── RowDataConverter.scala                  # Main API
-├── RowDataConverterDerivation.scala        # Macro engine [COMPLEX]
-├── auto.scala                              # Automatic derivation
-├── semiauto.scala                          # Explicit derivation
-├── extensions.scala                        # Extension methods
-└── package.scala                           # Exports
-
-modules/flink-common-api/src/test/scala-3/org/apache/flinkx/api/rowdata/
-├── RowDataConverterSpec.scala              # Unit tests
-└── RowDataConverterIntegrationSpec.scala   # Integration tests
-
-modules/examples/src/main/scala-3/examples/rowdata/
-├── BasicRowDataExample.scala
-├── CustomConverterExample.scala
-├── EnumConversionExample.scala
-└── UnitConversionExample.scala
-```
-
----
-
-## Key References
-
-- **Flink RowData API**: https://nightlies.apache.org/flink/flink-docs-stable/api/java/org/apache/flink/table/data/RowData.html
-- **Type-Specific Accessors**: getInt(), getLong(), getString(), etc.
-- **Null Checks**: isNullAt(pos) before accessor calls
-- **RowData Creation**: GenericRowData for new instances
-
----
-
-## Next Steps
-
-1. ✅ Review this implementation plan
-2. 🎯 Approve design decisions
-3. 🚀 Begin Phase 1 (foundation)
-4. 📊 Create JIRA/GitHub issues if needed
-5. 📅 Schedule review checkpoints
+Performance benchmarks and Table-API integration tests. Nothing currently exercises the converter through a running
+Table pipeline end-to-end; the `basicRowData` example is the closest, driving a `DataStream[RowData]`.
