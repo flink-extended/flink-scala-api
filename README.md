@@ -129,7 +129,7 @@ There is a wide range of [code examples](https://github.com/flink-extended/flink
 - Simple job developed interactively via Jupyter notebooks;
 - Word count reading text from a web socket;
 - Example usage of DataGen connector and Kafka sink;
-- Converting Flink's internal `RowData` format into Scala case classes;
+- Converting Flink's `RowData` format into Scala case classes;
 - And more;
 
 ## Differences with the Official Flink Scala API
