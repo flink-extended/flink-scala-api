@@ -558,9 +558,9 @@ rarely what you want.
 
 Two gotchas worth knowing:
 
-- **Declare the `opaque type` outside the scope that declares the case class.** Within its own defining scope an
+- **You must declare the `opaque type` outside the scope that declares the case class.** Within its own defining scope an
   `opaque type` is transparent, so a derivation there sees the underlying type (plain `Long` above) and quietly picks
-  the built-in converter instead of yours. Its own object or its own file is enough.
+  the built-in converter instead of yours. Putting the opaque type in its own object or file is enough.
 - A `given` must be in scope where the converter is *derived*, not where it is used. Put it in the field type's
   companion object, or top-level in the file that declares the case class.
 
