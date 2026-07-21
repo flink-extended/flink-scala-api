@@ -1,6 +1,7 @@
 package org.apache.flinkx.api.rowdata
 
 import org.apache.flink.table.data.{GenericRowData, RowData, StringData}
+import org.apache.flink.types.RowKind
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
