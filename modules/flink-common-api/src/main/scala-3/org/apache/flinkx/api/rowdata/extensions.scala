@@ -25,4 +25,7 @@ extension [T](value: T)(using converter: RowDataConverter[T]) {
   /** Converts this case class instance to a [[RowData]] record. */
   def toRowData: RowData = converter.toRowData(value)
 
+  /** Converts this case class instance to a [[RowData]] record carrying the given [[RowKind]]. */
+  def toRowData(rowKind: RowKind): RowData = converter.toRowData(value, rowKind)
+
 }
