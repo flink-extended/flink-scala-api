@@ -20,9 +20,9 @@ extension (row: RowData) {
 
 }
 
-extension [T](value: T) {
+extension [T](value: T)(using converter: RowDataConverter[T]) {
 
   /** Converts this case class instance to a [[RowData]] record. */
-  def toRowData(using converter: RowDataConverter[T]): RowData = converter.toRowData(value)
+  def toRowData: RowData = converter.toRowData(value)
 
 }
