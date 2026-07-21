@@ -1,6 +1,7 @@
 package org.apache.flinkx.api.rowdata
 
 import org.apache.flink.table.data.RowData
+import org.apache.flink.types.RowKind
 
 /** Syntax for converting between [[RowData]] and case classes without naming the converter.
   *
