@@ -35,6 +35,13 @@ trait RowDataConverter[T] extends Serializable {
   /** Converts a `T` into a [[RowData]] record, as a [[GenericRowData]] with row kind `INSERT`. */
   def toRowData(value: T): RowData
 
+  /** Converts a `T` into a [[RowData]] record carrying the given [[RowKind]].
+    *
+    * Use this to preserve the changelog kind of record read from a table connector:
+    * `value.toRowData(sourceRow.getRowKind)`.
+    */
+  def toRowData(value: T, rowKind: RowKind): RowData
+
   /** The number of columns `T` occupies. Required to read `T` back out of a nested `ROW` column. */
   def arity: Int
 
