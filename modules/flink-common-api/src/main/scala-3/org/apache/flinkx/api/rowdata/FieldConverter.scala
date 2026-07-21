@@ -1,6 +1,6 @@
 package org.apache.flinkx.api.rowdata
 
-import org.apache.flink.table.data.{DecimalData, GenericRowData, RowData, StringData, TimestampData}
+import org.apache.flink.table.data.{DecimalData, RowData, StringData, TimestampData}
 
 import java.time.{Instant, LocalDateTime}
 
