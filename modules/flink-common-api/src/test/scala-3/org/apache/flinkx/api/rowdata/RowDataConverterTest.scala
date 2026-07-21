@@ -166,6 +166,14 @@ object RowDataConverterTest {
 
   case class Retryable(ts: EpochSeconds, retryCount: Long) derives RowDataConverter
 
+  object BigDecimalConverter {
+
+    given FieldConverter[BigDecimal] = FieldConverter.decimal(precision = 5, scale = 2)
+
+    case class Priced(amount: BigDecimal) derives RowDataConverter
+
+  }
+
 }
 
 /** A distinct type for a field that needs conversion, so the custom converter applies to it alone.
