@@ -1,6 +1,7 @@
 package org.apache.flinkx.api.rowdata
 
 import org.apache.flink.table.data.{GenericRowData, RowData}
+import org.apache.flink.types.RowKind
 
 import scala.compiletime.{erasedValue, summonInline}
 import scala.deriving.Mirror
