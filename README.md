@@ -507,9 +507,9 @@ val user: User    = row.toScala[User]
 val back: RowData = user.toRowData
 ```
 
-Fields map **by position**: column `i` of the `RowData` corresponds to the `i`-th field in declaration order. Nothing
+Fields are mapped **by position**: column `i` of the `RowData` corresponds to the `i`-th field in declaration order. Nothing
 checks this against the table schema, so a case class whose fields are declared in a different order than the table's
-columns will read garbage rather than fail. Keep the case class and the schema side by side.
+columns will read garbage rather than fail. You must keep the case class and the schema in sync.
 
 Derivation is available three ways, mirroring how `TypeInformation` is derived elsewhere in this library: the `derives`
 clause above, `semiauto.deriveRowDataConverter[T]` for a converter you place in a companion object, and `auto.given` to
