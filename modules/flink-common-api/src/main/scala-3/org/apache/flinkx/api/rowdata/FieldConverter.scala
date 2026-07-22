@@ -144,8 +144,14 @@ object FieldConverter {
       def fromRowData(row: RowData, index: Int): BigDecimal =
         BigDecimal(row.getDecimal(index, precision, scale).toBigDecimal)
 
-      def toRowData(value: BigDecimal): AnyRef =
-        DecimalData.fromBigDecimal(value.bigDecimal, precision, scale)
+      def toRowData(value: BigDecimal): AnyRef = {
+        val decimal = DecimalData.fromBigDecimal(value.bigDecimal, precision, scale)
+        if decimal == null then
+          throw new IllegalArgumentException(
+            s"BigDecimal $value does not fit DECIMAL($precision, $scale)"
+          )
+        decimal
+      }
     }
 
   /** A converter for a `TIMESTAMP_LTZ(precision)` column read as an [[Instant]]. */
