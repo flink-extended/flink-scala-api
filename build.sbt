@@ -188,10 +188,19 @@ lazy val `examples` = (projectMatrix in file("modules/examples"))
       "org.typelevel"   %% "cats-core"                  % "2.13.0"      % Test,
       "org.scalatest"   %% "scalatest"                  % "3.2.15"      % Test
     ),
+    // Flink dependencies are Provided, so they are absent from the default runtime classpath. Both `run` and `runMain`
+    // are rebound to the full classpath, otherwise launching any example fails with a NoClassDefFoundError on a Flink
+    // class. Passing `Compile / run / runner` to both means `runMain` also picks up the forking configured below.
     Compile / run := Defaults
       .runTask(
         Compile / fullClasspath,
         Compile / run / mainClass,
+        Compile / run / runner
+      )
+      .evaluated,
+    Compile / runMain := Defaults
+      .runMainTask(
+        Compile / fullClasspath,
         Compile / run / runner
       )
       .evaluated,

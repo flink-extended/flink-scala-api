@@ -1,0 +1,32 @@
+package org.apache.flinkx.api.rowdata
+
+import org.apache.flink.table.data.RowData
+import org.apache.flink.types.RowKind
+
+/** Syntax for converting between [[RowData]] and case classes without naming the converter.
+  *
+  * {{{
+  * import org.apache.flinkx.api.rowdata.*
+  *
+  * case class User(id: String, age: Int) derives RowDataConverter
+  *
+  * val user: User    = row.toScala[User]
+  * val back: RowData = user.toRowData
+  * }}}
+  */
+extension (row: RowData) {
+
+  /** Converts this record to `T`. The target type has to be written out: `row.toScala[User]`. */
+  def toScala[T](using converter: RowDataConverter[T]): T = converter.fromRowData(row)
+
+}
+
+extension [T](value: T)(using converter: RowDataConverter[T]) {
+
+  /** Converts this case class instance to a [[RowData]] record. */
+  def toRowData: RowData = converter.toRowData(value)
+
+  /** Converts this case class instance to a [[RowData]] record carrying the given [[RowKind]]. */
+  def toRowData(rowKind: RowKind): RowData = converter.toRowData(value, rowKind)
+
+}
