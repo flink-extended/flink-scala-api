@@ -128,7 +128,14 @@ object FieldConverter {
     */
   given nestedConverter[A](using nested: RowDataConverter[A]): FieldConverter[A] with {
     def fromRowData(row: RowData, index: Int): A = nested.fromRowData(row.getRow(index, nested.arity))
-    def toRowData(value: A): AnyRef              = nested.toRowData(value)
+    def fromRowData(row: RowData, index: Int): A =
+      if row.isNullAt(index) then
+        throw new NullPointerException(
+          s"nested ROW column at index $index is NULL; wrap the field in Option to read a nullable ROW column"
+        )
+      else nested.fromRowData(row.getRow(index, nested.arity))
+
+    def toRowData(value: A): AnyRef = nested.toRowData(value)
   }
 
   /** A converter for a `DECIMAL(precision, scale)` column. Both must match the table schema. */
