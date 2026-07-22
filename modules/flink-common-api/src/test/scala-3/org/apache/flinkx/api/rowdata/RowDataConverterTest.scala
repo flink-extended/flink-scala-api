@@ -71,6 +71,10 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
     row.toScala[Retryable] shouldBe Retryable(EpochSeconds(5L), 7L)
   }
 
+  "a DECIMAL converter" should "reject a value that does not fit the declared precision" in {
+    an[IllegalArgumentException] should be thrownBy BigDecimalConverter.Priced(BigDecimal("123456.00")).toRowData
+  }
+
   "an Option field" should "read NULL as None" in {
     val row = GenericRowData.of(StringData.fromString("u1"), null)
 
