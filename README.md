@@ -511,6 +511,13 @@ Fields are mapped **by position**: column `i` of the `RowData` corresponds to th
 checks this against the table schema, so a case class whose fields are declared in a different order than the table's
 columns will read garbage rather than fail. You must keep the case class and the schema in sync.
 
+`toRowData` produces an `INSERT` row by default. To emit a changelog row of another kind — `UPDATE_BEFORE`,
+`UPDATE_AFTER` or `DELETE` — pass the `RowKind` explicitly, for example forwarding the kind of the row you read:
+
+```scala
+val out: RowData = user.toRowData(sourceRow.getRowKind)
+```
+
 Derivation is available three ways, mirroring how `TypeInformation` is derived elsewhere in this library: the `derives`
 clause above, `semiauto.deriveRowDataConverter[T]` for a converter you place in a companion object, and `auto.given` to
 derive at every use site.
@@ -521,7 +528,8 @@ Out of the box: all seven primitives, `String`, `Array[Byte]`, `Option` for null
 that have a converter of their own.
 
 Wrapping a nullable column in `Option` matters. `RowData`'s typed accessors do not check nullity themselves, so a `NULL`
-column read into a plain `Int` yields `0`, and into a plain `String` throws.
+column read into a plain `Int` yields `0`, and into a plain `String` throws. The same applies to nested case classes: a
+`NULL` ROW column read into a plain nested field throws — wrap it in `Option` to read a nullable ROW column.
 
 `DECIMAL(p, s)` and `TIMESTAMP(p)` have no default given, because reading them at the wrong precision returns wrong
 values rather than failing. State the schema explicitly:
