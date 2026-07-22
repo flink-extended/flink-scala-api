@@ -110,6 +110,23 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
     person.toRowData.toScala[Person] shouldBe person
   }
 
+  "toRowData" should "default to row kind INSERT" in {
+    User("u1", "Alice", 30).toRowData.getRowKind shouldBe RowKind.INSERT
+  }
+
+  it should "carry an explicit RowKind when one is given" in {
+    User("u1", "Alice", 30).toRowData(RowKind.DELETE).getRowKind shouldBe RowKind.DELETE
+  }
+
+  it should "let a changelog record round-trip without its kind collapsing to INSERT" in {
+    val source =
+      GenericRowData.ofKind(RowKind.UPDATE_AFTER, StringData.fromString("u1"), StringData.fromString("Alice"), Integer.valueOf(30))
+
+    val user = source.toScala[User]
+
+    user.toRowData(source.getRowKind).getRowKind shouldBe RowKind.UPDATE_AFTER
+  }
+
   "a derived converter" should "survive Java serialization" in {
     val converter = summon[RowDataConverter[User]]
     val user      = User("u1", "Alice", 30)
