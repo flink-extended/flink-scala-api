@@ -127,7 +127,6 @@ object FieldConverter {
     * The nested type's own [[RowDataConverter]] supplies the arity that [[RowData.getRow]] requires.
     */
   given nestedConverter[A](using nested: RowDataConverter[A]): FieldConverter[A] with {
-    def fromRowData(row: RowData, index: Int): A = nested.fromRowData(row.getRow(index, nested.arity))
     def fromRowData(row: RowData, index: Int): A =
       if row.isNullAt(index) then
         throw new NullPointerException(
