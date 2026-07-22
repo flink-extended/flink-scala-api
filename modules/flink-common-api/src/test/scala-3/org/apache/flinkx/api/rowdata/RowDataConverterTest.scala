@@ -89,6 +89,13 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
     row.isNullAt(1) shouldBe true
   }
 
+  "a NULL nested ROW column" should "fail with a clear error rather than an opaque NPE" in {
+    val row = GenericRowData.of(StringData.fromString("u1"), null)
+
+    val ex = the[NullPointerException] thrownBy row.toScala[Person]
+    ex.getMessage should include("Option")
+  }
+
   it should "round-trip both cases" in {
     val present = MaybeNamed("u1", Some("Alice"))
     val absent  = MaybeNamed("u1", None)
