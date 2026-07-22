@@ -88,8 +88,10 @@ object RowDataConverter {
       mirror.fromProduct(ArrayProduct(fields))
     }
 
-    def toRowData(value: T): RowData = {
-      val row     = new GenericRowData(arity)
+    def toRowData(value: T): RowData = toRowData(value, RowKind.INSERT)
+
+    def toRowData(value: T, rowKind: RowKind): RowData = {
+      val row     = new GenericRowData(rowKind, arity)
       val product = value.asInstanceOf[Product]
       var i       = 0
       while (i < arity) {
