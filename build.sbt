@@ -153,7 +153,7 @@ lazy val docs = (projectMatrix in file("modules/docs")) // important: it must no
   .dependsOn(`flink-1-api`)
   .jvmPlatform(crossVersions)
   .settings(
-    mdocIn         := new File("README.md"),
+    mdocIn         := new File("api-docs"),
     publish / skip := true,
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-streaming-java" % flinkVersion1
