@@ -131,7 +131,12 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
 
   it should "let a changelog record round-trip without its kind collapsing to INSERT" in {
     val source =
-      GenericRowData.ofKind(RowKind.UPDATE_AFTER, StringData.fromString("u1"), StringData.fromString("Alice"), Integer.valueOf(30))
+      GenericRowData.ofKind(
+        RowKind.UPDATE_AFTER,
+        StringData.fromString("u1"),
+        StringData.fromString("Alice"),
+        Integer.valueOf(30)
+      )
 
     val user = source.toScala[User]
 
