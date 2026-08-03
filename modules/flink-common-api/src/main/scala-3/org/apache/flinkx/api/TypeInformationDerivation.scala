@@ -26,7 +26,7 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 
-  protected[api] val cache: TrieMap[String, TypeInformation[?]] = TrieMap.empty
+  def cache: TrieMap[DerivationCacheKey, TypeInformation[?]] = TypeInformationDerivation.cache
 
   // We cannot add a constraint of `T <: Product`, even though `join` is always called on products.
   // Need to mix in via `& Product`.
@@ -34,9 +34,8 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
   ): Typeclass[T] =
-    val useCache = typeTag.isCachable
-    val cacheKey = typeTag.toString
-    (if useCache then cache.get(cacheKey) else None) match
+    val cacheKey = DerivationCacheKey(typeTag.toString, ctx.params.map(_.typeclass).toSeq)
+    cache.get(cacheKey) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
 
@@ -63,16 +62,14 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
           fieldNames = ctx.params.map(_.label),
           ser = serializer
         ).asInstanceOf[TypeInformation[T]]
-        if useCache then cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
-        else ti
+        cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
 
   override def split[T](ctx: SealedTrait[Typeclass, T])(using
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
   ): Typeclass[T] =
-    val useCache = typeTag.isCachable
-    val cacheKey = typeTag.toString
-    (if useCache then cache.get(cacheKey) else None) match
+    val cacheKey = DerivationCacheKey(typeTag.toString, ctx.subtypes.map(_.typeclass).toSeq)
+    cache.get(cacheKey) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
 
@@ -90,5 +87,9 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
             )
         val clazz = classTag.runtimeClass.asInstanceOf[Class[T]]
         val ti    = new CoproductTypeInformation[T](clazz, serializer)
-        if useCache then cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
-        else ti
+        cache.putIfAbsent(cacheKey, ti).getOrElse(ti).asInstanceOf[TypeInformation[T]]
+
+private[api] object TypeInformationDerivation:
+
+  /** Storage of the cache exposed by [[TypeInformationDerivation.cache]]. */
+  private val cache: TrieMap[DerivationCacheKey, TypeInformation[?]] = TrieMap.empty

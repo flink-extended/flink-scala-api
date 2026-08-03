@@ -28,20 +28,24 @@ class GenericCaseClassScala3Test extends AnyFlatSpec with should.Matchers {
     val catBasketInfo: TypeInformation[Basket[Cat]] = deriveTypeInformation
     // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[org.apache.flinkx.api.GenericCaseClassTest.Dog] => OK
     val dogBasketInfo: TypeInformation[Basket[Dog]] = deriveTypeInformation
-    // cacheKey=org.apache.flinkx.api.GenericCaseClassTest.Basket[A] => Basket[A] is not cachable
-    val aBasketInfo: TypeInformation[Basket[A]] = deriveTypeInformation
+    // cacheKey=(org.apache.flinkx.api.GenericCaseClassTest.Basket[A], Cat or Dog) => OK, the unresolved A of the type
+    // name is made up for by the type information of the member
+    val aBasketInfo: TypeInformation[Basket[A]]     = deriveTypeInformation
+    val sameABasketInfo: TypeInformation[Basket[A]] = deriveTypeInformation
 
+    // Basket[A] is cached, under a key of its own as its type name differs from the one of Basket[Cat]
+    sameABasketInfo should be theSameInstanceAs aBasketInfo
     if (classOf[Cat].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs catInfo
-      aBasketInfo shouldNot be theSameInstanceAs catBasketInfo // Basket[A] is not cachable
+      aBasketInfo shouldNot be theSameInstanceAs catBasketInfo
     }
     if (classOf[Dog].isAssignableFrom(aClass)) {
       aInfo should be theSameInstanceAs dogInfo
-      aBasketInfo shouldNot be theSameInstanceAs dogBasketInfo // Basket[A] is not cachable
+      aBasketInfo shouldNot be theSameInstanceAs dogBasketInfo
     }
     catBasketInfo.asInstanceOf[CaseClassTypeInfo[A]].getFieldTypes()(0) should be theSameInstanceAs catInfo
     dogBasketInfo.asInstanceOf[CaseClassTypeInfo[A]].getFieldTypes()(0) should be theSameInstanceAs dogInfo
-    // Type info of Basket[A] is not cached, but it holds a type info of the good type (Cat or Dog) found in the cache
+    // The type info of Basket[A] holds the type info of the good type
     aBasketInfo.asInstanceOf[CaseClassTypeInfo[A]].getFieldTypes()(0) should be theSameInstanceAs aInfo
   }
 

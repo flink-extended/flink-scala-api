@@ -18,12 +18,12 @@ private[api] trait TypeInformationDerivation {
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 
-  protected[api] val cache: TrieMap[String, TypeInformation[_]] = TrieMap.empty
+  def cache: TrieMap[DerivationCacheKey, TypeInformation[_]] = TypeInformationDerivation.cache
 
   def join[T <: Product: ClassTag: TypeTag](
       ctx: CaseClass[TypeInformation, T]
   ): TypeInformation[T] = {
-    val cacheKey = typeName[T]
+    val cacheKey = DerivationCacheKey(typeName[T], ctx.parameters.map(_.typeclass))
     cache.get(cacheKey) match {
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]
       case None         =>
@@ -53,7 +53,7 @@ private[api] trait TypeInformationDerivation {
   }
 
   def split[T: ClassTag: TypeTag](ctx: SealedTrait[TypeInformation, T]): TypeInformation[T] = {
-    val cacheKey = typeName[T]
+    val cacheKey = DerivationCacheKey(typeName[T], ctx.subtypes.map(_.typeclass))
     cache.get(cacheKey) match {
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]
       case None         =>
@@ -68,5 +68,12 @@ private[api] trait TypeInformationDerivation {
   }
 
   private def typeName[T: TypeTag]: String = typeOf[T].toString
+
+}
+
+private[api] object TypeInformationDerivation {
+
+  /** Storage of the cache exposed by [[TypeInformationDerivation.cache]]. */
+  private val cache: TrieMap[DerivationCacheKey, TypeInformation[_]] = TrieMap.empty
 
 }
