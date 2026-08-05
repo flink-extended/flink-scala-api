@@ -1,14 +1,43 @@
 package org.apache.flinkx.api
 
-import org.apache.flink.api.common.typeinfo.TypeInformation
-import org.apache.flinkx.api.ConcurrentDerivationTest._
+import org.apache.flink.api.common.serialization.SerializerConfigImpl
+import org.apache.flink.api.common.typeinfo.{TypeInformation, Types}
+import org.apache.flink.api.common.typeutils.TypeSerializer
+import org.apache.flinkx.api.DerivationCacheTest._
 import org.apache.flinkx.api.auto._
+import org.apache.flinkx.api.serializer.CaseClassSerializer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.util.concurrent.{Callable, CountDownLatch, Executors, TimeUnit}
 
-class ConcurrentDerivationTest extends AnyFlatSpec with Matchers {
+class DerivationCacheTest extends AnyFlatSpec with Matchers {
+
+  it should "expose the same derivation cache at each access of an entry point" in {
+    auto.cache should be theSameInstanceAs auto.cache
+  }
+
+  it should "expose the derivation cache the type information are derived in" in {
+    auto.cache.clear()
+    auto.cache shouldBe empty
+
+    implicitly[TypeInformation[Item]]
+
+    auto.cache should not be empty
+  }
+
+  it should "not serve the type information cached to another one" in {
+    val holderInfo = implicitly[TypeInformation[Holder]]
+
+    val customHolderInfo = {
+      implicit val itemInfo: TypeInformation[Item] = Types.GENERIC(classOf[Item])
+      implicitly[TypeInformation[Holder]]
+    }
+
+    itemSerializerOf(holderInfo) shouldBe a[CaseClassSerializer[_]]
+    // Fails when both Holders share the same cache keys: the type information derived first is served to the other
+    itemSerializerOf(customHolderInfo) shouldNot be(a[CaseClassSerializer[_]])
+  }
 
   it should "produce a singleton TypeInformation per type even when several threads derive types sharing subtypes" in {
     val threads    = 16
@@ -56,9 +85,18 @@ class ConcurrentDerivationTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  private def itemSerializerOf(holderInfo: TypeInformation[Holder]): TypeSerializer[_] =
+    holderInfo
+      .createSerializer(new SerializerConfigImpl())
+      .asInstanceOf[CaseClassSerializer[Holder]]
+      .getFieldSerializers()(0)
+
 }
 
-object ConcurrentDerivationTest {
+object DerivationCacheTest {
+
+  case class Item(id: String)
+  case class Holder(item: Item)
 
   case class SharedA(a: Int, b: String)
   case class SharedB(c: Long, d: Double)

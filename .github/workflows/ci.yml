@@ -30,6 +30,8 @@ jobs:
           cache: sbt
       - name: Run all tests
         run: JAVA_OPTS=$JAVA_OPTIONS sbt test
+      - name: Check the binary compatibility with the previous release
+        run: JAVA_OPTS=$JAVA_OPTIONS sbt mimaReportBinaryIssues
       - name: Compile Scala 2.13 docs
         run: JAVA_OPTS=$JAVA_OPTIONS sbt docs/mdoc
       - name: Compile Scala 3 docs

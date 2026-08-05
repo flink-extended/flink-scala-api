@@ -6,6 +6,21 @@ import org.apache.flink.api.java.typeutils.runtime.NullableSerializer
 
 package object api {
 
+  /** Key of an entry of the derivation cache exposed by `TypeInformationDerivation.cache`.
+    *
+    * The name of the type is not enough to identify a derived type information: the derivation also depends on the type
+    * information of the members, which are resolved from the implicits in scope at the call site. Two call sites
+    * deriving the same type with different implicits expect two different type information, so they must not share a
+    * cache entry.
+    *
+    * @param typeName
+    *   name of the derived type
+    * @param memberTypeInfos
+    *   type information of the case class fields, or of the sealed trait subtypes, as resolved at the call site.
+    *   [[TypeInformation]] implementations are required to implement `equals`, so comparing them is meaningful.
+    */
+  final case class DerivationCacheKey(typeName: String, memberTypeInfos: Seq[TypeInformation[_]])
+
   /** Basic type has an arity of 1. See [[BasicTypeInfo#getArity()]] */
   private[api] val BasicTypeArity: Int = 1
 

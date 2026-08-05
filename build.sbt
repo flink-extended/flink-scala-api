@@ -1,3 +1,5 @@
+import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleSignatureProblem, ProblemFilters}
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
@@ -5,6 +7,9 @@ lazy val rootScalaVersion = "3.3.8"
 lazy val crossVersions    = Seq("2.13.18", rootScalaVersion)
 lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
+
+// Version on which the binary compatibility is checked by MiMa
+lazy val mimaPreviousVersion = "2.2.4"
 
 ThisBuild / publishTo := sonatypePublishToBundle.value
 
@@ -53,7 +58,9 @@ lazy val `flink-scala-api` = (project in file("."))
   .settings(
     scalaVersion       := rootScalaVersion,
     crossScalaVersions := crossVersions,
-    publish / skip     := true
+    // Not published, so there is no previous artifact to check the binary compatibility against
+    mimaFailOnNoPrevious := false,
+    publish / skip       := true
   )
 
 lazy val commonSettings = Seq(
@@ -93,6 +100,21 @@ lazy val commonSettings = Seq(
   }
 )
 
+// Checks that this build doesn't break the binary compatibility of the code compiled against mimaPreviousVersion
+lazy val mimaSettings = Seq(
+  mimaPreviousArtifacts       := Set(organization.value %% moduleName.value % mimaPreviousVersion),
+  mimaReportSignatureProblems := true,
+  // To empty after next release
+  mimaBinaryIssueFilters ++= Seq(
+    // The key of the derivation cache became a DerivationCacheKey
+    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.auto.cache"),
+    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.semiauto.cache"),
+    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.serializers.cache"),
+    // The derivation cache no longer needs to be disabled for the generic types of Scala 3, so TypeTag lost isCachable
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.TypeTag.isCachable")
+  )
+)
+
 def flinkDependencies(flinkVersion: String) =
   Seq(
     "org.apache.flink"  % "flink-streaming-java"        % flinkVersion % Provided,
@@ -107,6 +129,7 @@ def flinkDependencies(flinkVersion: String) =
 // val has to be named `flink` in order to generate `flink-1-api-common` and `flink-2-api-common` project ids
 lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
   .settings(commonSettings)
+  .settings(mimaSettings)
   .customRow(
     scalaVersions = crossVersions,
     axisValues = Seq(FlinkAxis.Flink1Common, VirtualAxis.jvm),
@@ -127,6 +150,7 @@ lazy val `flink` = (projectMatrix in file("modules/flink-common-api"))
 lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
   .dependsOn(`flink`)
   .settings(commonSettings)
+  .settings(mimaSettings)
   .customRow(
     scalaVersions = crossVersions,
     axisValues = Seq(FlinkAxis.Flink1Api, VirtualAxis.jvm),
@@ -140,6 +164,7 @@ lazy val `flink-1-api` = (projectMatrix in file("modules/flink-1-api"))
 lazy val `flink-2-api` = (projectMatrix in file("modules/flink-2-api"))
   .dependsOn(`flink`)
   .settings(commonSettings)
+  .settings(mimaSettings)
   .customRow(
     scalaVersions = crossVersions,
     axisValues = Seq(FlinkAxis.Flink2Api, VirtualAxis.jvm),
@@ -172,6 +197,8 @@ lazy val `examples` = (projectMatrix in file("modules/examples"))
     crossScalaVersions := Seq(rootScalaVersion),
     Test / fork        := true,
     publish / skip     := true,
+    // Not published, so there is no previous artifact to check the binary compatibility against
+    mimaFailOnNoPrevious := false,
     libraryDependencies ++= Seq(
       "org.apache.flink" % "flink-runtime-web"         % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-clients"             % flinkVersion1 % Provided,
