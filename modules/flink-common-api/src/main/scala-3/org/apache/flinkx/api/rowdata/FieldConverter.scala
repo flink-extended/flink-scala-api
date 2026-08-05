@@ -2,7 +2,7 @@ package org.apache.flinkx.api.rowdata
 
 import org.apache.flink.table.data.{DecimalData, RowData, StringData, TimestampData}
 
-import java.time.{Instant, LocalDateTime}
+import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
 
 /** Converts a single [[RowData]] column, at a known position, to and from a Scala field type.
   *
@@ -100,6 +100,24 @@ object FieldConverter {
   given stringConverter: FieldConverter[String] with {
     def fromRowData(row: RowData, index: Int): String = row.getString(index).toString
     def toRowData(value: String): AnyRef              = StringData.fromString(value)
+  }
+
+  /** A `DATE` column, which [[RowData]] stores as the number of days since the epoch in an `int`. */
+  given localDateConverter: FieldConverter[LocalDate] with {
+    def fromRowData(row: RowData, index: Int): LocalDate = LocalDate.ofEpochDay(row.getInt(index).toLong)
+    def toRowData(value: LocalDate): AnyRef              = java.lang.Integer.valueOf(value.toEpochDay.toInt)
+  }
+
+  /** A `TIME` column, which [[RowData]] stores as the number of milliseconds since midnight in an `int`.
+    *
+    * Flink's internal representation is milliseconds whatever precision the schema declares, so a [[LocalTime]] carrying
+    * microseconds or nanoseconds is truncated on write.
+    */
+  given localTimeConverter: FieldConverter[LocalTime] with {
+    def fromRowData(row: RowData, index: Int): LocalTime =
+      LocalTime.ofNanoOfDay(row.getInt(index).toLong * 1000000L)
+
+    def toRowData(value: LocalTime): AnyRef = java.lang.Integer.valueOf((value.toNanoOfDay / 1000000L).toInt)
   }
 
   given binaryConverter: FieldConverter[Array[Byte]] with {

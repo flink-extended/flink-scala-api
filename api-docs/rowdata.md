@@ -30,8 +30,11 @@ derive at every use site.
 
 ## Supported field types
 
-Out of the box: all seven primitives, `String`, `Array[Byte]`, `Option` for nullable columns, and nested case classes
-that have a converter of their own.
+Out of the box: all seven primitives, `String`, `Array[Byte]`, `LocalDate` for `DATE` columns, `LocalTime` for `TIME` columns,
+`Option` for nullable columns, and nested case classes that have a converter of their own.
+
+`TIME` is stored as milliseconds since midnight whatever precision the schema declares, so a `LocalTime` carrying
+microseconds or nanoseconds is truncated on write.
 
 Wrapping a nullable column in `Option` matters. `RowData`'s typed accessors do not check nullity themselves, so a `NULL`
 column read into a plain `Int` yields `0`, and into a plain `String` throws. The same applies to nested case classes: a

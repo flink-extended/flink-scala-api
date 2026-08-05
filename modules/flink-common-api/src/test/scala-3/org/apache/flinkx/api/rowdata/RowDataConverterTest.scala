@@ -6,6 +6,7 @@ import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, ObjectInputStream, ObjectOutputStream}
+import java.time.{LocalDate, LocalTime}
 
 class RowDataConverterTest extends AnyFlatSpec with Matchers {
 
@@ -35,6 +36,39 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
     )
 
     row.toScala[Primitives] shouldBe Primitives(true, 1, 2, 3, 4L, 5.0f, 6.0d)
+  }
+
+  it should "read a DATE column as a LocalDate" in {
+    val row = GenericRowData.of(StringData.fromString("b1"), Integer.valueOf(20000))
+
+    row.toScala[Booking] shouldBe Booking("b1", LocalDate.ofEpochDay(20000))
+  }
+
+  it should "write a LocalDate as days since the epoch" in {
+    val row = Booking("b1", LocalDate.of(2024, 3, 1)).toRowData
+
+    row.getInt(1) shouldBe LocalDate.of(2024, 3, 1).toEpochDay.toInt
+    row.toScala[Booking] shouldBe Booking("b1", LocalDate.of(2024, 3, 1))
+  }
+
+  it should "read a TIME column as a LocalTime" in {
+    val row = GenericRowData.of(StringData.fromString("a1"), Integer.valueOf(45296789))
+
+    row.toScala[Alarm] shouldBe Alarm("a1", LocalTime.of(12, 34, 56, 789000000))
+  }
+
+  it should "write a LocalTime as milliseconds since midnight" in {
+    val alarm = Alarm("a1", LocalTime.of(12, 34, 56, 789000000))
+    val row   = alarm.toRowData
+
+    row.getInt(1) shouldBe 45296789
+    row.toScala[Alarm] shouldBe alarm
+  }
+
+  it should "truncate sub-millisecond LocalTime precision, which TIME cannot represent" in {
+    val row = Alarm("a1", LocalTime.of(0, 0, 0, 1500000)).toRowData
+
+    row.getInt(1) shouldBe 1
   }
 
   it should "round-trip case class -> RowData -> case class" in {
@@ -187,6 +221,10 @@ object RowDataConverterTest {
   case class Primitives(a: Boolean, b: Byte, c: Short, d: Int, e: Long, f: Float, g: Double) derives RowDataConverter
 
   case class MaybeNamed(id: String, name: Option[String]) derives RowDataConverter
+
+  case class Booking(id: String, day: LocalDate) derives RowDataConverter
+
+  case class Alarm(id: String, at: LocalTime) derives RowDataConverter
 
   case class Address(city: String, country: String) derives RowDataConverter
 
