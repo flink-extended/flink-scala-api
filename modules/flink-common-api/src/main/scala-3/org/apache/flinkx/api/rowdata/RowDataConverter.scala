@@ -1,9 +1,10 @@
 package org.apache.flinkx.api.rowdata
 
 import org.apache.flink.table.data.{GenericRowData, RowData}
+import org.apache.flink.table.types.logical.{LogicalType, RowType}
 import org.apache.flink.types.RowKind
 
-import scala.compiletime.{erasedValue, summonInline}
+import scala.compiletime.{constValueTuple, erasedValue, summonInline}
 import scala.deriving.Mirror
 
 /** Converts between Flink [[RowData]] records and Scala case classes.
@@ -46,6 +47,20 @@ trait RowDataConverter[T] extends Serializable {
   /** The number of columns `T` occupies. Required to read `T` back out of a nested `ROW` column. */
   def arity: Int
 
+  /** The Flink `ROW` type `T` maps to: one column per field, named after the field and typed by that field's
+    * [[FieldConverter]]. Columns are `NOT NULL` unless the field is an `Option`.
+    *
+    * This makes the case class the source of truth for the schema, which is what you want when writing rows you own. To
+    * '''read''' an existing table, take the `RowType` from the connector or catalog instead — this one is derived from
+    * the Scala types and will not reproduce a column type it cannot see, such as a `CHAR(10)` or a `DECIMAL` precision
+    * that differs from the one the field's converter declares.
+    *
+    * {{{
+    * given TypeInformation[RowData] = InternalTypeInfo.of(summon[RowDataConverter[User]].rowType)
+    * }}}
+    */
+  def rowType: RowType
+
 }
 
 object RowDataConverter {
@@ -55,7 +70,11 @@ object RowDataConverter {
     * Supports the `derives RowDataConverter` clause.
     */
   inline def derived[T](using m: Mirror.ProductOf[T]): RowDataConverter[T] =
-    new DerivedRowDataConverter[T](m, summonConverters[m.MirroredElemTypes].toArray)
+    new DerivedRowDataConverter[T](
+      m,
+      summonConverters[m.MirroredElemTypes].toArray,
+      constValueTuple[m.MirroredElemLabels].toArray.map(_.asInstanceOf[String])
+    )
 
   private inline def summonConverters[Elems <: Tuple]: List[FieldConverter[?]] =
     inline erasedValue[Elems] match {
@@ -73,10 +92,16 @@ object RowDataConverter {
     */
   final class DerivedRowDataConverter[T](
       mirror: Mirror.ProductOf[T],
-      converters: Array[FieldConverter[?]]
+      converters: Array[FieldConverter[?]],
+      fieldNames: Array[String]
   ) extends RowDataConverter[T] {
 
     val arity: Int = converters.length
+
+    // Built eagerly: LogicalType is immutable and cheap to hold, and a nested converter asks for it on every
+    // derivation of an enclosing case class.
+    val rowType: RowType =
+      RowType.of(false, converters.map(_.logicalType), fieldNames)
 
     def fromRowData(row: RowData): T = {
       val fields = new Array[Any](arity)

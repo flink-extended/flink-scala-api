@@ -3,7 +3,6 @@ package org.example.rowdata
 import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.table.data.{GenericRowData, RowData, StringData}
 import org.apache.flink.table.runtime.typeutils.InternalTypeInfo
-import org.apache.flink.table.types.logical.{IntType, RowType, VarCharType}
 import org.apache.flinkx.api.*
 import org.apache.flinkx.api.rowdata.*
 import org.apache.flinkx.api.serializers.*
@@ -15,25 +14,20 @@ import org.apache.flinkx.api.serializers.*
   * sequence of those accessor calls at compile time.
   *
   * Fields map '''by position''': `User`'s fields must be declared in the same order as the table's columns. Nothing
-  * checks this for you, so keep the case class and the `RowType` below side by side.
+  * checks this for you, so keep the case class and the table schema side by side.
   */
 case class User(id: String, name: String, age: Int) derives RowDataConverter
 
 @main def basicRowDataExample =
   val env = StreamExecutionEnvironment.getExecutionEnvironment
 
-  // The schema of the incoming rows. In a real job this comes from the connector, not from you.
-  val rowType = RowType.of(
-    Array[org.apache.flink.table.types.logical.LogicalType](
-      new VarCharType(VarCharType.MAX_LENGTH),
-      new VarCharType(VarCharType.MAX_LENGTH),
-      new IntType()
-    ),
-    Array("id", "name", "age")
-  )
-
-  // A DataStream of RowData needs the matching InternalTypeInfo to be serialized between operators.
-  given TypeInformation[RowData] = InternalTypeInfo.of(rowType)
+  // A DataStream of RowData needs a matching InternalTypeInfo to be serialized between operators, and Flink derives
+  // none for you: RowData is an interface, so the type information has to carry the schema. The derived converter
+  // already knows it — one NOT NULL column per field, named after the field.
+  //
+  // This makes the case class the source of truth for the schema. When reading an existing table, take the RowType
+  // from the connector or catalog instead.
+  given TypeInformation[RowData] = InternalTypeInfo.of(summon[RowDataConverter[User]].rowType)
 
   val rows = env.fromElements[RowData](
     GenericRowData.of(StringData.fromString("u1"), StringData.fromString("Alice"), Integer.valueOf(30)),

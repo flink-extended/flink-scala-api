@@ -1,6 +1,7 @@
 package org.example.rowdata
 
 import org.apache.flink.table.data.RowData
+import org.apache.flink.table.types.logical.{BigIntType, LogicalType}
 import org.apache.flinkx.api.rowdata.{FieldConverter, RowDataConverter}
 
 /** Customising how a single field is converted.
@@ -26,6 +27,9 @@ object Time:
     extension (value: EpochSeconds) def seconds: Long = value
 
     given FieldConverter[EpochSeconds] with
+      // The column type as the table declares it: epoch millis in a BIGINT, not nullable.
+      def logicalType: LogicalType = new BigIntType(false)
+
       def fromRowData(row: RowData, index: Int): EpochSeconds = row.getLong(index) / 1000
       def toRowData(value: EpochSeconds): AnyRef              = java.lang.Long.valueOf(value * 1000)
 
@@ -45,3 +49,6 @@ case class Event(userId: String, ts: EpochSeconds, eventType: String) derives Ro
 
   // And read back in seconds.
   println(s"read back: ${converter.fromRowData(row)}") // Event(u1,1700000000,click)
+
+  // The schema the case class implies, ready for `InternalTypeInfo.of(...)`.
+  println(converter.rowType) // ROW<`userId` VARCHAR(2147483647) NOT NULL, `ts` BIGINT NOT NULL, ...>

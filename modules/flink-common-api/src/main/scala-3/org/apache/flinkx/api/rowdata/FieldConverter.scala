@@ -1,6 +1,7 @@
 package org.apache.flinkx.api.rowdata
 
 import org.apache.flink.table.data.{DecimalData, RowData, StringData, TimestampData}
+import org.apache.flink.table.types.logical.*
 
 import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
 
@@ -15,6 +16,7 @@ import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
   *
   * object EpochSeconds:
   *   given FieldConverter[EpochSeconds] with
+  *     def logicalType: LogicalType                            = new BigIntType(false)
   *     def fromRowData(row: RowData, index: Int): EpochSeconds = row.getLong(index) / 1000
   *     def toRowData(value: EpochSeconds): AnyRef              = java.lang.Long.valueOf(value * 1000)
   *
@@ -33,6 +35,14 @@ import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
   *   the Scala field type
   */
 trait FieldConverter[A] extends Serializable {
+
+  /** The Flink column type this converter reads and writes.
+    *
+    * Used to assemble [[RowDataConverter.rowType]], and through it a `TypeInformation[RowData]`. Declare it '''NOT
+    * NULL''' (pass `false` as the `isNullable` argument of the [[LogicalType]] constructor) unless the field type is
+    * itself nullable: [[optionConverter]] is what marks a column nullable, by copying the inner type.
+    */
+  def logicalType: LogicalType
 
   /** Reads column `index` of `row` and converts it to `A`.
     *
@@ -63,57 +73,68 @@ trait FieldConverter[A] extends Serializable {
 object FieldConverter {
 
   given booleanConverter: FieldConverter[Boolean] with {
+    def logicalType: LogicalType                       = new BooleanType(false)
     def fromRowData(row: RowData, index: Int): Boolean = row.getBoolean(index)
     def toRowData(value: Boolean): AnyRef              = java.lang.Boolean.valueOf(value)
   }
 
   given byteConverter: FieldConverter[Byte] with {
+    def logicalType: LogicalType                    = new TinyIntType(false)
     def fromRowData(row: RowData, index: Int): Byte = row.getByte(index)
     def toRowData(value: Byte): AnyRef              = java.lang.Byte.valueOf(value)
   }
 
   given shortConverter: FieldConverter[Short] with {
+    def logicalType: LogicalType                     = new SmallIntType(false)
     def fromRowData(row: RowData, index: Int): Short = row.getShort(index)
     def toRowData(value: Short): AnyRef              = java.lang.Short.valueOf(value)
   }
 
   given intConverter: FieldConverter[Int] with {
+    def logicalType: LogicalType                   = new IntType(false)
     def fromRowData(row: RowData, index: Int): Int = row.getInt(index)
     def toRowData(value: Int): AnyRef              = java.lang.Integer.valueOf(value)
   }
 
   given longConverter: FieldConverter[Long] with {
+    def logicalType: LogicalType                    = new BigIntType(false)
     def fromRowData(row: RowData, index: Int): Long = row.getLong(index)
     def toRowData(value: Long): AnyRef              = java.lang.Long.valueOf(value)
   }
 
   given floatConverter: FieldConverter[Float] with {
+    def logicalType: LogicalType                     = new FloatType(false)
     def fromRowData(row: RowData, index: Int): Float = row.getFloat(index)
     def toRowData(value: Float): AnyRef              = java.lang.Float.valueOf(value)
   }
 
   given doubleConverter: FieldConverter[Double] with {
+    def logicalType: LogicalType                      = new DoubleType(false)
     def fromRowData(row: RowData, index: Int): Double = row.getDouble(index)
     def toRowData(value: Double): AnyRef              = java.lang.Double.valueOf(value)
   }
 
   given stringConverter: FieldConverter[String] with {
+    def logicalType: LogicalType                      = new VarCharType(false, VarCharType.MAX_LENGTH)
     def fromRowData(row: RowData, index: Int): String = row.getString(index).toString
     def toRowData(value: String): AnyRef              = StringData.fromString(value)
   }
 
   /** A `DATE` column, which [[RowData]] stores as the number of days since the epoch in an `int`. */
   given localDateConverter: FieldConverter[LocalDate] with {
+    def logicalType: LogicalType                         = new DateType(false)
     def fromRowData(row: RowData, index: Int): LocalDate = LocalDate.ofEpochDay(row.getInt(index).toLong)
     def toRowData(value: LocalDate): AnyRef              = java.lang.Integer.valueOf(value.toEpochDay.toInt)
   }
 
   /** A `TIME` column, which [[RowData]] stores as the number of milliseconds since midnight in an `int`.
     *
-    * Flink's internal representation is milliseconds whatever precision the schema declares, so a [[LocalTime]] carrying
-    * microseconds or nanoseconds is truncated on write.
+    * Flink's internal representation is milliseconds whatever precision the schema declares, so a [[LocalTime]]
+    * carrying microseconds or nanoseconds is truncated on write.
     */
   given localTimeConverter: FieldConverter[LocalTime] with {
+    def logicalType: LogicalType = new TimeType(false, 3)
+
     def fromRowData(row: RowData, index: Int): LocalTime =
       LocalTime.ofNanoOfDay(row.getInt(index).toLong * 1000000L)
 
@@ -121,6 +142,7 @@ object FieldConverter {
   }
 
   given binaryConverter: FieldConverter[Array[Byte]] with {
+    def logicalType: LogicalType                           = new VarBinaryType(false, VarBinaryType.MAX_LENGTH)
     def fromRowData(row: RowData, index: Int): Array[Byte] = row.getBinary(index)
     def toRowData(value: Array[Byte]): AnyRef              = value
   }
@@ -131,6 +153,8 @@ object FieldConverter {
     * [[RowData]]'s typed accessors do not check nullity themselves.
     */
   given optionConverter[A](using inner: FieldConverter[A]): FieldConverter[Option[A]] with {
+    def logicalType: LogicalType = inner.logicalType.copy(true)
+
     def fromRowData(row: RowData, index: Int): Option[A] =
       if row.isNullAt(index) then None else Some(inner.fromRowData(row, index))
 
@@ -145,6 +169,8 @@ object FieldConverter {
     * The nested type's own [[RowDataConverter]] supplies the arity that [[RowData.getRow]] requires.
     */
   given nestedConverter[A](using nested: RowDataConverter[A]): FieldConverter[A] with {
+    def logicalType: LogicalType = nested.rowType
+
     def fromRowData(row: RowData, index: Int): A =
       if row.isNullAt(index) then
         throw new NullPointerException(
@@ -158,6 +184,8 @@ object FieldConverter {
   /** A converter for a `DECIMAL(precision, scale)` column. Both must match the table schema. */
   def decimal(precision: Int, scale: Int): FieldConverter[BigDecimal] =
     new FieldConverter[BigDecimal] {
+      def logicalType: LogicalType = new DecimalType(false, precision, scale)
+
       def fromRowData(row: RowData, index: Int): BigDecimal =
         BigDecimal(row.getDecimal(index, precision, scale).toBigDecimal)
 
@@ -174,6 +202,7 @@ object FieldConverter {
   /** A converter for a `TIMESTAMP_LTZ(precision)` column read as an [[Instant]]. */
   def instant(precision: Int): FieldConverter[Instant] =
     new FieldConverter[Instant] {
+      def logicalType: LogicalType                       = new LocalZonedTimestampType(false, precision)
       def fromRowData(row: RowData, index: Int): Instant = row.getTimestamp(index, precision).toInstant
       def toRowData(value: Instant): AnyRef              = TimestampData.fromInstant(value)
     }
@@ -181,6 +210,8 @@ object FieldConverter {
   /** A converter for a `TIMESTAMP(precision)` column read as a [[LocalDateTime]]. */
   def localDateTime(precision: Int): FieldConverter[LocalDateTime] =
     new FieldConverter[LocalDateTime] {
+      def logicalType: LogicalType = new TimestampType(false, precision)
+
       def fromRowData(row: RowData, index: Int): LocalDateTime =
         row.getTimestamp(index, precision).toLocalDateTime
 

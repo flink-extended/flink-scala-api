@@ -1,6 +1,7 @@
 package org.apache.flinkx.api.rowdata
 
 import org.apache.flink.table.data.{GenericRowData, RowData, StringData}
+import org.apache.flink.table.types.logical.{BigIntType, LogicalType}
 import org.apache.flink.types.RowKind
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -202,6 +203,37 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
     converter.fromRowData(converter.toRowData(value)) shouldBe value
   }
 
+  "rowType" should "name and type one NOT NULL column per field" in {
+    summon[RowDataConverter[User]].rowType.asSerializableString shouldBe
+      "ROW<`id` VARCHAR(2147483647) NOT NULL, `name` VARCHAR(2147483647) NOT NULL, `age` INT NOT NULL> NOT NULL"
+  }
+
+  it should "mark an Option field nullable" in {
+    summon[RowDataConverter[MaybeNamed]].rowType.asSerializableString shouldBe
+      "ROW<`id` VARCHAR(2147483647) NOT NULL, `name` VARCHAR(2147483647)> NOT NULL"
+  }
+
+  it should "nest the ROW type of a nested case class" in {
+    summon[RowDataConverter[Person]].rowType.asSerializableString shouldBe
+      "ROW<`id` VARCHAR(2147483647) NOT NULL, `address` ROW<`city` VARCHAR(2147483647) NOT NULL, `country` VARCHAR(2147483647) NOT NULL> NOT NULL> NOT NULL"
+  }
+
+  it should "use the type declared by a custom FieldConverter" in {
+    summon[RowDataConverter[Event]].rowType.asSerializableString shouldBe
+      "ROW<`userId` VARCHAR(2147483647) NOT NULL, `ts` BIGINT NOT NULL> NOT NULL"
+  }
+
+  it should "carry the precision and scale of a DECIMAL converter" in {
+    import BigDecimalConverter.*
+    summon[
+      RowDataConverter[Priced]
+    ].rowType.asSerializableString shouldBe "ROW<`amount` DECIMAL(5, 2) NOT NULL> NOT NULL"
+  }
+
+  it should "describe the whole row as NOT NULL" in {
+    summon[RowDataConverter[Single]].rowType.isNullable shouldBe false
+  }
+
   private def roundTripJava[A](value: A): A = {
     val bytes = new ByteArrayOutputStream()
     val out   = new ObjectOutputStream(bytes)
@@ -261,6 +293,8 @@ object TimeTypes {
     def apply(value: Long): EpochSeconds = value
 
     given FieldConverter[EpochSeconds] with {
+      def logicalType: LogicalType = new BigIntType(false)
+
       def fromRowData(row: RowData, index: Int): EpochSeconds = row.getLong(index) / 1000
       def toRowData(value: EpochSeconds): AnyRef              = java.lang.Long.valueOf(value * 1000)
     }

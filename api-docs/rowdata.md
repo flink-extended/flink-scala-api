@@ -61,6 +61,7 @@ object Time:
     def apply(seconds: Long): EpochSeconds = seconds
 
     given FieldConverter[EpochSeconds] with
+      def logicalType: LogicalType                            = new BigIntType(false)
       def fromRowData(row: RowData, index: Int): EpochSeconds = row.getLong(index) / 1000
       def toRowData(value: EpochSeconds): AnyRef              = java.lang.Long.valueOf(value * 1000)
 
@@ -80,6 +81,41 @@ Two gotchas worth knowing:
   the built-in converter instead of yours. Putting the opaque type in its own object or file is enough.
 - A `given` must be in scope where the converter is *derived*, not where it is used. Put it in the field type's
   companion object, or top-level in the file that declares the case class.
+
+## Getting a `TypeInformation[RowData]`
+
+A `DataStream[RowData]` needs a `TypeInformation[RowData]`, and Flink derives none for you: `RowData` is an interface,
+so the type information has to carry the row's schema. Every derived converter exposes that schema as a `RowType`:
+
+```scala
+import org.apache.flink.table.runtime.typeutils.InternalTypeInfo
+
+given TypeInformation[RowData] = InternalTypeInfo.of(summon[RowDataConverter[User]].rowType)
+```
+
+Each field contributes one column, named after the field and typed by that field's `FieldConverter`. Columns are
+`NOT NULL` unless the field is an `Option`, and a nested case class contributes a nested `ROW`. So `User` above yields:
+
+```
+ROW<`id` VARCHAR(2147483647) NOT NULL, `name` VARCHAR(2147483647) NOT NULL, `age` INT NOT NULL>
+```
+
+This makes the case class the source of truth for the schema, which is what you want when writing rows you own. When
+**reading** an existing table, prefer the schema the table itself declares — a derived `RowType` cannot reproduce a
+column type the Scala types do not show, such as a `CHAR(10)` or a `DECIMAL` precision other than the one the field's
+converter states:
+
+```scala
+// Iceberg
+val rowType = FlinkSchemaUtil.convert(icebergTable.schema())
+
+// Table API / catalog
+val rowType = tEnv.from("mytable").getResolvedSchema
+  .toPhysicalRowDataType.getLogicalType.asInstanceOf[RowType]
+```
+
+A custom `FieldConverter` must declare its own `logicalType` — that is how its column shows up here. Declare it
+`NOT NULL` (the `false` argument above); `Option` is what makes a column nullable, by copying the inner type.
 
 Runnable versions of all of the above are in
 [modules/examples/src/main/scala/org/example/rowdata](https://github.com/flink-extended/flink-scala-api/tree/master/modules/examples/src/main/scala/org/example/rowdata).
