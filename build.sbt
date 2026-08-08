@@ -1,4 +1,9 @@
-import com.typesafe.tools.mima.core.{DirectMissingMethodProblem, IncompatibleSignatureProblem, ProblemFilters}
+import com.typesafe.tools.mima.core.{
+  DirectMissingMethodProblem,
+  IncompatibleSignatureProblem,
+  ProblemFilters,
+  ReversedMissingMethodProblem
+}
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
 Global / excludeLintKeys      := Set(crossScalaVersions)
@@ -111,7 +116,13 @@ lazy val mimaSettings = Seq(
     ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.semiauto.cache"),
     ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.serializers.cache"),
     // The derivation cache no longer needs to be disabled for the generic types of Scala 3, so TypeTag lost isCachable
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.TypeTag.isCachable")
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.TypeTag.isCachable"),
+    // RowData converters now expose their logical/row type
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.flinkx.api.rowdata.FieldConverter.logicalType"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.flinkx.api.rowdata.RowDataConverter.rowType"),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.rowdata.RowDataConverter#DerivedRowDataConverter.this"
+    )
   )
 )
 
