@@ -4,7 +4,12 @@
 name: All Tests
 
 on:
+  # Only master, because a branch pushed to this repo would otherwise trigger this workflow twice: once for
+  # the push and once for the pull request. Both land in the same concurrency group below, so one run gets
+  # cancelled and the PR shows nine cancelled checks alongside the nine that ran. Pull requests from forks,
+  # which never fire a push event here, were always unaffected.
   push:
+    branches: [ master ]
   pull_request:
     branches: [ master ]
 
