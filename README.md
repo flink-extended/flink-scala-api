@@ -32,7 +32,7 @@ The documentation lives under [`api-docs/`](api-docs):
 
 ## Release
 
-Add new Git Tag and push to remote. Then watch GitHub Release Pipeline which publishes new artifacts to Sonatype.
+Add a new Git tag and push it to the remote. The Release workflow then runs the tests and publishes the artifacts to Maven Central through the Central Portal, using sbt's built-in `localStaging` / `sonaRelease` support.
 
 ## License
 
