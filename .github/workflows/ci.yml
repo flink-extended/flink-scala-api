@@ -18,9 +18,11 @@ jobs:
     runs-on: ubuntu-22.04
     # A wedged sbt server produces no output at all, so fail fast rather than sit on a runner for hours
     timeout-minutes: 30
-    # sbt 2 runs as a daemon that outlives the step that started it. A later step's sbtn then attaches to
-    # that server, which has been seen to hang with no output at all, and never sees this step's environment
-    # either - so JAVA_OPTS is set for the whole job and every sbt invocation ends with `shutdown`.
+    # sbt 2 defaults to a thin client talking to a daemon that outlives the step that started it. That cost
+    # us a step which attached to a stale server and hung for hours without printing a line, and mdoc runs
+    # sent back to the client for forking (NoClassDefFoundError from clientSideRun). `--server` skips the
+    # client and the daemon: every step is a self-contained sbt process, as it was under sbt 1. JAVA_OPTS
+    # stays at job level so it cannot be missed by a step either way.
     env:
       JAVA_OPTS: '--add-opens java.base/java.lang=ALL-UNNAMED'
     steps:
@@ -34,13 +36,13 @@ jobs:
           java-version: 17
           cache: sbt
       - name: Run all tests
-        run: sbt "testFull; shutdown"
+        run: sbt --server -batch "testFull"
       - name: Check the binary compatibility with the previous release
-        run: sbt "mimaReportBinaryIssues; shutdown"
+        run: sbt --server -batch "mimaReportBinaryIssues"
       - name: Compile Scala 3 docs
-        run: sbt "docs/mdoc; shutdown"
+        run: sbt --server -batch "docs/mdoc"
       - name: Compile Scala 2.13 docs
-        run: sbt "docs2_13/mdoc; shutdown"
+        run: sbt --server -batch "docs2_13/mdoc"
 
   # Job 2: Matrix builds for Java version compatibility (Java 17 is already tested with java-17-full)
   java-compat:
@@ -77,10 +79,10 @@ jobs:
           cache: sbt
       - name: Compile Scala 3 Docs
         if: matrix.sbt-module == 'flink-1-api'
-        run: sbt "docs/mdoc; shutdown"
+        run: sbt --server -batch "docs/mdoc"
       - name: Compile Scala 2.13 Docs
         if: matrix.sbt-module == 'flink-1-api2_13'
-        run: sbt "docs2_13/mdoc; shutdown"
+        run: sbt --server -batch "docs2_13/mdoc"
       # The whole point of this row is to exercise an older JDK than the one sbt runs on. `Test / javaHome`
       # falls back to sbt's own JDK when TEST_JAVA_HOME is unset, and the tests would then pass while
       # checking nothing, so refuse to run rather than report a green build that proves the wrong thing.
@@ -91,12 +93,12 @@ jobs:
         env:
           TEST_JAVA_HOME: ${{ env[format('JAVA_HOME_{0}_X64', matrix.java)] }}
       - name: Run tests on ${{ matrix.sbt-module }}
-        run: sbt "${{ matrix.sbt-module }}/testFull; shutdown"
+        run: sbt --server -batch "${{ matrix.sbt-module }}/testFull"
         env:
           TEST_JAVA_HOME: ${{ env[format('JAVA_HOME_{0}_X64', matrix.java)] }}
       # `examples` is a Scala 3 only project, so it rides along with the Scala 3 flink-1 row
       - name: Run tests on examples
         if: matrix.sbt-module == 'flink-1-api'
-        run: sbt "examples/testFull; shutdown"
+        run: sbt --server -batch "examples/testFull"
         env:
           TEST_JAVA_HOME: ${{ env[format('JAVA_HOME_{0}_X64', matrix.java)] }}
