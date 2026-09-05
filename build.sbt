@@ -6,6 +6,20 @@ import com.typesafe.tools.mima.core.{
 }
 
 Global / onChangedBuildSource := ReloadOnSourceChanges
+
+// sbt 2 hands forked tests a "virtual" classpath that the JVM's own class loader cannot see, which breaks
+// Flink's user-code class loader (ClassNotFoundException on Flink classes). Raw puts the classpath back on
+// the forked JVM's -cp. Flink's MiniCluster and the type-derivation cache are also not safe to share between
+// suites running concurrently in one JVM, so suites run one at a time.
+Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Raw
+// sbt 2.0.5 closes test class loaders when the task completes; ScalaTest's reporter then fails to read its
+// own resource bundle while printing the run summary.
+Global / closeClassLoaders          := false
+Test / parallelExecution           := false
+
+// sbt 2 itself needs JDK 17+, so CI can no longer check older JDKs simply by running sbt on them.
+// When TEST_JAVA_HOME points at another JDK, the forked test JVM uses it instead.
+Test / javaHome := sys.env.get("TEST_JAVA_HOME").filter(_.nonEmpty).map(file)
 Global / excludeLintKeys      := Set(crossScalaVersions)
 
 lazy val rootScalaVersion = "3.3.8"
@@ -16,14 +30,12 @@ lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
 // Version on which the binary compatibility is checked by MiMa
 lazy val mimaPreviousVersion = "2.2.4"
 
-ThisBuild / publishTo := sonatypePublishToBundle.value
+ThisBuild / publishTo := localStaging.value
 
 inThisBuild(
   List(
     organization := "com.github.sbt",
     homepage     := Some(url("https://github.com/sbt/sbt-ci-release")),
-    // Alternatively License.Apache2 see https://github.com/sbt/librarymanagement/blob/develop/core/src/main/scala/sbt/librarymanagement/License.scala
-    licenses   := List("Apache-2.0" -> url("http://www.apache.org/licenses/LICENSE-2.0")),
     developers := List(
       Developer(
         id = "romangrebennikov",
@@ -46,9 +58,8 @@ inThisBuild(
     ),
     organization           := "org.flinkextended",
     description            := "Community-maintained fork of official Apache Flink Scala API",
-    licenses               := Seq("APL2" -> url("http://www.apache.org/licenses/LICENSE-2.0.txt")),
-    homepage               := Some(url("https://github.com/flink-extended/flink-scala-api")),
-    sonatypeCredentialHost := "central.sonatype.com"
+    licenses               := Seq(License.Apache2),
+    homepage               := Some(url("https://github.com/flink-extended/flink-scala-api"))
   )
 )
 
@@ -57,7 +68,7 @@ lazy val `flink-scala-api` = (project in file("."))
     `flink`.projectRefs ++
       `flink-1-api`.projectRefs ++
       `flink-2-api`.projectRefs ++
-      `examples`.projectRefs: _*
+      `examples`.projectRefs*
   )
   .settings(commonSettings)
   .settings(
@@ -86,11 +97,13 @@ lazy val commonSettings = Seq(
   Test / fork := true,
   // Need to isolate macro usage to version-specific folders.
   Compile / unmanagedSourceDirectories += {
-    val dir              = (Compile / scalaSource).value.getPath
-    val Some((major, _)) = CrossVersion.partialVersion(scalaVersion.value)
+    val dir   = (Compile / scalaSource).value.getPath
+    val major = CrossVersion.partialVersion(scalaVersion.value).map(_._1).getOrElse(sys.error("no Scala version"))
     file(s"$dir-$major")
   },
   scalacOptions ++= Seq(
+    // sbt 2 requires JDK 17+, but the published artifacts must stay loadable on Java 11.
+    "-release:11",
     "-deprecation",
     "-feature",
     "-language:higherKinds",
@@ -222,7 +235,7 @@ lazy val `examples` = (projectMatrix in file("modules/examples"))
       "io.bullet"       %% "borer-core"                 % "1.18.0"      % Provided,
       "ch.qos.logback"   % "logback-classic"            % "1.4.14"      % Provided,
       "org.apache.flink" % "flink-test-utils"           % flinkVersion1 % Test,
-      "org.apache.flink" % "flink-streaming-java"       % flinkVersion1 % Test classifier "tests",
+      ("org.apache.flink" % "flink-streaming-java"      % flinkVersion1 % Test).classifier("tests"),
       "org.typelevel"   %% "cats-core"                  % "2.13.0"      % Test,
       "org.scalatest"   %% "scalatest"                  % "3.2.15"      % Test
     ),
