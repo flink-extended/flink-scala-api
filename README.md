@@ -8,6 +8,15 @@
 
 This project is a community-maintained fork of official Apache Flink Scala API, cross-built for scala 2.13 and 3.x.
 
+## We would like to hear from you
+
+Two decisions about which baselines to support depend on where users actually are, and we would rather ask than guess:
+
+- [#421](https://github.com/flink-extended/flink-scala-api/issues/421) — is anyone still running on **Java 11**, or can Java 17 become the baseline?
+- [#424](https://github.com/flink-extended/flink-scala-api/issues/424) — are you still on **Scala 3.3 LTS**, or have you moved to 3.9?
+
+A comment with your versions, or a 👍 if the newer baseline suits you, is enough.
+
 ## Documentation
 
 The documentation lives under [`api-docs/`](api-docs):
@@ -23,7 +32,7 @@ The documentation lives under [`api-docs/`](api-docs):
 
 ## Release
 
-Add new Git Tag and push to remote. Then watch GitHub Release Pipeline which publishes new artifacts to Sonatype.
+Add a new Git tag and push it to the remote. The Release workflow then runs the tests and publishes the artifacts to Maven Central through the Central Portal, using sbt's built-in `localStaging` / `sonaRelease` support.
 
 ## License
 
