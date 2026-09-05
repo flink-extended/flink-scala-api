@@ -14,14 +14,14 @@ jobs:
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: 11
+          java-version: 17
           cache: sbt
       - uses: sbt/setup-sbt@v1
       - run: sudo apt update && sudo apt install -y gnupg
       - run: echo $PGP_SECRET | base64 --decode | gpg --batch --import
         env:
           PGP_SECRET: ${{ secrets.PGP_SECRET }}
-      - run: sbt test ciReleaseSonatype
+      - run: sbt "testFull; ciReleaseSonatype"
         env:
           SONATYPE_PASSWORD: ${{ secrets.SONATYPE_PASSWORD }}
           SONATYPE_USERNAME: ${{ secrets.SONATYPE_USERNAME }}

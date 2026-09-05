@@ -16,8 +16,10 @@ jobs:
   # Job 1: Full test coverage (all projects)
   java-17-full:
     runs-on: ubuntu-22.04
+    # sbt 2 reuses the server started by the first invocation, so JAVA_OPTS has to be set for the whole job
+    # rather than per step - a later step's environment never reaches the already running server.
     env:
-      JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
+      JAVA_OPTS: '--add-opens java.base/java.lang=ALL-UNNAMED'
     steps:
       - uses: actions/checkout@v6
         with:
@@ -29,13 +31,13 @@ jobs:
           java-version: 17
           cache: sbt
       - name: Run all tests
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt test
+        run: sbt testFull
       - name: Check the binary compatibility with the previous release
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt mimaReportBinaryIssues
-      - name: Compile Scala 2.13 docs
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt docs/mdoc
+        run: sbt mimaReportBinaryIssues
       - name: Compile Scala 3 docs
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt docs3/mdoc
+        run: sbt docs/mdoc
+      - name: Compile Scala 2.13 docs
+        run: sbt docs2_13/mdoc
 
   # Job 2: Matrix builds for Java version compatibility (Java 17 is already tested with java-17-full)
   java-compat:
@@ -43,36 +45,45 @@ jobs:
     strategy:
       matrix:
         java: [11]
-        sbt-module: ['flink-1-api-common', 'flink-1-api-common3', 'flink-1-api', 'flink-1-api3']
+        sbt-module: ['flink-1-api-common', 'flink-1-api-common2_13', 'flink-1-api', 'flink-1-api2_13']
         include:
           - java: 21
             sbt-module: 'flink-2-api-common'
           - java: 21
-            sbt-module: 'flink-2-api-common3'
+            sbt-module: 'flink-2-api-common2_13'
           - java: 21
             sbt-module: 'flink-2-api'
           - java: 21
-            sbt-module: 'flink-2-api3'
+            sbt-module: 'flink-2-api2_13'
     env:
-      JAVA_OPTIONS: '--add-opens java.base/java.lang=ALL-UNNAMED'
+      JAVA_OPTS: '--add-opens java.base/java.lang=ALL-UNNAMED'
     steps:
       - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      - name: Set up JDK ${{ matrix.java }}
+      # sbt 2 requires JDK 17+, so sbt runs on 17 (listed last, hence the default JAVA_HOME) while the
+      # forked test JVM runs on the JDK whose compatibility this row is meant to check.
+      - name: Set up JDK ${{ matrix.java }} and 17
         uses: actions/setup-java@v5
         with:
           distribution: temurin
-          java-version: ${{ matrix.java }}
+          java-version: |
+            ${{ matrix.java }}
+            17
           cache: sbt
-      - name: Compile Scala 2.13 Docs
-        if: matrix.sbt-module == 'flink-1-api'
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt "docs/mdoc"
       - name: Compile Scala 3 Docs
-        if: matrix.sbt-module == 'flink-1-api3'
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt "docs3/mdoc"
+        if: matrix.sbt-module == 'flink-1-api'
+        run: sbt docs/mdoc
+      - name: Compile Scala 2.13 Docs
+        if: matrix.sbt-module == 'flink-1-api2_13'
+        run: sbt docs2_13/mdoc
       - name: Run tests on ${{ matrix.sbt-module }}
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt "project ${{ matrix.sbt-module }}; test"
+        run: sbt ${{ matrix.sbt-module }}/testFull
+        env:
+          TEST_JAVA_HOME: ${{ env[format('JAVA_HOME_{0}_X64', matrix.java)] }}
+      # `examples` is a Scala 3 only project, so it rides along with the Scala 3 flink-1 row
       - name: Run tests on examples
-        if: matrix.sbt-module == 'flink-1-api3'
-        run: JAVA_OPTS=$JAVA_OPTIONS sbt "project examples3; test"
+        if: matrix.sbt-module == 'flink-1-api'
+        run: sbt examples/testFull
+        env:
+          TEST_JAVA_HOME: ${{ env[format('JAVA_HOME_{0}_X64', matrix.java)] }}
