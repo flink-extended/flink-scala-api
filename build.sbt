@@ -1,10 +1,3 @@
-import com.typesafe.tools.mima.core.{
-  DirectMissingMethodProblem,
-  IncompatibleSignatureProblem,
-  ProblemFilters,
-  ReversedMissingMethodProblem
-}
-
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 // sbt 2 hands forked tests a "virtual" classpath that the JVM's own class loader cannot see, which breaks
@@ -28,7 +21,7 @@ lazy val flinkVersion1    = System.getProperty("flinkVersion1", "1.20.2")
 lazy val flinkVersion2    = System.getProperty("flinkVersion2", "2.0.0")
 
 // Version on which the binary compatibility is checked by MiMa
-lazy val mimaPreviousVersion = "2.2.4"
+lazy val mimaPreviousVersion = "2.3.1"
 
 ThisBuild / publishTo := localStaging.value
 
@@ -121,22 +114,7 @@ lazy val commonSettings = Seq(
 // Checks that this build doesn't break the binary compatibility of the code compiled against mimaPreviousVersion
 lazy val mimaSettings = Seq(
   mimaPreviousArtifacts       := Set(organization.value %% moduleName.value % mimaPreviousVersion),
-  mimaReportSignatureProblems := true,
-  // To empty after next release
-  mimaBinaryIssueFilters ++= Seq(
-    // The key of the derivation cache became a DerivationCacheKey
-    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.auto.cache"),
-    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.semiauto.cache"),
-    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.serializers.cache"),
-    // The derivation cache no longer needs to be disabled for the generic types of Scala 3, so TypeTag lost isCachable
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.TypeTag.isCachable"),
-    // RowData converters now expose their logical/row type
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.flinkx.api.rowdata.FieldConverter.logicalType"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("org.apache.flinkx.api.rowdata.RowDataConverter.rowType"),
-    ProblemFilters.exclude[DirectMissingMethodProblem](
-      "org.apache.flinkx.api.rowdata.RowDataConverter#DerivedRowDataConverter.this"
-    )
-  )
+  mimaReportSignatureProblems := true
 )
 
 def flinkDependencies(flinkVersion: String) =
