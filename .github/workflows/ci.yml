@@ -77,6 +77,15 @@ jobs:
       - name: Compile Scala 2.13 Docs
         if: matrix.sbt-module == 'flink-1-api2_13'
         run: sbt docs2_13/mdoc
+      # The whole point of this row is to exercise an older JDK than the one sbt runs on. `Test / javaHome`
+      # falls back to sbt's own JDK when TEST_JAVA_HOME is unset, and the tests would then pass while
+      # checking nothing, so refuse to run rather than report a green build that proves the wrong thing.
+      - name: Check that the test JDK is resolved
+        run: |
+          : "${TEST_JAVA_HOME:?not set - JAVA_HOME_${{ matrix.java }}_X64 did not resolve}"
+          "$TEST_JAVA_HOME/bin/java" -version
+        env:
+          TEST_JAVA_HOME: ${{ env[format('JAVA_HOME_{0}_X64', matrix.java)] }}
       - name: Run tests on ${{ matrix.sbt-module }}
         run: sbt ${{ matrix.sbt-module }}/testFull
         env:
