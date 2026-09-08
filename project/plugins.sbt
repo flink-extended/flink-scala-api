@@ -1,5 +1,5 @@
 addSbtPlugin("org.scalameta"  % "sbt-scalafmt"         % "2.6.2")
 addSbtPlugin("org.scalameta"  % "sbt-mdoc"             % "2.9.2")
-addSbtPlugin("com.github.sbt" % "sbt-protobuf"         % "0.8.3")
+addSbtPlugin("com.github.sbt" % "sbt-protobuf"         % "0.8.4")
 addSbtPlugin("io.shiftleft"   % "sbt-ci-release-early" % "2.1.15")
 addSbtPlugin("com.typesafe"   % "sbt-mima-plugin"      % "1.1.6")
