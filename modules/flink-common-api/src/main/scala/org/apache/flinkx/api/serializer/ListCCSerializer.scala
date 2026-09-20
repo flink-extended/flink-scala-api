@@ -50,6 +50,10 @@ class ListCCSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[::[T]] =
-    new CollectionSerializerSnapshot[::, T, ListCCSerializer[T]](child, classOf[ListCCSerializer[T]], clazz)
+    new CollectionSerializerSnapshot[::, T, ListCCSerializer[T]](
+      child.snapshotConfiguration(),
+      classOf[ListCCSerializer[T]],
+      clazz
+    )
 
 }

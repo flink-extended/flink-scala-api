@@ -77,7 +77,7 @@ class MutableQueueSerializer[A](child: TypeSerializer[A], clazz: Class[A]) exten
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.Queue[A]] =
     new CollectionSerializerSnapshot[mutable.Queue, A, MutableQueueSerializer[A]](
-      child,
+      child.snapshotConfiguration(),
       classOf[MutableQueueSerializer[A]],
       clazz
     )

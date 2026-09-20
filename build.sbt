@@ -1,3 +1,5 @@
+import com.typesafe.tools.mima.core._
+
 Global / onChangedBuildSource := ReloadOnSourceChanges
 
 // sbt 2 hands forked tests a "virtual" classpath that the JVM's own class loader cannot see, which breaks
@@ -114,7 +116,35 @@ lazy val commonSettings = Seq(
 // Checks that this build doesn't break the binary compatibility of the code compiled against mimaPreviousVersion
 lazy val mimaSettings = Seq(
   mimaPreviousArtifacts       := Set(organization.value %% moduleName.value % mimaPreviousVersion),
-  mimaReportSignatureProblems := true
+  mimaReportSignatureProblems := true,
+  // To empty after next release
+  mimaBinaryIssueFilters ++= Seq(
+    // The snapshots nesting other serializers now hold the nested snapshots instead of the nested serializers
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.this"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.nestedSerializer"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.nestedSerializer_="),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.SortedCollectionSerializerSnapshot.this"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.this"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.apply"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy$default$1"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy$default$2"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot._1"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot._2"),
+    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.unapply"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.keySerializer"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.keySerializer_="),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.valueSerializer"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.valueSerializer_="),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MutableMapSerializerSnapshot.this"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.SortedMapSerializerSnapshot.this"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MutableSortedMapSerializerSnapshot.this"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.this"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser_="),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.ReverseOrderingSerializerSnapshot.this"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.OptionOrderingSerializerSnapshot.this")
+  )
 )
 
 def flinkDependencies(flinkVersion: String) =

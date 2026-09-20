@@ -40,10 +40,16 @@ class Scala3EnumValueSerializerSnapshot[T](
 
   override def getCurrentVersion: Int = Scala3EnumValueSerializerSnapshot.CurrentVersion
 
+  /** Compatible when the same enum value is serialized. */
   override def resolveSchemaCompatibility(
-      oldSerializer: TypeSerializerSnapshot[T]
-  ): TypeSerializerSchemaCompatibility[T] =
-    TypeSerializerSchemaCompatibility.compatibleAsIs()
+      restoredSnapshot: TypeSerializerSnapshot[T]
+  ): TypeSerializerSchemaCompatibility[T] = restoredSnapshot match {
+    case restored: Scala3EnumValueSerializerSnapshot[?]
+        if restored.companionClass.getName == companionClass.getName && restored.enumValueName == enumValueName =>
+      TypeSerializerSchemaCompatibility.compatibleAsIs()
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
+  }
 
   override def restoreSerializer(): TypeSerializer[T] = new Scala3EnumValueSerializer[T](companionClass, enumValueName)
 

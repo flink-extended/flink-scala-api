@@ -81,7 +81,7 @@ class MutableBufferSerializer[A](child: TypeSerializer[A], clazz: Class[A])
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.Buffer[A]] =
     new CollectionSerializerSnapshot[mutable.Buffer, A, MutableBufferSerializer[A]](
-      child,
+      child.snapshotConfiguration(),
       classOf[MutableBufferSerializer[A]],
       clazz
     )

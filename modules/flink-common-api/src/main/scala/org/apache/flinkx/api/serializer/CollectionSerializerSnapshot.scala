@@ -7,8 +7,8 @@ import org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.CurrentVers
 
 /** Generic serializer snapshot for collection.
   *
-  * @param nestedSerializer
-  *   the serializer of `T`
+  * @param nestedSnapshot
+  *   the snapshot of the serializer of `T`
   * @param clazz
   *   the class of `S`
   * @param vclazz
@@ -21,7 +21,7 @@ import org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.CurrentVers
   *   the type of the collection serializer
   */
 class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
-    var nestedSerializer: TypeSerializer[T],
+    var nestedSnapshot: TypeSerializerSnapshot[T],
     var clazz: Class[S],
     var vclazz: Class[T]
 ) extends TypeSerializerSnapshot[F[T]] {
@@ -34,7 +34,7 @@ class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
     clazz = InstantiationUtil.resolveClassByName[S](in, userCodeClassLoader)
     vclazz = InstantiationUtil.resolveClassByName[T](in, userCodeClassLoader)
-    nestedSerializer = TypeSerializerSnapshot.readVersionedSnapshot[T](in, userCodeClassLoader).restoreSerializer()
+    nestedSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[T](in, userCodeClassLoader)
   }
 
   override def writeSnapshot(out: DataOutputView): Unit = {
@@ -51,17 +51,31 @@ class CollectionSerializerSnapshot[F[_], T, S <: TypeSerializer[F[T]]](
       case "void"    => out.writeUTF("java.lang.Void")
       case other     => out.writeUTF(other)
     }
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, nestedSerializer.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, nestedSnapshot)
   }
 
+  /** Compatible when the same collection is serialized and the serializers of its elements are compatible. */
   override def resolveSchemaCompatibility(
-      oldSerializerSnapshot: TypeSerializerSnapshot[F[T]]
-  ): TypeSerializerSchemaCompatibility[F[T]] = TypeSerializerSchemaCompatibility.compatibleAsIs()
-
-  override def restoreSerializer(): TypeSerializer[F[T]] = {
-    val constructor = clazz.getConstructors()(0)
-    constructor.newInstance(nestedSerializer, vclazz).asInstanceOf[TypeSerializer[F[T]]]
+      restoredSnapshot: TypeSerializerSnapshot[F[T]]
+  ): TypeSerializerSchemaCompatibility[F[T]] = restoredSnapshot match {
+    case restored: CollectionSerializerSnapshot[_, _, _]
+        if restored.getClass == getClass && restored.clazz.getName == clazz.getName =>
+      SerializerUtil.resolveNestedSchemaCompatibility(nestedSnapshots, restored.nestedSnapshots, restoreSerializerWith)
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
   }
+
+  /** The snapshots of the nested serializers, in the order [[restoreSerializerWith]] expects their serializers. */
+  protected def nestedSnapshots: Array[TypeSerializerSnapshot[_]] = Array(nestedSnapshot)
+
+  /** Restores the collection serializer with the given nested serializers. */
+  protected def restoreSerializerWith(nestedSerializers: Array[TypeSerializer[_]]): TypeSerializer[F[T]] = {
+    val constructor = clazz.getConstructors()(0)
+    constructor.newInstance(nestedSerializers(0), vclazz).asInstanceOf[TypeSerializer[F[T]]]
+  }
+
+  override def restoreSerializer(): TypeSerializer[F[T]] =
+    restoreSerializerWith(Array(nestedSnapshot.restoreSerializer()))
 
 }
 

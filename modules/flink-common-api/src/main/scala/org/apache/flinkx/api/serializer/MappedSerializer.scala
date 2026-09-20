@@ -51,7 +51,8 @@ case class MappedSerializer[A, B](mapper: TypeMapper[A, B], ser: TypeSerializer[
 
   override def copy(source: DataInputView, target: DataOutputView): Unit = ser.copy(source, target)
 
-  override def snapshotConfiguration(): TypeSerializerSnapshot[A] = new MappedSerializerSnapshot[A, B](mapper, ser)
+  override def snapshotConfiguration(): TypeSerializerSnapshot[A] =
+    new MappedSerializerSnapshot[A, B](mapper, ser.snapshotConfiguration())
 
   override def createInstance(): A = mapper.contramap(ser.createInstance())
 }
@@ -67,7 +68,7 @@ object MappedSerializer {
 
   class MappedSerializerSnapshot[A, B](
       var mapper: TypeMapper[A, B],
-      var ser: TypeSerializer[B]
+      var snapshot: TypeSerializerSnapshot[B]
   ) extends TypeSerializerSnapshot[A] {
 
     // Empty constructor is required to instantiate this class during deserialization.
@@ -76,20 +77,33 @@ object MappedSerializer {
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
       val mapperClazz = InstantiationUtil.resolveClassByName[TypeMapper[A, B]](in, userCodeClassLoader)
       mapper = InstantiationUtil.instantiate(mapperClazz)
-      ser = TypeSerializerSnapshot.readVersionedSnapshot[B](in, userCodeClassLoader).restoreSerializer()
+      snapshot = TypeSerializerSnapshot.readVersionedSnapshot[B](in, userCodeClassLoader)
     }
 
+    /** Compatible when the data are mapped by the same mapper and the serializer of the mapped type is compatible. */
     override def resolveSchemaCompatibility(
-        oldSerializer: TypeSerializerSnapshot[A]
-    ): TypeSerializerSchemaCompatibility[A] =
-      TypeSerializerSchemaCompatibility.compatibleAsIs()
+        restoredSnapshot: TypeSerializerSnapshot[A]
+    ): TypeSerializerSchemaCompatibility[A] = restoredSnapshot match {
+      case restored: MappedSerializerSnapshot[_, _] if restored.mapper.getClass.getName == mapper.getClass.getName =>
+        SerializerUtil.resolveNestedSchemaCompatibility(
+          Array(snapshot),
+          Array(restored.snapshot),
+          restoreSerializerWith
+        )
+      case _ =>
+        TypeSerializerSchemaCompatibility.incompatible()
+    }
+
+    private def restoreSerializerWith(nestedSerializers: Array[TypeSerializer[_]]): TypeSerializer[A] =
+      new MappedSerializer[A, B](mapper, nestedSerializers(0).asInstanceOf[TypeSerializer[B]])
 
     override def writeSnapshot(out: DataOutputView): Unit = {
       out.writeUTF(mapper.getClass.getName)
-      TypeSerializerSnapshot.writeVersionedSnapshot(out, ser.snapshotConfiguration())
+      TypeSerializerSnapshot.writeVersionedSnapshot(out, snapshot)
     }
 
-    override def restoreSerializer(): TypeSerializer[A] = new MappedSerializer[A, B](mapper, ser)
+    override def restoreSerializer(): TypeSerializer[A] =
+      restoreSerializerWith(Array(snapshot.restoreSerializer()))
 
     override def getCurrentVersion: Int = CurrentVersion
 

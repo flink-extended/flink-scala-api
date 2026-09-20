@@ -64,7 +64,7 @@ class MutableSetSerializer[A](child: TypeSerializer[A], clazz: Class[A]) extends
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.Set[A]] =
     new CollectionSerializerSnapshot[mutable.Set, A, MutableSetSerializer[A]](
-      child,
+      child.snapshotConfiguration(),
       classOf[MutableSetSerializer[A]],
       clazz
     )

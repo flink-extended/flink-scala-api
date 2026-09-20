@@ -4,10 +4,10 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSnap
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 
 /** Generic serializer snapshot for sorted collection.
-  * @param aSerializer
-  *   the serializer of `A`
-  * @param aOrderingSerializer
-  *   the serializer of `Ordering[A]`
+  * @param aSnapshot
+  *   the snapshot of the serializer of `A`
+  * @param aOrderingSnapshot
+  *   the snapshot of the serializer of `Ordering[A]`
   * @param sClass
   *   the class of `S`
   * @param aClass
@@ -20,11 +20,11 @@ import org.apache.flink.core.memory.{DataInputView, DataOutputView}
   *   the type of the collection serializer
   */
 class SortedCollectionSerializerSnapshot[F[_], A, S <: TypeSerializer[F[A]]](
-    aSerializer: TypeSerializer[A],
+    aSnapshot: TypeSerializerSnapshot[A],
     sClass: Class[S],
     aClass: Class[A],
-    private var aOrderingSerializer: TypeSerializer[Ordering[A]]
-) extends CollectionSerializerSnapshot[F, A, S](aSerializer, sClass, aClass) {
+    private var aOrderingSnapshot: TypeSerializerSnapshot[Ordering[A]]
+) extends CollectionSerializerSnapshot[F, A, S](aSnapshot, sClass, aClass) {
 
   // Empty constructor is required to instantiate this class during deserialization.
   def this() = this(null, null, null, null)
@@ -33,18 +33,22 @@ class SortedCollectionSerializerSnapshot[F[_], A, S <: TypeSerializer[F[A]]](
 
   override def writeSnapshot(out: DataOutputView): Unit = {
     super.writeSnapshot(out)
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, aOrderingSerializer.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, aOrderingSnapshot)
   }
 
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
     super.readSnapshot(readVersion, in, userCodeClassLoader)
-    aOrderingSerializer =
-      TypeSerializerSnapshot.readVersionedSnapshot[Ordering[A]](in, userCodeClassLoader).restoreSerializer()
+    aOrderingSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[Ordering[A]](in, userCodeClassLoader)
   }
 
-  override def restoreSerializer(): TypeSerializer[F[A]] = {
+  override protected def nestedSnapshots: Array[TypeSerializerSnapshot[_]] = super.nestedSnapshots :+ aOrderingSnapshot
+
+  override protected def restoreSerializerWith(nestedSerializers: Array[TypeSerializer[_]]): TypeSerializer[F[A]] = {
     val constructor = clazz.getConstructors()(0)
-    constructor.newInstance(nestedSerializer, vclazz, aOrderingSerializer).asInstanceOf[TypeSerializer[F[A]]]
+    constructor.newInstance(nestedSerializers(0), vclazz, nestedSerializers(1)).asInstanceOf[TypeSerializer[F[A]]]
   }
+
+  override def restoreSerializer(): TypeSerializer[F[A]] =
+    restoreSerializerWith(Array(nestedSnapshot.restoreSerializer(), aOrderingSnapshot.restoreSerializer()))
 
 }
