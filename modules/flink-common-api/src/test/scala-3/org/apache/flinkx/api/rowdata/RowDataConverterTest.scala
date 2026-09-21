@@ -273,6 +273,17 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
       "ROW<`id` VARCHAR(2147483647) NOT NULL, `address` ROW<`city` VARCHAR(2147483647) NOT NULL, `country` VARCHAR(2147483647) NOT NULL> NOT NULL> NOT NULL"
   }
 
+  it should "name the columns with the ColumnNaming in scope, nested rows included" in {
+    summon[RowDataConverter[SnakeCased.Session]].rowType.asSerializableString shouldBe
+      "ROW<`session_id` VARCHAR(2147483647) NOT NULL, `login` ROW<`user_id` VARCHAR(2147483647) NOT NULL, `last_seen_at` DATE NOT NULL> NOT NULL> NOT NULL"
+  }
+
+  "ColumnNaming.snakeCase" should "split camel case words and acronyms" in {
+    Seq("id" -> "id", "userId" -> "user_id", "userID" -> "user_id", "httpStatusCode" -> "http_status_code").foreach {
+      (field, column) => ColumnNaming.snakeCase.columnName(field) shouldBe column
+    }
+  }
+
   it should "use the type declared by a custom FieldConverter" in {
     summon[RowDataConverter[Event]].rowType.asSerializableString shouldBe
       "ROW<`userId` VARCHAR(2147483647) NOT NULL, `ts` BIGINT NOT NULL> NOT NULL"
@@ -333,6 +344,16 @@ object RowDataConverterTest {
   case class Retryable(ts: EpochSeconds, retryCount: Long) derives RowDataConverter
 
   case class Timeline(ts: List[EpochSeconds]) derives RowDataConverter
+
+  object SnakeCased {
+
+    given ColumnNaming = ColumnNaming.snakeCase
+
+    case class Login(userId: String, lastSeenAt: LocalDate) derives RowDataConverter
+
+    case class Session(sessionId: String, login: Login) derives RowDataConverter
+
+  }
 
   object BigDecimalConverter {
 

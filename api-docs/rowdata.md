@@ -98,7 +98,9 @@ given TypeInformation[RowData] = InternalTypeInfo.of(summon[RowDataConverter[Use
 
 Each field contributes one column, named after the field and typed by that field's `FieldConverter`. Columns are
 `NOT NULL` unless the field is an `Option`, a nested case class contributes a nested `ROW`, and a collection an
-`ARRAY` of its element type. So `User` above yields:
+`ARRAY` of its element type. Columns are named after the fields; for a table with `snake_case` columns put
+`given ColumnNaming = ColumnNaming.snakeCase` in scope where the converters are derived, or provide your own
+`ColumnNaming`. Only the schema changes, the conversion itself is positional. So `User` above yields:
 
 ```
 ROW<`id` VARCHAR(2147483647) NOT NULL, `name` VARCHAR(2147483647) NOT NULL, `age` INT NOT NULL>
