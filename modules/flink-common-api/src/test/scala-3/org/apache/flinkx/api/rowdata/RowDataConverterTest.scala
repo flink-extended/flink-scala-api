@@ -1,6 +1,7 @@
 package org.apache.flinkx.api.rowdata
 
-import org.apache.flink.table.data.{GenericRowData, RowData, StringData}
+import org.apache.flink.table.data.binary.BinaryArrayData
+import org.apache.flink.table.data.{GenericArrayData, GenericRowData, RowData, StringData}
 import org.apache.flink.table.types.logical.{BigIntType, LogicalType}
 import org.apache.flink.types.RowKind
 import org.scalatest.flatspec.AnyFlatSpec
@@ -99,6 +100,12 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
     row.getLong(1) shouldBe 5000L
   }
 
+  it should "apply to the elements of a collection" in {
+    val row = GenericRowData.of(new GenericArrayData(Array[AnyRef](java.lang.Long.valueOf(5000L))))
+
+    row.toScala[Timeline] shouldBe Timeline(List(EpochSeconds(5L)))
+  }
+
   it should "leave other fields of the same underlying type alone" in {
     // ts is an opaque Long with a custom converter, retryCount is a plain Long and is not affected
     val row = GenericRowData.of(java.lang.Long.valueOf(5000L), java.lang.Long.valueOf(7L))
@@ -154,6 +161,46 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
     val person = Person("u1", Address("Berlin", "DE"))
 
     person.toRowData.toScala[Person] shouldBe person
+  }
+
+  "a collection field" should "read from an ARRAY column, in generic and binary form" in {
+    val row = GenericRowData.of(
+      new GenericArrayData(
+        Array[AnyRef](GenericRowData.of(StringData.fromString("Berlin"), StringData.fromString("DE")))
+      ),
+      new GenericArrayData(Array[AnyRef](StringData.fromString("a"), null)),
+      null,
+      BinaryArrayData.fromPrimitiveArray(Array(1, 2))
+    )
+
+    row.toScala[Collections] shouldBe Collections(
+      List(Address("Berlin", "DE")),
+      Vector(Some("a"), None),
+      None,
+      Set(1, 2)
+    )
+  }
+
+  it should "round-trip" in {
+    val collections = Collections(List(Address("Berlin", "DE")), Vector(Some("a"), None), Some(Seq("x")), Set(1, 2))
+
+    collections.toRowData.toScala[Collections] shouldBe collections
+  }
+
+  it should "write empty collections as empty arrays and read them back" in {
+    val empty = Collections(Nil, Vector.empty, Some(Nil), Set.empty)
+    val row   = empty.toRowData
+
+    for i <- 0 until row.getArity do row.getArray(i).size shouldBe 0
+    row.toScala[Collections] shouldBe empty
+  }
+
+  it should "fail with a clear error on a NULL column that is not wrapped in Option" in {
+    val empty = new GenericArrayData(Array.empty[AnyRef])
+    val row   = GenericRowData.of(null, empty, empty, empty)
+
+    val ex = the[NullPointerException] thrownBy row.toScala[Collections]
+    ex.getMessage should include("Option")
   }
 
   "toRowData" should "default to row kind INSERT" in {
@@ -213,6 +260,14 @@ class RowDataConverterTest extends AnyFlatSpec with Matchers {
       "ROW<`id` VARCHAR(2147483647) NOT NULL, `name` VARCHAR(2147483647)> NOT NULL"
   }
 
+  it should "type a collection field as ARRAY of the element type" in {
+    summon[RowDataConverter[Collections]].rowType.asSerializableString shouldBe
+      "ROW<`addresses` ARRAY<ROW<`city` VARCHAR(2147483647) NOT NULL, `country` VARCHAR(2147483647) NOT NULL> NOT NULL> NOT NULL, " +
+      "`words` ARRAY<VARCHAR(2147483647)> NOT NULL, " +
+      "`tags` ARRAY<VARCHAR(2147483647) NOT NULL>, " +
+      "`ids` ARRAY<INT NOT NULL> NOT NULL> NOT NULL"
+  }
+
   it should "nest the ROW type of a nested case class" in {
     summon[RowDataConverter[Person]].rowType.asSerializableString shouldBe
       "ROW<`id` VARCHAR(2147483647) NOT NULL, `address` ROW<`city` VARCHAR(2147483647) NOT NULL, `country` VARCHAR(2147483647) NOT NULL> NOT NULL> NOT NULL"
@@ -264,11 +319,20 @@ object RowDataConverterTest {
 
   case class NoDerives(id: String, age: Int)
 
+  case class Collections(
+      addresses: List[Address],
+      words: Vector[Option[String]],
+      tags: Option[Seq[String]],
+      ids: Set[Int]
+  ) derives RowDataConverter
+
   export TimeTypes.EpochSeconds
 
   case class Event(userId: String, ts: EpochSeconds) derives RowDataConverter
 
   case class Retryable(ts: EpochSeconds, retryCount: Long) derives RowDataConverter
+
+  case class Timeline(ts: List[EpochSeconds]) derives RowDataConverter
 
   object BigDecimalConverter {
 

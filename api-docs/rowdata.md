@@ -31,14 +31,17 @@ derive at every use site.
 ## Supported field types
 
 Out of the box: all seven primitives, `String`, `Array[Byte]`, `LocalDate` for `DATE` columns, `LocalTime` for `TIME` columns,
-`Option` for nullable columns, and nested case classes that have a converter of their own.
+`Option` for nullable columns, nested case classes that have a converter of their own, and `List`, `Seq`, `Vector` and
+`Set` for `ARRAY` columns. The elements of a collection are converted with the converter of the element type, so
+`List[Address]`, `Vector[Option[String]]` (nullable elements) and elements with a custom converter all work; an empty
+collection is an empty array, and a `Set` drops duplicates and element order on read.
 
 `TIME` is stored as milliseconds since midnight whatever precision the schema declares, so a `LocalTime` carrying
 microseconds or nanoseconds is truncated on write.
 
 Wrapping a nullable column in `Option` matters. `RowData`'s typed accessors do not check nullity themselves, so a `NULL`
-column read into a plain `Int` yields `0`, and into a plain `String` throws. The same applies to nested case classes: a
-`NULL` ROW column read into a plain nested field throws — wrap it in `Option` to read a nullable ROW column.
+column read into a plain `Int` yields `0`, and into a plain `String` throws. The same applies to nested case classes and
+collections: a `NULL` ROW or ARRAY column read into a plain field throws — wrap it in `Option` to read a nullable column.
 
 `DECIMAL(p, s)` and `TIMESTAMP(p)` have no default given, because reading them at the wrong precision returns wrong
 values rather than failing. State the schema explicitly:
@@ -94,7 +97,8 @@ given TypeInformation[RowData] = InternalTypeInfo.of(summon[RowDataConverter[Use
 ```
 
 Each field contributes one column, named after the field and typed by that field's `FieldConverter`. Columns are
-`NOT NULL` unless the field is an `Option`, and a nested case class contributes a nested `ROW`. So `User` above yields:
+`NOT NULL` unless the field is an `Option`, a nested case class contributes a nested `ROW`, and a collection an
+`ARRAY` of its element type. So `User` above yields:
 
 ```
 ROW<`id` VARCHAR(2147483647) NOT NULL, `name` VARCHAR(2147483647) NOT NULL, `age` INT NOT NULL>
