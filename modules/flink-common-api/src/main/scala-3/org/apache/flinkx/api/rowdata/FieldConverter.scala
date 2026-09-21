@@ -1,6 +1,14 @@
 package org.apache.flinkx.api.rowdata
 
-import org.apache.flink.table.data.{DecimalData, RowData, StringData, TimestampData}
+import org.apache.flink.table.data.{
+  ArrayData,
+  DecimalData,
+  GenericArrayData,
+  GenericRowData,
+  RowData,
+  StringData,
+  TimestampData
+}
 import org.apache.flink.table.types.logical.*
 
 import java.time.{Instant, LocalDate, LocalDateTime, LocalTime}
@@ -180,6 +188,55 @@ object FieldConverter {
 
     def toRowData(value: A): AnyRef = nested.toRowData(value)
   }
+
+  /** Reads a `List` from an `ARRAY` column, and writes it back as a [[GenericArrayData]]; [[seqConverter]],
+    * [[vectorConverter]] and [[setConverter]] do the same for the other collections.
+    *
+    * Every element is converted with the [[FieldConverter]] of the element type, so nested case classes, `Option`
+    * elements (for nullable elements) and custom converters work inside a collection as they do for a plain field. An
+    * empty collection is an empty array; a `NULL` column is an error, as for any other non-`Option` field.
+    */
+  given listConverter[A](using element: FieldConverter[A]): FieldConverter[List[A]] =
+    collectionConverter(element)(_.toList)
+
+  /** A `Seq` in an `ARRAY` column, see [[listConverter]]. */
+  given seqConverter[A](using element: FieldConverter[A]): FieldConverter[Seq[A]] =
+    collectionConverter(element)(_.toSeq)
+
+  /** A `Vector` in an `ARRAY` column, see [[listConverter]]. */
+  given vectorConverter[A](using element: FieldConverter[A]): FieldConverter[Vector[A]] =
+    collectionConverter(element)(_.toVector)
+
+  /** A `Set` in an `ARRAY` column, see [[listConverter]]. Duplicates and the element order are lost on read. */
+  given setConverter[A](using element: FieldConverter[A]): FieldConverter[Set[A]] =
+    collectionConverter(element)(_.toSet)
+
+  private def collectionConverter[A, C[X] <: Iterable[X]](
+      element: FieldConverter[A]
+  )(build: Iterator[A] => C[A]): FieldConverter[C[A]] =
+    new FieldConverter[C[A]] {
+      def logicalType: LogicalType = new ArrayType(false, element.logicalType)
+
+      private val elementGetter = ArrayData.createElementGetter(element.logicalType)
+
+      def fromRowData(row: RowData, index: Int): C[A] =
+        if row.isNullAt(index) then
+          throw new NullPointerException(
+            s"ARRAY column at index $index is NULL; wrap the field in Option to read a nullable ARRAY column"
+          )
+        else {
+          val array = row.getArray(index)
+          // a FieldConverter reads a column of a row, so each element is handed over in a one-column row; the
+          // converters consume the row before the next element is written, so one row per call is enough
+          val cell = new GenericRowData(1)
+          build(Iterator.tabulate(array.size) { i =>
+            cell.setField(0, elementGetter.getElementOrNull(array, i))
+            element.fromRowData(cell, 0)
+          })
+        }
+
+      def toRowData(value: C[A]): AnyRef = new GenericArrayData(value.iterator.map(element.toRowData).toArray)
+    }
 
   /** A converter for a `DECIMAL(precision, scale)` column. Both must match the table schema. */
   def decimal(precision: Int, scale: Int): FieldConverter[BigDecimal] =
