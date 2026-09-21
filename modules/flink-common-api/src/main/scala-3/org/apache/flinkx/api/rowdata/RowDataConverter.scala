@@ -65,7 +65,8 @@ trait RowDataConverter[T] extends Serializable {
 
 object RowDataConverter {
 
-  /** Derives a converter for a case class, resolving one [[FieldConverter]] per field at compile time.
+  /** Derives a converter for a case class, resolving one [[FieldConverter]] per field at compile time. Columns are
+    * named by the [[ColumnNaming]] in scope, by default after the field.
     *
     * Supports the `derives RowDataConverter` clause.
     */
@@ -73,7 +74,9 @@ object RowDataConverter {
     new DerivedRowDataConverter[T](
       m,
       summonConverters[m.MirroredElemTypes].toArray,
-      constValueTuple[m.MirroredElemLabels].toArray.map(_.asInstanceOf[String])
+      constValueTuple[m.MirroredElemLabels].toArray.map(label =>
+        summonInline[ColumnNaming].columnName(label.asInstanceOf[String])
+      )
     )
 
   private inline def summonConverters[Elems <: Tuple]: List[FieldConverter[?]] =
