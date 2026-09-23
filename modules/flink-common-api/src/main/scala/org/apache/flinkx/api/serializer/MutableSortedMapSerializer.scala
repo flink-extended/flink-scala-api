@@ -81,14 +81,18 @@ class MutableSortedMapSerializer[K, V](
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.SortedMap[K, V]] =
-    new MutableSortedMapSerializerSnapshot(keySerializer, valueSerializer, kOrderingSerializer)
+    new MutableSortedMapSerializerSnapshot(
+      keySerializer.snapshotConfiguration(),
+      valueSerializer.snapshotConfiguration(),
+      kOrderingSerializer.snapshotConfiguration()
+    )
 
 }
 
 class MutableSortedMapSerializerSnapshot[K, V](
-    private var keySerializer: TypeSerializer[K],
-    private var valueSerializer: TypeSerializer[V],
-    private var kOrderingSerializer: TypeSerializer[Ordering[K]]
+    private var keySnapshot: TypeSerializerSnapshot[K],
+    private var valueSnapshot: TypeSerializerSnapshot[V],
+    private var kOrderingSnapshot: TypeSerializerSnapshot[Ordering[K]]
 ) extends TypeSerializerSnapshot[mutable.SortedMap[K, V]] {
 
   // Empty constructor is required to instantiate this class during deserialization.
@@ -97,23 +101,42 @@ class MutableSortedMapSerializerSnapshot[K, V](
   override def getCurrentVersion: Int = 1
 
   override def writeSnapshot(out: DataOutputView): Unit = {
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, keySerializer.snapshotConfiguration())
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSerializer.snapshotConfiguration())
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, kOrderingSerializer.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, keySnapshot)
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSnapshot)
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, kOrderingSnapshot)
   }
 
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-    keySerializer = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader).restoreSerializer()
-    valueSerializer = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader).restoreSerializer()
-    kOrderingSerializer = TypeSerializerSnapshot.readVersionedSnapshot(in, userCodeClassLoader).restoreSerializer()
+    keySnapshot = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader)
+    valueSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader)
+    kOrderingSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[Ordering[K]](in, userCodeClassLoader)
   }
 
+  /** Compatible when the serializers of the keys, of the values and of their ordering are compatible. */
   override def resolveSchemaCompatibility(
-      oldSerializerSnapshot: TypeSerializerSnapshot[mutable.SortedMap[K, V]]
-  ): TypeSerializerSchemaCompatibility[mutable.SortedMap[K, V]] =
-    TypeSerializerSchemaCompatibility.compatibleAsIs()
+      restoredSnapshot: TypeSerializerSnapshot[mutable.SortedMap[K, V]]
+  ): TypeSerializerSchemaCompatibility[mutable.SortedMap[K, V]] = restoredSnapshot match {
+    case restored: MutableSortedMapSerializerSnapshot[_, _] =>
+      SerializerUtil.resolveNestedSchemaCompatibility(
+        Array(keySnapshot, valueSnapshot, kOrderingSnapshot),
+        Array(restored.keySnapshot, restored.valueSnapshot, restored.kOrderingSnapshot),
+        restoreSerializerWith
+      )
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
+  }
 
-  override def restoreSerializer(): TypeSerializer[mutable.SortedMap[K, V]] =
-    new MutableSortedMapSerializer(keySerializer, valueSerializer, kOrderingSerializer)
+  private def restoreSerializerWith(
+      nestedSerializers: Array[TypeSerializer[_]]
+  ): TypeSerializer[mutable.SortedMap[K, V]] =
+    new MutableSortedMapSerializer(
+      nestedSerializers(0).asInstanceOf[TypeSerializer[K]],
+      nestedSerializers(1).asInstanceOf[TypeSerializer[V]],
+      nestedSerializers(2).asInstanceOf[TypeSerializer[Ordering[K]]]
+    )
+
+  override def restoreSerializer(): TypeSerializer[mutable.SortedMap[K, V]] = restoreSerializerWith(
+    Array(keySnapshot.restoreSerializer(), valueSnapshot.restoreSerializer(), kOrderingSnapshot.restoreSerializer())
+  )
 
 }

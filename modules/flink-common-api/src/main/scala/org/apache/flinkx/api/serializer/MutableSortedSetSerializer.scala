@@ -75,10 +75,10 @@ class MutableSortedSetSerializer[A](
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.SortedSet[A]] =
     new SortedCollectionSerializerSnapshot[mutable.SortedSet, A, MutableSortedSetSerializer[A]](
-      aSerializer,
+      aSerializer.snapshotConfiguration(),
       classOf[MutableSortedSetSerializer[A]],
       aClass,
-      aOrderingSerializer
+      aOrderingSerializer.snapshotConfiguration()
     )
 
   override def hashCode(): Int = Objects.hash(aSerializer, aClass, aOrderingSerializer)

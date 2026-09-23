@@ -71,13 +71,13 @@ class MutableMapSerializer[K, V](
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.Map[K, V]] =
-    new MutableMapSerializerSnapshot(keySerializer, valueSerializer)
+    new MutableMapSerializerSnapshot(keySerializer.snapshotConfiguration(), valueSerializer.snapshotConfiguration())
 
 }
 
 class MutableMapSerializerSnapshot[K, V](
-    private var keySerializer: TypeSerializer[K],
-    private var valueSerializer: TypeSerializer[V]
+    private var keySnapshot: TypeSerializerSnapshot[K],
+    private var valueSnapshot: TypeSerializerSnapshot[V]
 ) extends TypeSerializerSnapshot[mutable.Map[K, V]] {
 
   def this() = this(null, null)
@@ -85,22 +85,38 @@ class MutableMapSerializerSnapshot[K, V](
   override def getCurrentVersion: Int = 1
 
   override def writeSnapshot(out: DataOutputView): Unit = {
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, keySerializer.snapshotConfiguration())
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSerializer.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, keySnapshot)
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSnapshot)
   }
 
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-    keySerializer = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader).restoreSerializer()
-    valueSerializer = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader).restoreSerializer()
+    keySnapshot = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader)
+    valueSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader)
   }
 
+  /** Compatible when the serializers of the keys and of the values are compatible. */
   override def resolveSchemaCompatibility(
-      oldSerializerSnapshot: TypeSerializerSnapshot[mutable.Map[K, V]]
-  ): TypeSerializerSchemaCompatibility[mutable.Map[K, V]] = {
-    TypeSerializerSchemaCompatibility.compatibleAsIs()
+      restoredSnapshot: TypeSerializerSnapshot[mutable.Map[K, V]]
+  ): TypeSerializerSchemaCompatibility[mutable.Map[K, V]] = restoredSnapshot match {
+    case restored: MutableMapSerializerSnapshot[_, _] =>
+      SerializerUtil.resolveNestedSchemaCompatibility(
+        Array(keySnapshot, valueSnapshot),
+        Array(restored.keySnapshot, restored.valueSnapshot),
+        restoreSerializerWith
+      )
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
   }
+
+  private def restoreSerializerWith(
+      nestedSerializers: Array[TypeSerializer[_]]
+  ): TypeSerializer[mutable.Map[K, V]] =
+    new MutableMapSerializer(
+      nestedSerializers(0).asInstanceOf[TypeSerializer[K]],
+      nestedSerializers(1).asInstanceOf[TypeSerializer[V]]
+    )
 
   override def restoreSerializer(): TypeSerializer[mutable.Map[K, V]] =
-    new MutableMapSerializer(keySerializer, valueSerializer)
+    restoreSerializerWith(Array(keySnapshot.restoreSerializer(), valueSnapshot.restoreSerializer()))
 
 }

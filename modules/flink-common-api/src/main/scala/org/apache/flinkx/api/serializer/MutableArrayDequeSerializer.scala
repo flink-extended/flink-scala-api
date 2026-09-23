@@ -77,7 +77,7 @@ class MutableArrayDequeSerializer[A](child: TypeSerializer[A], clazz: Class[A])
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[mutable.ArrayDeque[A]] =
     new CollectionSerializerSnapshot[mutable.ArrayDeque, A, MutableArrayDequeSerializer[A]](
-      child,
+      child.snapshotConfiguration(),
       classOf[MutableArrayDequeSerializer[A]],
       clazz
     )

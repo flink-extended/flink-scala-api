@@ -73,6 +73,10 @@ class ArraySerializer[T](val child: TypeSerializer[T], clazz: Class[T]) extends 
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[Array[T]] =
-    new CollectionSerializerSnapshot[Array, T, ArraySerializer[T]](child, classOf[ArraySerializer[T]], clazz)
+    new CollectionSerializerSnapshot[Array, T, ArraySerializer[T]](
+      child.snapshotConfiguration(),
+      classOf[ArraySerializer[T]],
+      clazz
+    )
 
 }

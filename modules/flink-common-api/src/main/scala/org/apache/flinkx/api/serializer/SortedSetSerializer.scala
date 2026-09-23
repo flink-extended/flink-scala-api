@@ -77,10 +77,10 @@ class SortedSetSerializer[A](
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[SortedSet[A]] =
     new SortedCollectionSerializerSnapshot[SortedSet, A, SortedSetSerializer[A]](
-      aSerializer,
+      aSerializer.snapshotConfiguration(),
       classOf[SortedSetSerializer[A]],
       aClass,
-      aOrderingSerializer
+      aOrderingSerializer.snapshotConfiguration()
     )
 
   override def hashCode(): Int = Objects.hash(aSerializer, aClass, aOrderingSerializer)

@@ -4,6 +4,7 @@ import org.apache.flink.api.common.typeinfo.TypeInformation
 import org.apache.flink.api.common.typeutils._
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flinkx.api.semiauto.infoToSer
+import org.apache.flinkx.api.serializer.SerializerUtil.resolveNestedSchemaCompatibility
 import org.apache.flinkx.api.typeinfo.SimpleTypeInfo
 
 import scala.math.Ordering.OptionOrdering
@@ -241,24 +242,33 @@ class ReverseOrderingSerializer[A](child: TypeSerializer[Ordering[A]]) extends I
     child.deserialize(reuse.reverse, source).reverse
   override def deserialize(source: DataInputView): Ordering[A]              = child.deserialize(source).reverse
   override def snapshotConfiguration(): TypeSerializerSnapshot[Ordering[A]] =
-    new ReverseOrderingSerializerSnapshot[A](child)
+    new ReverseOrderingSerializerSnapshot[A](child.snapshotConfiguration())
   override def createInstance(): Ordering[A] = child.createInstance().reverse
 }
 
-class ReverseOrderingSerializerSnapshot[A](private var child: TypeSerializer[Ordering[A]])
+class ReverseOrderingSerializerSnapshot[A](private var childSnapshot: TypeSerializerSnapshot[Ordering[A]])
     extends TypeSerializerSnapshot[Ordering[A]] {
   def this() = this(null) // Empty constructor is required to instantiate this class during deserialization.
   override def getCurrentVersion: Int                   = 1
   override def writeSnapshot(out: DataOutputView): Unit =
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, child.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, childSnapshot)
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-    child = TypeSerializerSnapshot.readVersionedSnapshot[Ordering[A]](in, userCodeClassLoader).restoreSerializer()
+    childSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[Ordering[A]](in, userCodeClassLoader)
   }
+
+  /** Compatible when the serializer of the reversed ordering is compatible. */
   override def resolveSchemaCompatibility(
-      oldSerializerSnapshot: TypeSerializerSnapshot[Ordering[A]]
-  ): TypeSerializerSchemaCompatibility[Ordering[A]] =
-    TypeSerializerSchemaCompatibility.compatibleAsIs()
-  override def restoreSerializer(): TypeSerializer[Ordering[A]] = new ReverseOrderingSerializer[A](child)
+      restoredSnapshot: TypeSerializerSnapshot[Ordering[A]]
+  ): TypeSerializerSchemaCompatibility[Ordering[A]] = restoredSnapshot match {
+    case restored: ReverseOrderingSerializerSnapshot[_] =>
+      resolveNestedSchemaCompatibility(Array(childSnapshot), Array(restored.childSnapshot), restoreSerializerWith)
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
+  }
+  private def restoreSerializerWith(nestedSerializers: Array[TypeSerializer[_]]): TypeSerializer[Ordering[A]] =
+    new ReverseOrderingSerializer[A](nestedSerializers(0).asInstanceOf[TypeSerializer[Ordering[A]]])
+  override def restoreSerializer(): TypeSerializer[Ordering[A]] =
+    restoreSerializerWith(Array(childSnapshot.restoreSerializer()))
 }
 
 // Option
@@ -279,22 +289,31 @@ class OptionOrderingSerializer[A](child: TypeSerializer[Ordering[A]]) extends Im
     Ordering.Option(child.deserialize(reuse.asInstanceOf[OptionOrdering[A]].optionOrdering, source))
   override def deserialize(source: DataInputView): Ordering[Option[A]] = Ordering.Option(child.deserialize(source))
   override def snapshotConfiguration(): TypeSerializerSnapshot[Ordering[Option[A]]] =
-    new OptionOrderingSerializerSnapshot[A](child)
+    new OptionOrderingSerializerSnapshot[A](child.snapshotConfiguration())
   override def createInstance(): Ordering[Option[A]] = Ordering.Option(child.createInstance())
 }
 
-class OptionOrderingSerializerSnapshot[A](private var child: TypeSerializer[Ordering[A]])
+class OptionOrderingSerializerSnapshot[A](private var childSnapshot: TypeSerializerSnapshot[Ordering[A]])
     extends TypeSerializerSnapshot[Ordering[Option[A]]] {
   def this() = this(null) // Empty constructor is required to instantiate this class during deserialization.
   override def getCurrentVersion: Int                   = 1
   override def writeSnapshot(out: DataOutputView): Unit =
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, child.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, childSnapshot)
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-    child = TypeSerializerSnapshot.readVersionedSnapshot[Ordering[A]](in, userCodeClassLoader).restoreSerializer()
+    childSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[Ordering[A]](in, userCodeClassLoader)
   }
+
+  /** Compatible when the serializer of the ordering of the optional values is compatible. */
   override def resolveSchemaCompatibility(
-      oldSerializerSnapshot: TypeSerializerSnapshot[Ordering[Option[A]]]
-  ): TypeSerializerSchemaCompatibility[Ordering[Option[A]]] =
-    TypeSerializerSchemaCompatibility.compatibleAsIs()
-  override def restoreSerializer(): TypeSerializer[Ordering[Option[A]]] = new OptionOrderingSerializer[A](child)
+      restoredSnapshot: TypeSerializerSnapshot[Ordering[Option[A]]]
+  ): TypeSerializerSchemaCompatibility[Ordering[Option[A]]] = restoredSnapshot match {
+    case restored: OptionOrderingSerializerSnapshot[_] =>
+      resolveNestedSchemaCompatibility(Array(childSnapshot), Array(restored.childSnapshot), restoreSerializerWith)
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
+  }
+  private def restoreSerializerWith(nestedSerializers: Array[TypeSerializer[_]]): TypeSerializer[Ordering[Option[A]]] =
+    new OptionOrderingSerializer[A](nestedSerializers(0).asInstanceOf[TypeSerializer[Ordering[A]]])
+  override def restoreSerializer(): TypeSerializer[Ordering[Option[A]]] =
+    restoreSerializerWith(Array(childSnapshot.restoreSerializer()))
 }

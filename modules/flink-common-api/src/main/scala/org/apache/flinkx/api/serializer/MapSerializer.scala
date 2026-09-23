@@ -59,36 +59,55 @@ class MapSerializer[K, V](ks: TypeSerializer[K], vs: TypeSerializer[V]) extends 
     }
   }
 
-  override def snapshotConfiguration(): TypeSerializerSnapshot[Map[K, V]] = new MapSerializerSnapshot(ks, vs)
+  override def snapshotConfiguration(): TypeSerializerSnapshot[Map[K, V]] =
+    MapSerializerSnapshot(ks.snapshotConfiguration(), vs.snapshotConfiguration())
 }
 
 object MapSerializer {
 
   private val CurrentVersion = 2
 
-  case class MapSerializerSnapshot[K, V](var keySerializer: TypeSerializer[K], var valueSerializer: TypeSerializer[V])
-      extends TypeSerializerSnapshot[Map[K, V]] {
+  case class MapSerializerSnapshot[K, V](
+      var keySnapshot: TypeSerializerSnapshot[K],
+      var valueSnapshot: TypeSerializerSnapshot[V]
+  ) extends TypeSerializerSnapshot[Map[K, V]] {
 
     def this() = this(null, null)
 
     override def getCurrentVersion: Int = CurrentVersion
 
     override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-      keySerializer = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader).restoreSerializer()
-      valueSerializer = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader).restoreSerializer()
+      keySnapshot = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader)
+      valueSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader)
     }
 
     override def writeSnapshot(out: DataOutputView): Unit = {
-      TypeSerializerSnapshot.writeVersionedSnapshot(out, keySerializer.snapshotConfiguration())
-      TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSerializer.snapshotConfiguration())
+      TypeSerializerSnapshot.writeVersionedSnapshot(out, keySnapshot)
+      TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSnapshot)
     }
 
+    /** Compatible when the serializers of the keys and of the values are compatible. */
     override def resolveSchemaCompatibility(
-        oldSerializer: TypeSerializerSnapshot[Map[K, V]]
-    ): TypeSerializerSchemaCompatibility[Map[K, V]] =
-      TypeSerializerSchemaCompatibility.compatibleAsIs()
+        restoredSnapshot: TypeSerializerSnapshot[Map[K, V]]
+    ): TypeSerializerSchemaCompatibility[Map[K, V]] = restoredSnapshot match {
+      case restored: MapSerializerSnapshot[_, _] =>
+        SerializerUtil.resolveNestedSchemaCompatibility(
+          Array(keySnapshot, valueSnapshot),
+          Array(restored.keySnapshot, restored.valueSnapshot),
+          restoreSerializerWith
+        )
+      case _ =>
+        TypeSerializerSchemaCompatibility.incompatible()
+    }
 
-    override def restoreSerializer(): TypeSerializer[Map[K, V]] = new MapSerializer(keySerializer, valueSerializer)
+    private def restoreSerializerWith(nestedSerializers: Array[TypeSerializer[_]]): TypeSerializer[Map[K, V]] =
+      new MapSerializer(
+        nestedSerializers(0).asInstanceOf[TypeSerializer[K]],
+        nestedSerializers(1).asInstanceOf[TypeSerializer[V]]
+      )
+
+    override def restoreSerializer(): TypeSerializer[Map[K, V]] =
+      restoreSerializerWith(Array(keySnapshot.restoreSerializer(), valueSnapshot.restoreSerializer()))
 
   }
 

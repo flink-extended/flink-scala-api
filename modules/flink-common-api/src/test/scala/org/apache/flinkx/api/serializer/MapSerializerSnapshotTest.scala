@@ -4,6 +4,7 @@ import org.apache.flink.api.common.typeutils.{TypeSerializer, TypeSerializerSche
 import org.apache.flink.core.memory.{DataInputDeserializer, DataInputView, DataOutputSerializer, DataOutputView}
 import org.apache.flinkx.api.serializer.MapSerializer.MapSerializerSnapshot
 import org.apache.flinkx.api.serializer.MapSerializerSnapshotTest._
+import org.apache.flinkx.api.serializer.SnapshotTestUtil._
 import org.apache.flinkx.api.semiauto._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
@@ -20,7 +21,7 @@ class MapSerializerSnapshotTest extends AnyFlatSpec with Matchers {
 
     // Create MapSerializerSnapshot
     val mapSerializerSnapshot: MapSerializerSnapshot[String, OuterTrait] =
-      MapSerializerSnapshot(keySerializer, oldValueSerializer)
+      MapSerializerSnapshot(keySerializer.snapshotConfiguration(), oldValueSerializer.snapshotConfiguration())
 
     val mapSerializer: TypeSerializer[Map[String, OuterTrait]] = mapSerializerSnapshot.restoreSerializer()
 
@@ -40,7 +41,7 @@ class MapSerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val reconfiguredSnapshot: TypeSerializerSnapshot[Map[String, OuterTrait]] = TypeSerializerSnapshot
       .readVersionedSnapshot[Map[String, OuterTrait]](oldInput, getClass.getClassLoader)
     val reconfiguredMapSnapshot = reconfiguredSnapshot.asInstanceOf[MapSerializerSnapshot[String, OuterTrait]]
-    reconfiguredMapSnapshot.valueSerializer should be(a[ReconfiguredOuterTraitSerializer])
+    reconfiguredMapSnapshot.valueSnapshot.restoreSerializer() should be(a[ReconfiguredOuterTraitSerializer])
     val reconfiguredSerializer = reconfiguredSnapshot.restoreSerializer()
 
     // Deserialize the old data but convert them to the new data
@@ -60,7 +61,7 @@ class MapSerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val newSnapshot: TypeSerializerSnapshot[Map[String, OuterTrait]] = TypeSerializerSnapshot
       .readVersionedSnapshot[Map[String, OuterTrait]](newInput, getClass.getClassLoader)
     val newMapSnapshot = newSnapshot.asInstanceOf[MapSerializerSnapshot[String, OuterTrait]]
-    newMapSnapshot.valueSerializer should be(a[NewOuterTraitSerializer])
+    newMapSnapshot.valueSnapshot.restoreSerializer() should be(a[NewOuterTraitSerializer])
 
     val newSerializer = newSnapshot.restoreSerializer()
 
@@ -68,6 +69,38 @@ class MapSerializerSnapshotTest extends AnyFlatSpec with Matchers {
     val newData = newSerializer.deserialize(newInput)
     newData should be(Map("1" -> NewClass(1L)))
   }
+
+  it should "be compatible as is when the serializer of the values is compatible" in {
+    val registeredSnapshot = new MapSerializer(stringSerializer, fooSerializer).snapshotConfiguration()
+    val restoredSnapshot   = savepointed[Map[String, Foo]](new MapSerializer(stringSerializer, fooSerializer))
+
+    registeredSnapshot.resolveSchemaCompatibility(restoredSnapshot) shouldBe Symbol("compatibleAsIs")
+  }
+
+  it should "be incompatible when the serializer of the values is incompatible" in {
+    val registeredSnapshot = new MapSerializer(stringSerializer, fooSerializer).snapshotConfiguration()
+    val restoredSnapshot   = savepointed[Map[String, Foo]](new MapSerializer(stringSerializer, barSerializer))
+
+    registeredSnapshot.resolveSchemaCompatibility(restoredSnapshot) shouldBe Symbol("incompatible")
+  }
+
+  it should "be compatible with a reconfigured serializer when the serializer of the values is reconfigured" in {
+    val registeredSnapshot = new MapSerializer(stringSerializer, new VersionedSerializer(1)).snapshotConfiguration()
+    val restoredSnapshot   =
+      savepointed[Map[String, String]](new MapSerializer(stringSerializer, new VersionedSerializer(0)))
+
+    val compatibility = registeredSnapshot.resolveSchemaCompatibility(restoredSnapshot)
+
+    compatibility shouldBe Symbol("compatibleWithReconfiguredSerializer")
+    valueSerializerOf(compatibility.getReconfiguredSerializer) should be(new VersionedSerializer(1))
+  }
+
+  private def valueSerializerOf(serializer: TypeSerializer[_]): TypeSerializer[_] =
+    serializer
+      .snapshotConfiguration()
+      .asInstanceOf[MapSerializerSnapshot[_, _]]
+      .valueSnapshot
+      .restoreSerializer()
 
 }
 

@@ -52,6 +52,10 @@ class VectorSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mut
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[Vector[T]] =
-    new CollectionSerializerSnapshot[Vector, T, VectorSerializer[T]](child, classOf[VectorSerializer[T]], clazz)
+    new CollectionSerializerSnapshot[Vector, T, VectorSerializer[T]](
+      child.snapshotConfiguration(),
+      classOf[VectorSerializer[T]],
+      clazz
+    )
 
 }

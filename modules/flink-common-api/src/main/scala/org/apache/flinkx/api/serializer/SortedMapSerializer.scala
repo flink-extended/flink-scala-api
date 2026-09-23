@@ -83,14 +83,18 @@ class SortedMapSerializer[K, V](
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[SortedMap[K, V]] =
-    new SortedMapSerializerSnapshot(keySerializer, valueSerializer, kOrderingSerializer)
+    new SortedMapSerializerSnapshot(
+      keySerializer.snapshotConfiguration(),
+      valueSerializer.snapshotConfiguration(),
+      kOrderingSerializer.snapshotConfiguration()
+    )
 
 }
 
 class SortedMapSerializerSnapshot[K, V](
-    private var keySerializer: TypeSerializer[K],
-    private var valueSerializer: TypeSerializer[V],
-    private var kOrderingSerializer: TypeSerializer[Ordering[K]]
+    private var keySnapshot: TypeSerializerSnapshot[K],
+    private var valueSnapshot: TypeSerializerSnapshot[V],
+    private var kOrderingSnapshot: TypeSerializerSnapshot[Ordering[K]]
 ) extends TypeSerializerSnapshot[SortedMap[K, V]] {
 
   // Empty constructor is required to instantiate this class during deserialization.
@@ -99,23 +103,40 @@ class SortedMapSerializerSnapshot[K, V](
   override def getCurrentVersion: Int = 1
 
   override def writeSnapshot(out: DataOutputView): Unit = {
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, keySerializer.snapshotConfiguration())
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSerializer.snapshotConfiguration())
-    TypeSerializerSnapshot.writeVersionedSnapshot(out, kOrderingSerializer.snapshotConfiguration())
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, keySnapshot)
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, valueSnapshot)
+    TypeSerializerSnapshot.writeVersionedSnapshot(out, kOrderingSnapshot)
   }
 
   override def readSnapshot(readVersion: Int, in: DataInputView, userCodeClassLoader: ClassLoader): Unit = {
-    keySerializer = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader).restoreSerializer()
-    valueSerializer = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader).restoreSerializer()
-    kOrderingSerializer = TypeSerializerSnapshot.readVersionedSnapshot(in, userCodeClassLoader).restoreSerializer()
+    keySnapshot = TypeSerializerSnapshot.readVersionedSnapshot[K](in, userCodeClassLoader)
+    valueSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[V](in, userCodeClassLoader)
+    kOrderingSnapshot = TypeSerializerSnapshot.readVersionedSnapshot[Ordering[K]](in, userCodeClassLoader)
   }
 
+  /** Compatible when the serializers of the keys, of the values and of their ordering are compatible. */
   override def resolveSchemaCompatibility(
-      oldSerializerSnapshot: TypeSerializerSnapshot[SortedMap[K, V]]
-  ): TypeSerializerSchemaCompatibility[SortedMap[K, V]] =
-    TypeSerializerSchemaCompatibility.compatibleAsIs()
+      restoredSnapshot: TypeSerializerSnapshot[SortedMap[K, V]]
+  ): TypeSerializerSchemaCompatibility[SortedMap[K, V]] = restoredSnapshot match {
+    case restored: SortedMapSerializerSnapshot[_, _] =>
+      SerializerUtil.resolveNestedSchemaCompatibility(
+        Array(keySnapshot, valueSnapshot, kOrderingSnapshot),
+        Array(restored.keySnapshot, restored.valueSnapshot, restored.kOrderingSnapshot),
+        restoreSerializerWith
+      )
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
+  }
 
-  override def restoreSerializer(): TypeSerializer[SortedMap[K, V]] =
-    new SortedMapSerializer(keySerializer, valueSerializer, kOrderingSerializer)
+  private def restoreSerializerWith(nestedSerializers: Array[TypeSerializer[_]]): TypeSerializer[SortedMap[K, V]] =
+    new SortedMapSerializer(
+      nestedSerializers(0).asInstanceOf[TypeSerializer[K]],
+      nestedSerializers(1).asInstanceOf[TypeSerializer[V]],
+      nestedSerializers(2).asInstanceOf[TypeSerializer[Ordering[K]]]
+    )
+
+  override def restoreSerializer(): TypeSerializer[SortedMap[K, V]] = restoreSerializerWith(
+    Array(keySnapshot.restoreSerializer(), valueSnapshot.restoreSerializer(), kOrderingSnapshot.restoreSerializer())
+  )
 
 }

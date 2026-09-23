@@ -52,6 +52,10 @@ class SetSerializer[T](child: TypeSerializer[T], clazz: Class[T]) extends Mutabl
   }
 
   override def snapshotConfiguration(): TypeSerializerSnapshot[Set[T]] =
-    new CollectionSerializerSnapshot[Set, T, SetSerializer[T]](child, classOf[SetSerializer[T]], clazz)
+    new CollectionSerializerSnapshot[Set, T, SetSerializer[T]](
+      child.snapshotConfiguration(),
+      classOf[SetSerializer[T]],
+      clazz
+    )
 
 }
