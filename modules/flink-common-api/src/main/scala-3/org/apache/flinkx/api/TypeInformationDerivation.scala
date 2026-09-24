@@ -34,7 +34,7 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
   ): Typeclass[T] =
-    val cacheKey = DerivationCacheKey(typeTag.toString, ctx.params.map(_.typeclass).toSeq)
+    val cacheKey = DerivationCacheKey(classTag.runtimeClass, typeTag.toString, ctx.params.map(_.typeclass).toSeq)
     cache.get(cacheKey) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]
@@ -68,7 +68,7 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
       classTag: ClassTag[T],
       typeTag: TypeTag[T]
   ): Typeclass[T] =
-    val cacheKey = DerivationCacheKey(typeTag.toString, ctx.subtypes.map(_.typeclass).toSeq)
+    val cacheKey = DerivationCacheKey(classTag.runtimeClass, typeTag.toString, ctx.subtypes.map(_.typeclass).toSeq)
     cache.get(cacheKey) match
       case Some(cached) =>
         cached.asInstanceOf[TypeInformation[T]]

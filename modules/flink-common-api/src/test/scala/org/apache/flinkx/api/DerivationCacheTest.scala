@@ -9,6 +9,7 @@ import org.apache.flinkx.api.serializer.CaseClassSerializer
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
 
+import java.net.URLClassLoader
 import java.util.concurrent.{Callable, CountDownLatch, Executors, TimeUnit}
 
 class DerivationCacheTest extends AnyFlatSpec with Matchers {
@@ -37,6 +38,26 @@ class DerivationCacheTest extends AnyFlatSpec with Matchers {
     itemSerializerOf(holderInfo) shouldBe a[CaseClassSerializer[_]]
     // Fails when both Holders share the same cache keys: the type information derived first is served to the other
     itemSerializerOf(customHolderInfo) shouldNot be(a[CaseClassSerializer[_]])
+  }
+
+  // In a Flink session cluster sharing this library between jobs, each job loads its own classes: a class of the same
+  // name loaded by another class loader is another type, and must get an entry of its own
+  it should "key the cache by class as well as by type name" in {
+    auto.cache.clear()
+    implicitly[TypeInformation[Item]]
+    val itemInfo = implicitly[TypeInformation[String]]
+
+    val otherJob  = new IsolatingClassLoader(classOf[Item].getProtectionDomain.getCodeSource.getLocation)
+    val otherItem = otherJob.loadClass(classOf[Item].getName)
+    otherItem.getName shouldBe classOf[Item].getName
+
+    auto.cache.keySet.map(_.typeClass) should contain(classOf[Item])
+    auto.cache.keySet.map(_.typeClass) should not contain otherItem
+    DerivationCacheKey(otherItem, "Item", Seq(itemInfo)) should not be DerivationCacheKey(
+      classOf[Item],
+      "Item",
+      Seq(itemInfo)
+    )
   }
 
   it should "produce a singleton TypeInformation per type even when several threads derive types sharing subtypes" in {
@@ -83,6 +104,14 @@ class DerivationCacheTest extends AnyFlatSpec with Matchers {
         pool.shutdownNow()
       }
     }
+  }
+
+  /** Loads the test classes itself rather than delegating, as the class loader of a job does for its own classes. */
+  private class IsolatingClassLoader(jar: java.net.URL) extends URLClassLoader(Array(jar), getClass.getClassLoader) {
+    override def loadClass(name: String, resolve: Boolean): Class[_] =
+      if (name.startsWith(classOf[DerivationCacheTest].getName))
+        Option(findLoadedClass(name)).getOrElse(findClass(name))
+      else super.loadClass(name, resolve)
   }
 
   private def itemSerializerOf(holderInfo: TypeInformation[Holder]): TypeSerializer[_] =
