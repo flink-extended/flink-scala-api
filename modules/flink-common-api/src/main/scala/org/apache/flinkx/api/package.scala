@@ -8,16 +8,16 @@ package object api {
 
   /** Key of an entry of the derivation cache exposed by `TypeInformationDerivation.cache`.
     *
-    * The name of the type is not enough to identify a derived type information: the derivation also depends on the type
-    * information of the members, which are resolved from the implicits in scope at the call site. Two call sites
-    * deriving the same type with different implicits expect two different type information, so they must not share a
-    * cache entry. Nor is the class enough: the values of a Scala 3 enum share theirs, and a type parameter left
-    * unresolved names another type than the same parameter resolved.
+    * The type is not enough to identify a derived type-information: the derivation also depends on the type-info of the
+    * members, which are resolved from the implicits in scope at the call site.
+    *
+    * Two call sites deriving the same type with different implicits expect two different type information, so they must
+    * not share a cache entry.
     *
     * @param typeClass
-    *   class of the derived type, which tells apart the classes of a same name loaded by different class loaders
+    *   class of the derived type, identify distinct classes of a same name loaded by different class loaders
     * @param typeName
-    *   name of the derived type, type arguments included
+    *   name of the derived type with its type arguments, identify distinct Scala 3 parameterless enum values
     * @param memberTypeInfos
     *   type information of the case class fields, or of the sealed trait subtypes, as resolved at the call site.
     *   [[TypeInformation]] implementations are required to implement `equals`, so comparing them is meaningful.
