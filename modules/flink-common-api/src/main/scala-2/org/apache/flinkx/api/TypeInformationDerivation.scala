@@ -23,7 +23,7 @@ private[api] trait TypeInformationDerivation {
   def join[T <: Product: ClassTag: TypeTag](
       ctx: CaseClass[TypeInformation, T]
   ): TypeInformation[T] = {
-    val cacheKey = DerivationCacheKey(typeName[T], ctx.parameters.map(_.typeclass))
+    val cacheKey = DerivationCacheKey(classTag[T].runtimeClass, typeName[T], ctx.parameters.map(_.typeclass))
     cache.get(cacheKey) match {
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]
       case None         =>
@@ -53,7 +53,7 @@ private[api] trait TypeInformationDerivation {
   }
 
   def split[T: ClassTag: TypeTag](ctx: SealedTrait[TypeInformation, T]): TypeInformation[T] = {
-    val cacheKey = DerivationCacheKey(typeName[T], ctx.subtypes.map(_.typeclass))
+    val cacheKey = DerivationCacheKey(classTag[T].runtimeClass, typeName[T], ctx.subtypes.map(_.typeclass))
     cache.get(cacheKey) match {
       case Some(cached) => cached.asInstanceOf[TypeInformation[T]]
       case None         =>

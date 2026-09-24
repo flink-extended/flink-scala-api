@@ -143,7 +143,17 @@ lazy val mimaSettings = Seq(
     ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser"),
     ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser_="),
     ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.ReverseOrderingSerializerSnapshot.this"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.OptionOrderingSerializerSnapshot.this")
+    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.OptionOrderingSerializerSnapshot.this"),
+    // The key of the derivation cache is now the class of the type as well, not only its name
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.package#DerivationCacheKey.this(java.lang.String,scala.collection.immutable.Seq)Unit"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.package#DerivationCacheKey.apply(java.lang.String,scala.collection.immutable.Seq)org.apache.flinkx.api.package#DerivationCacheKey"),
+    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.package#DerivationCacheKey.copy(java.lang.String,scala.collection.immutable.Seq)org.apache.flinkx.api.package#DerivationCacheKey"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey.copy$default$1()java.lang.String"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey.copy$default$2()scala.collection.immutable.Seq"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey._1()java.lang.String"),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey._2()scala.collection.immutable.Seq"),
+    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.package#DerivationCacheKey.unapply(org.apache.flinkx.api.package#DerivationCacheKey)scala.Option"),
+    ProblemFilters.exclude[MissingTypesProblem]("org.apache.flinkx.api.package$DerivationCacheKey$")
   )
 )
 
