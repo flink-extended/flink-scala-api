@@ -9,13 +9,13 @@ Global / onChangedBuildSource := ReloadOnSourceChanges
 Test / classLoaderLayeringStrategy := ClassLoaderLayeringStrategy.Raw
 // sbt 2.0.5 closes test class loaders when the task completes; ScalaTest's reporter then fails to read its
 // own resource bundle while printing the run summary.
-Global / closeClassLoaders          := false
-Test / parallelExecution           := false
+Global / closeClassLoaders := false
+Test / parallelExecution   := false
 
 // sbt 2 itself needs JDK 17+, so CI can no longer check older JDKs simply by running sbt on them.
 // When TEST_JAVA_HOME points at another JDK, the forked test JVM uses it instead.
-Test / javaHome := sys.env.get("TEST_JAVA_HOME").filter(_.nonEmpty).map(file)
-Global / excludeLintKeys      := Set(crossScalaVersions)
+Test / javaHome          := sys.env.get("TEST_JAVA_HOME").filter(_.nonEmpty).map(file)
+Global / excludeLintKeys := Set(crossScalaVersions)
 
 lazy val rootScalaVersion = "3.3.8"
 lazy val crossVersions    = Seq("2.13.18", rootScalaVersion)
@@ -31,7 +31,7 @@ inThisBuild(
   List(
     organization := "com.github.sbt",
     homepage     := Some(url("https://github.com/sbt/sbt-ci-release")),
-    developers := List(
+    developers   := List(
       Developer(
         id = "romangrebennikov",
         name = "Roman Grebennikov",
@@ -51,10 +51,10 @@ inThisBuild(
         "scm:git@github.com:flink-extended/flink-scala-api.git"
       )
     ),
-    organization           := "org.flinkextended",
-    description            := "Community-maintained fork of official Apache Flink Scala API",
-    licenses               := Seq(License.Apache2),
-    homepage               := Some(url("https://github.com/flink-extended/flink-scala-api"))
+    organization := "org.flinkextended",
+    description  := "Community-maintained fork of official Apache Flink Scala API",
+    licenses     := Seq(License.Apache2),
+    homepage     := Some(url("https://github.com/flink-extended/flink-scala-api"))
   )
 )
 
@@ -63,7 +63,7 @@ lazy val `flink-scala-api` = (project in file("."))
     `flink`.projectRefs ++
       `flink-1-api`.projectRefs ++
       `flink-2-api`.projectRefs ++
-      `examples`.projectRefs*
+      `examples`.projectRefs *
   )
   .settings(commonSettings)
   .settings(
@@ -120,39 +120,103 @@ lazy val mimaSettings = Seq(
   // To empty after next release
   mimaBinaryIssueFilters ++= Seq(
     // The snapshots nesting other serializers now hold the nested snapshots instead of the nested serializers
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.this"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.nestedSerializer"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.nestedSerializer_="),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.SortedCollectionSerializerSnapshot.this"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.this"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.apply"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy$default$1"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy$default$2"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot._1"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot._2"),
-    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.unapply"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.keySerializer"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.keySerializer_="),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.valueSerializer"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.valueSerializer_="),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MutableMapSerializerSnapshot.this"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.SortedMapSerializerSnapshot.this"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MutableSortedMapSerializerSnapshot.this"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.this"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser_="),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.ReverseOrderingSerializerSnapshot.this"),
-    ProblemFilters.exclude[IncompatibleMethTypeProblem]("org.apache.flinkx.api.serializer.OptionOrderingSerializerSnapshot.this"),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.nestedSerializer"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.CollectionSerializerSnapshot.nestedSerializer_="
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.SortedCollectionSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.apply"
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy$default$1"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.copy$default$2"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot._1"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot._2"
+    ),
+    ProblemFilters.exclude[IncompatibleSignatureProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.unapply"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.keySerializer"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.keySerializer_="
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.valueSerializer"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.MapSerializer#MapSerializerSnapshot.valueSerializer_="
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.MutableMapSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.SortedMapSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.MutableSortedMapSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.serializer.MappedSerializer#MappedSerializerSnapshot.ser_="
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.ReverseOrderingSerializerSnapshot.this"
+    ),
+    ProblemFilters.exclude[IncompatibleMethTypeProblem](
+      "org.apache.flinkx.api.serializer.OptionOrderingSerializerSnapshot.this"
+    ),
     // The key of the derivation cache is now the class of the type as well, not only its name
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.package#DerivationCacheKey.this(java.lang.String,scala.collection.immutable.Seq)Unit"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.package#DerivationCacheKey.apply(java.lang.String,scala.collection.immutable.Seq)org.apache.flinkx.api.package#DerivationCacheKey"),
-    ProblemFilters.exclude[DirectMissingMethodProblem]("org.apache.flinkx.api.package#DerivationCacheKey.copy(java.lang.String,scala.collection.immutable.Seq)org.apache.flinkx.api.package#DerivationCacheKey"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey.copy$default$1()java.lang.String"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey.copy$default$2()scala.collection.immutable.Seq"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey._1()java.lang.String"),
-    ProblemFilters.exclude[IncompatibleResultTypeProblem]("org.apache.flinkx.api.package#DerivationCacheKey._2()scala.collection.immutable.Seq"),
-    ProblemFilters.exclude[IncompatibleSignatureProblem]("org.apache.flinkx.api.package#DerivationCacheKey.unapply(org.apache.flinkx.api.package#DerivationCacheKey)scala.Option"),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey.this(java.lang.String,scala.collection.immutable.Seq)Unit"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey.apply(java.lang.String,scala.collection.immutable.Seq)org.apache.flinkx.api.package#DerivationCacheKey"
+    ),
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey.copy(java.lang.String,scala.collection.immutable.Seq)org.apache.flinkx.api.package#DerivationCacheKey"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey.copy$default$1()java.lang.String"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey.copy$default$2()scala.collection.immutable.Seq"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey._1()java.lang.String"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey._2()scala.collection.immutable.Seq"
+    ),
+    ProblemFilters.exclude[IncompatibleSignatureProblem](
+      "org.apache.flinkx.api.package#DerivationCacheKey.unapply(org.apache.flinkx.api.package#DerivationCacheKey)scala.Option"
+    ),
     ProblemFilters.exclude[MissingTypesProblem]("org.apache.flinkx.api.package$DerivationCacheKey$")
   )
 )
@@ -165,7 +229,7 @@ def flinkDependencies(flinkVersion: String) =
     ("org.apache.flink" % "flink-streaming-java"        % flinkVersion % Test).classifier("tests"),
     "org.typelevel"    %% "cats-core"                   % "2.13.0"     % Test,
     "org.scalatest"    %% "scalatest"                   % "3.2.20"     % Test,
-    "ch.qos.logback"    % "logback-classic"             % "1.6.3"      % Test
+    "ch.qos.logback"    % "logback-classic"             % "1.6.4"      % Test
   )
 
 // val has to be named `flink` in order to generate `flink-1-api-common` and `flink-2-api-common` project ids
@@ -246,16 +310,16 @@ lazy val `examples` = (projectMatrix in file("modules/examples"))
       "org.apache.flink" % "flink-clients"             % flinkVersion1 % Provided,
       "org.apache.flink" % "flink-state-processor-api" % flinkVersion1 % Provided,
       // Kafka Connector version is weird and to be set here manually
-      "org.apache.flink" % "flink-connector-kafka"      % s"3.4.0-1.20" % Provided,
-      "org.apache.flink" % "flink-connector-files"      % flinkVersion1 % Provided,
-      "org.apache.flink" % "flink-table-runtime"        % flinkVersion1 % Provided,
-      "org.apache.flink" % "flink-table-planner-loader" % flinkVersion1 % Provided,
-      "io.bullet"       %% "borer-core"                 % "1.18.0"      % Provided,
-      "ch.qos.logback"   % "logback-classic"            % "1.4.14"      % Provided,
-      "org.apache.flink" % "flink-test-utils"           % flinkVersion1 % Test,
-      ("org.apache.flink" % "flink-streaming-java"      % flinkVersion1 % Test).classifier("tests"),
-      "org.typelevel"   %% "cats-core"                  % "2.13.0"      % Test,
-      "org.scalatest"   %% "scalatest"                  % "3.2.15"      % Test
+      "org.apache.flink"  % "flink-connector-kafka"      % s"3.4.0-1.20" % Provided,
+      "org.apache.flink"  % "flink-connector-files"      % flinkVersion1 % Provided,
+      "org.apache.flink"  % "flink-table-runtime"        % flinkVersion1 % Provided,
+      "org.apache.flink"  % "flink-table-planner-loader" % flinkVersion1 % Provided,
+      "io.bullet"        %% "borer-core"                 % "1.18.0"      % Provided,
+      "ch.qos.logback"    % "logback-classic"            % "1.4.14"      % Provided,
+      "org.apache.flink"  % "flink-test-utils"           % flinkVersion1 % Test,
+      ("org.apache.flink" % "flink-streaming-java"       % flinkVersion1 % Test).classifier("tests"),
+      "org.typelevel"    %% "cats-core"                  % "2.13.0"      % Test,
+      "org.scalatest"    %% "scalatest"                  % "3.2.15"      % Test
     ),
     // Flink dependencies are Provided, so they are absent from the default runtime classpath. Both `run` and `runMain`
     // are rebound to the full classpath, otherwise launching any example fails with a NoClassDefFoundError on a Flink
