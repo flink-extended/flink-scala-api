@@ -33,9 +33,11 @@ private[serializer] trait ConstructorCompat:
             e
           )
 
+    // Sort by position, not by name, since string "$10" sorts before "$2"
+    val defaultArgPrefix = "$lessinit$greater$default$"
     lazy val defaultArgs = cls.getMethods
-      .filter(_.getName.startsWith("$lessinit$greater$default"))
-      .sortBy(_.getName())
+      .filter(_.getName.startsWith(defaultArgPrefix))
+      .sortBy(_.getName.stripPrefix(defaultArgPrefix).toInt)
       .map(_.invoke(null))
 
     (args: Array[AnyRef]) => {

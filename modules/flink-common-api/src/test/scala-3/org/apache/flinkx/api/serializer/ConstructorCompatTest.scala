@@ -56,6 +56,17 @@ class ConstructorCompatTest extends AnyFlatSpec with Matchers {
   }
    */
 
+  it should "append defaults in parameter order for 10 or more parameters" in {
+    val constructor = ConstructorCompatImpl.lookupConstructor(classOf[TenParameters])
+    constructor.apply((1 to 9).map(_.asInstanceOf[AnyRef]).toArray) shouldBe TenParameters(1, 2, 3, 4, 5, 6, 7, 8, 9)
+  }
+
+  it should "append several defaults in parameter order past the 9th parameter" in {
+    val constructor = ConstructorCompatImpl.lookupConstructor(classOf[TwelveParameters])
+    constructor.apply((1 to 9).map(_.asInstanceOf[AnyRef]).toArray) shouldBe
+      TwelveParameters(1, 2, 3, 4, 5, 6, 7, 8, 9)
+  }
+
   it should "lookup apply with an enum case class" in {
     val constructor = ConstructorCompatImpl.lookupConstructor(classOf[EnumCaseClass])
     constructor.apply(Array("a", 2.asInstanceOf[AnyRef])) shouldBe a[EnumCaseClass]
@@ -101,6 +112,34 @@ object ConstructorCompatTest {
   case class LongestSecondaryConstructor(a: Int = 1, b: String = "b") {
     def this(a: Int, b: String, c: String) = this(a, b + c)
   }
+
+  case class TenParameters(
+      p1: Int = 0,
+      p2: Int = 0,
+      p3: Int = 0,
+      p4: Int = 0,
+      p5: Int = 0,
+      p6: Int = 0,
+      p7: Int = 0,
+      p8: Int = 0,
+      p9: Int = 0,
+      p10: String = "ten"
+  )
+
+  case class TwelveParameters(
+      p1: Int = 0,
+      p2: Int = 0,
+      p3: Int = 0,
+      p4: Int = 0,
+      p5: Int = 0,
+      p6: Int = 0,
+      p7: Int = 0,
+      p8: Int = 0,
+      p9: Int = 0,
+      p10: String = "ten",
+      p11: Option[String] = Some("eleven"),
+      p12: Boolean = true
+  )
 
   enum EnumWithCaseClass {
     case EnumCaseClass(a: String, b: Int)
