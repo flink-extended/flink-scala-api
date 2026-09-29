@@ -217,7 +217,20 @@ lazy val mimaSettings = Seq(
     ProblemFilters.exclude[IncompatibleSignatureProblem](
       "org.apache.flinkx.api.package#DerivationCacheKey.unapply(org.apache.flinkx.api.package#DerivationCacheKey)scala.Option"
     ),
-    ProblemFilters.exclude[MissingTypesProblem]("org.apache.flinkx.api.package$DerivationCacheKey$")
+    ProblemFilters.exclude[MissingTypesProblem]("org.apache.flinkx.api.package$DerivationCacheKey$"),
+    // The derivation cache keeps its entries only while their type information is in use
+    ProblemFilters.exclude[DirectMissingMethodProblem](
+      "org.apache.flinkx.api.TypeInformationDerivation.cache()scala.collection.concurrent.TrieMap"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.auto.cache()scala.collection.concurrent.TrieMap"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.semiauto.cache()scala.collection.concurrent.TrieMap"
+    ),
+    ProblemFilters.exclude[IncompatibleResultTypeProblem](
+      "org.apache.flinkx.api.serializers.cache()scala.collection.concurrent.TrieMap"
+    )
   )
 )
 

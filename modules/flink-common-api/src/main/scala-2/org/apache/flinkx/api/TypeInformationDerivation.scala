@@ -8,7 +8,6 @@ import org.apache.flinkx.api.serializer.{CaseClassSerializer, CoproductSerialize
 import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformation}
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
-import scala.collection.concurrent.TrieMap
 import scala.reflect.runtime.universe.{TypeTag, typeOf}
 import scala.reflect.{ClassTag, classTag}
 
@@ -18,7 +17,7 @@ private[api] trait TypeInformationDerivation {
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 
-  def cache: TrieMap[DerivationCacheKey, TypeInformation[_]] = TypeInformationDerivation.cache
+  def cache: DerivationCache = TypeInformationDerivation.cache
 
   def join[T <: Product: ClassTag: TypeTag](
       ctx: CaseClass[TypeInformation, T]
@@ -74,6 +73,6 @@ private[api] trait TypeInformationDerivation {
 private[api] object TypeInformationDerivation {
 
   /** Storage of the cache exposed by [[TypeInformationDerivation.cache]]. */
-  private val cache: TrieMap[DerivationCacheKey, TypeInformation[_]] = TrieMap.empty
+  private val cache: DerivationCache = new DerivationCache()
 
 }

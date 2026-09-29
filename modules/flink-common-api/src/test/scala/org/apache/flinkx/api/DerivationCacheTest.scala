@@ -6,9 +6,12 @@ import org.apache.flink.api.common.typeutils.TypeSerializer
 import org.apache.flinkx.api.DerivationCacheTest._
 import org.apache.flinkx.api.auto._
 import org.apache.flinkx.api.serializer.CaseClassSerializer
+import org.scalatest.concurrent.Eventually._
 import org.scalatest.flatspec.AnyFlatSpec
 import org.scalatest.matchers.should.Matchers
+import org.scalatest.time.{Millis, Seconds, Span}
 
+import java.lang.ref.WeakReference
 import java.net.URLClassLoader
 import java.util.concurrent.{Callable, CountDownLatch, Executors, TimeUnit}
 
@@ -22,9 +25,10 @@ class DerivationCacheTest extends AnyFlatSpec with Matchers {
     auto.cache.clear()
     auto.cache shouldBe empty
 
-    implicitly[TypeInformation[Item]]
+    // Held until checked: an entry is kept only while its type information is in use
+    val derived = implicitly[TypeInformation[Item]]
 
-    auto.cache should not be empty
+    auto.cache.keySet.map(_.typeClass) should contain(derived.getTypeClass)
   }
 
   it should "not serve the type information cached to another one" in {
@@ -44,14 +48,14 @@ class DerivationCacheTest extends AnyFlatSpec with Matchers {
   // name loaded by another class loader is another type, and must get an entry of its own
   it should "key the cache by class as well as by type name" in {
     auto.cache.clear()
-    implicitly[TypeInformation[Item]]
+    val derived  = implicitly[TypeInformation[Item]]
     val itemInfo = implicitly[TypeInformation[String]]
 
     val otherJob  = new IsolatingClassLoader(classOf[Item].getProtectionDomain.getCodeSource.getLocation)
     val otherItem = otherJob.loadClass(classOf[Item].getName)
     otherItem.getName shouldBe classOf[Item].getName
 
-    auto.cache.keySet.map(_.typeClass) should contain(classOf[Item])
+    auto.cache.keySet.map(_.typeClass) should contain(derived.getTypeClass)
     auto.cache.keySet.map(_.typeClass) should not contain otherItem
     DerivationCacheKey(otherItem, "Item", Seq(itemInfo)) should not be DerivationCacheKey(
       classOf[Item],
@@ -106,6 +110,29 @@ class DerivationCacheTest extends AnyFlatSpec with Matchers {
     }
   }
 
+  // In a Flink session cluster sharing this library between jobs, a finished job must leave no class behind
+  it should "release the class loader of a job once its type information are no longer used" in {
+    // Scala 2 runtime reflection keeps the first class loader it reflects on: make it this one
+    implicitly[TypeInformation[(List[Item], Int)]]
+    val jobClassLoader = deriveInAnotherJob()
+
+    eventually(timeout(Span(30, Seconds)), interval(Span(100, Millis))) {
+      System.gc()
+      // Compared to null here: a failed assertion holding the loader would keep it alive
+      (jobClassLoader.get == null) shouldBe true
+    }
+  }
+
+  /** Derives the type information of a tuple of the classes of another job, then forgets everything but its loader. */
+  private def deriveInAnotherJob(): WeakReference[ClassLoader] = {
+    val otherJob = new IsolatingClassLoader(classOf[Item].getProtectionDomain.getCodeSource.getLocation)
+    val derive   = otherJob.loadClass(classOf[DeriveInJob].getName).getDeclaredConstructor().newInstance()
+    val info     = derive.asInstanceOf[() => TypeInformation[_]]()
+    auto.cache.keySet.map(_.typeClass.getClassLoader) should contain(otherJob)
+    info.getTypeClass shouldBe classOf[(_, _)]
+    new WeakReference(otherJob)
+  }
+
   /** Loads the test classes itself rather than delegating, as the class loader of a job does for its own classes. */
   private class IsolatingClassLoader(jar: java.net.URL) extends URLClassLoader(Array(jar), getClass.getClassLoader) {
     override def loadClass(name: String, resolve: Boolean): Class[_] =
@@ -139,5 +166,10 @@ object DerivationCacheTest {
   case class Holder6(s1: SharedA, s2: SharedB, t: (Int, String))
   case class Holder7(s1: SharedA, s2: SharedB, t: (Int, String))
   case class Holder8(s1: SharedA, s2: SharedB, t: (Int, String))
+
+  // A tuple is a class of the Scala library, nesting a class of the job in a collection its key doesn't name
+  class DeriveInJob extends (() => TypeInformation[_]) {
+    override def apply(): TypeInformation[_] = implicitly[TypeInformation[(List[Item], Int)]]
+  }
 
 }
