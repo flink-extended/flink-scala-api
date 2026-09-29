@@ -17,7 +17,6 @@ import org.apache.flinkx.api.typeinfo.{CaseClassTypeInfo, CoproductTypeInformati
 import org.apache.flinkx.api.util.ClassUtil.isCaseClassImmutable
 
 import scala.IArray.genericWrapArray
-import scala.collection.concurrent.TrieMap
 import scala.reflect.ClassTag
 
 private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInformation]:
@@ -26,7 +25,7 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
 
   private val config: SerializerConfig = new SerializerConfigImpl()
 
-  def cache: TrieMap[DerivationCacheKey, TypeInformation[?]] = TypeInformationDerivation.cache
+  def cache: DerivationCache = TypeInformationDerivation.cache
 
   // We cannot add a constraint of `T <: Product`, even though `join` is always called on products.
   // Need to mix in via `& Product`.
@@ -92,4 +91,4 @@ private[api] trait TypeInformationDerivation extends TaggedDerivation[TypeInform
 private[api] object TypeInformationDerivation:
 
   /** Storage of the cache exposed by [[TypeInformationDerivation.cache]]. */
-  private val cache: TrieMap[DerivationCacheKey, TypeInformation[?]] = TrieMap.empty
+  private val cache: DerivationCache = new DerivationCache()
