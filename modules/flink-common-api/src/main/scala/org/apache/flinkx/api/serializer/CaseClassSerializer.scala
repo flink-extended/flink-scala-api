@@ -19,13 +19,13 @@ package org.apache.flinkx.api.serializer
 
 import org.apache.flink.annotation.Internal
 import org.apache.flink.api.common.typeutils.CompositeTypeSerializerSnapshot.OuterSchemaCompatibility
-import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
-import org.apache.flink.api.common.typeutils.{CompositeTypeSerializerSnapshot, TypeSerializer, TypeSerializerSnapshot}
+import org.apache.flink.api.common.typeutils.{CompositeTypeSerializerSnapshot, CompositeTypeSerializerUtil, TypeSerializer, TypeSerializerSchemaCompatibility, TypeSerializerSnapshot}
 import org.apache.flink.api.java.typeutils.runtime.TupleSerializerBase
 import org.apache.flink.core.memory.{DataInputView, DataOutputView}
 import org.apache.flink.types.NullFieldException
 import org.apache.flink.util.InstantiationUtil
 import org.apache.flinkx.api.serializer.CaseClassSerializer.EmptyByteArray
+import org.apache.flink.api.common.typeutils.CompositeTypeSerializerUtil.setNestedSerializersSnapshots
 import org.apache.flinkx.api.serializer.ScalaCaseClassSerializerSnapshot.CurrentVersion
 import org.apache.flinkx.api.{NullMarker, VariableLengthDataType}
 import org.slf4j.{Logger, LoggerFactory}
@@ -235,6 +235,46 @@ final class ScalaCaseClassSerializerSnapshot[T <: scala.Product](
     } else {
       OuterSchemaCompatibility.INCOMPATIBLE
     }
+  }
+
+  /** Relaxes [[CompositeTypeSerializerSnapshot]]'s strict arity check: its own compatibility resolution rejects any
+    * change in the number of nested serializers outright, which would forbid appending a field. We reuse everything
+    * else from the base class and only re-decide the nested-serializer comparison here.
+    */
+  override def resolveSchemaCompatibility(
+      oldSerializerSnapshot: TypeSerializerSnapshot[T]
+  ): TypeSerializerSchemaCompatibility[T] = oldSerializerSnapshot match {
+    case old: ScalaCaseClassSerializerSnapshot[T] @unchecked =>
+      if (resolveOuterSchemaCompatibility(old) == OuterSchemaCompatibility.INCOMPATIBLE) {
+        TypeSerializerSchemaCompatibility.incompatible()
+      } else {
+        val oldNested = old.getNestedSerializerSnapshots
+        val newNested = getNestedSerializerSnapshots
+
+        if (newNested.length < oldNested.length) {
+          // Removing fields is not supported.
+          TypeSerializerSchemaCompatibility.incompatible()
+        } else {
+          // Compare only the shared leading fields; any extra trailing fields in the new schema are what we migrate
+          // (old data is read with fewer fields and the constructor supplies their defaults).
+          val sharedNew    = newNested.take(oldNested.length)
+          val intermediate =
+            CompositeTypeSerializerUtil.constructIntermediateCompatibilityResult[T](sharedNew, oldNested)
+
+          if (intermediate.isIncompatible) {
+            TypeSerializerSchemaCompatibility.incompatible()
+          } else if (newNested.length == oldNested.length && intermediate.isCompatibleAsIs) {
+            TypeSerializerSchemaCompatibility.compatibleAsIs()
+          } else {
+            // Either trailing fields were added, or a shared field needs migration/reconfiguration. Migration covers
+            // both: the serializer restored from the savepoint reads the old bytes, then the new serializer takes over.
+            TypeSerializerSchemaCompatibility.compatibleAfterMigration()
+          }
+        }
+      }
+
+    case _ =>
+      TypeSerializerSchemaCompatibility.incompatible()
   }
 
 }
