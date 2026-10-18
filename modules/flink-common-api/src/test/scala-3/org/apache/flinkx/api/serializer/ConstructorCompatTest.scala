@@ -46,15 +46,19 @@ class ConstructorCompatTest extends AnyFlatSpec with Matchers {
     constructor.apply(Array.empty) shouldBe a[SecondaryConstructor]
   }
 
-  /* Commented out failing test in CI: not throwing as expected with JDK 17
+  // Whatever the order the JVM lists the constructors in, the shorter secondary constructor is never the one called
+  it should "lookup the primary constructor rather than a shorter secondary constructor" in {
+    val constructor = ConstructorCompatImpl.lookupConstructor(classOf[SecondaryConstructor])
+    constructor.apply(Array(2.asInstanceOf[AnyRef], "c")) shouldBe SecondaryConstructor(2, "c")
+  }
+
   it should "throw when the longest constructor is a secondary constructor" in {
     val constructor = ConstructorCompatImpl.lookupConstructor(classOf[LongestSecondaryConstructor])
-    val exception = intercept[IllegalArgumentException] {
+    val exception   = intercept[IllegalArgumentException] {
       constructor.apply(Array.empty)
     }
     exception.getMessage should startWith("wrong number of arguments")
   }
-   */
 
   it should "append defaults in parameter order for 10 or more parameters" in {
     val constructor = ConstructorCompatImpl.lookupConstructor(classOf[TenParameters])
