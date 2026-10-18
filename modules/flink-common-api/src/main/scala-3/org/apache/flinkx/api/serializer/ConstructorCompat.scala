@@ -13,13 +13,7 @@ private[serializer] trait ConstructorCompat:
     // The first parameter is an alias for `java.lang.String`, which the constructor uses.
     // The second parameter is an alias for `java.lang.Integer`, but the constructor actually takes an unboxed `int`.
     val constructor =
-      try
-        cls.getConstructors
-          .foldLeft[Option[Constructor[?]]](None) {
-            case (Some(longest), c) if longest.getParameterCount < c.getParameterCount => Some(c)
-            case (_, c)                                                                => Some(c)
-          }
-          .get
+      try cls.getConstructors.maxBy(_.getParameterCount)
       catch
         case NonFatal(e) =>
           throw new IllegalArgumentException(
