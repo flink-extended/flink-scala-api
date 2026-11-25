@@ -37,7 +37,8 @@ private[serializer] trait ConstructorCompat {
     val module          = claas.companion.asModule
     val im              = cm.reflect(cm.reflectModule(module).instance)
     val ts              = im.symbol.typeSignature
-    val constructorSize = primaryConstructorSymbol.paramLists.flatten.size
+    val params          = primaryConstructorSymbol.paramLists.flatten
+    val constructorSize = params.size
     val defaultValues   = (1 to constructorSize)
       .flatMap { i =>
         val defarg = ts.member(TermName(s"$$lessinit$$greater$$default$$$i"))
@@ -46,11 +47,25 @@ private[serializer] trait ConstructorCompat {
         else None
       }
 
+    // Java reflection is much faster, but it can neither unbox value classes nor tell same-arity constructors apart
+    val javaConstructor = cls.getConstructors.filter(_.getParameterCount == constructorSize) match {
+      case Array(c) if !params.exists(p => isValueClass(p.typeSignature)) => Some(c)
+      case _                                                              => None
+    }
+
     (args: Array[AnyRef]) => {
       // Append default values for missing arguments
-      val allArgs = args ++ defaultValues.takeRight(constructorSize - args.length)
-      constructor.apply(allArgs: _*).asInstanceOf[T]
+      val allArgs =
+        if (args.length == constructorSize) args
+        else args ++ defaultValues.takeRight(constructorSize - args.length)
+      javaConstructor match {
+        case Some(c) => c.newInstance(allArgs: _*).asInstanceOf[T]
+        case None    => constructor.apply(allArgs: _*).asInstanceOf[T]
+      }
     }
   }
+
+  private def isValueClass(tpe: Type): Boolean =
+    tpe.typeSymbol.isClass && tpe.typeSymbol.asClass.isDerivedValueClass
 
 }

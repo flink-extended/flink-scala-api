@@ -34,14 +34,20 @@ private[serializer] trait ConstructorCompat:
       .sortBy(_.getName.stripPrefix(defaultArgPrefix).toInt)
       .map(_.invoke(null))
 
-    (args: Array[AnyRef]) => {
-      // Append default values for missing arguments
-      val allArgs = args ++ defaultArgs.takeRight(constructor.getParameterCount - args.length)
+    val instantiate: Array[AnyRef] => AnyRef =
       if isEnum(constructor) then
         // Apply method is used for enum case classes because it cannot be instantiated by its constructor
         val applyMethod = cls.getMethod("apply", constructor.getParameterTypes*)
-        applyMethod.invoke(null, allArgs*).asInstanceOf[T]
-      else constructor.newInstance(allArgs*).asInstanceOf[T]
+        args => applyMethod.invoke(null, args*)
+      else args => constructor.newInstance(args*).asInstanceOf[AnyRef]
+
+    val parameterCount = constructor.getParameterCount
+    (args: Array[AnyRef]) => {
+      // Append default values for missing arguments
+      val allArgs =
+        if args.length == parameterCount then args
+        else args ++ defaultArgs.takeRight(parameterCount - args.length)
+      instantiate(allArgs).asInstanceOf[T]
     }
 
   // Enum modifier constant defined in java.lang.reflect.Modifier.ENUM but inaccessible
