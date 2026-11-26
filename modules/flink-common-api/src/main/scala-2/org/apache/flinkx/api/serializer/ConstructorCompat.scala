@@ -1,5 +1,6 @@
 package org.apache.flinkx.api.serializer
 
+import java.lang.reflect.Modifier
 import scala.annotation.nowarn
 import scala.reflect.runtime.universe._
 import scala.reflect.runtime.{universe, currentMirror => cm}
@@ -43,25 +44,25 @@ private[serializer] trait ConstructorCompat {
       .flatMap { i =>
         val defarg = ts.member(TermName(s"$$lessinit$$greater$$default$$$i"))
         if (defarg != NoSymbol)
-          Some(im.reflectMethod(defarg.asMethod)())
+          Some(im.reflectMethod(defarg.asMethod)().asInstanceOf[AnyRef])
         else None
       }
 
     // Java reflection is much faster, but it can neither unbox value classes nor tell same-arity constructors apart
-    val javaConstructor = cls.getConstructors.filter(_.getParameterCount == constructorSize) match {
-      case Array(c) if !params.exists(p => isValueClass(p.typeSignature)) => Some(c)
-      case _                                                              => None
-    }
+    val instantiate: Array[AnyRef] => Any =
+      cls.getDeclaredConstructors.filter(_.getParameterCount == constructorSize) match {
+        case Array(c) if Modifier.isPublic(c.getModifiers) && !params.exists(p => isValueClass(p.typeSignature)) =>
+          args => c.newInstance(args: _*)
+        case _ =>
+          args => constructor.apply(args: _*)
+      }
 
     (args: Array[AnyRef]) => {
       // Append default values for missing arguments
       val allArgs =
         if (args.length == constructorSize) args
         else args ++ defaultValues.takeRight(constructorSize - args.length)
-      javaConstructor match {
-        case Some(c) => c.newInstance(allArgs: _*).asInstanceOf[T]
-        case None    => constructor.apply(allArgs: _*).asInstanceOf[T]
-      }
+      instantiate(allArgs).asInstanceOf[T]
     }
   }
 
